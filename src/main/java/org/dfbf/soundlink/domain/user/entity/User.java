@@ -40,4 +40,14 @@ public class User {
         this.password = password;
         this.email = email;
     }
+
+    @Builder
+    public User(String email, String authCode){
+        this.email = email;
+        this.authCode = authCode;
+    }
+
+    public void patch(String authCode){
+        this.authCode = authCode;
+    }
 }

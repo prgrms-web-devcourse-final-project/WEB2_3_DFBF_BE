@@ -18,6 +18,7 @@ public class MailService {
     @Value("${spring.mail.username}")
     private String senderEmail;
 
+    //인증코드 생성
     public String createCode() {
         Random random = new Random();
         StringBuilder key = new StringBuilder();
@@ -31,31 +32,31 @@ public class MailService {
         }
         return key.toString();
     }
-
+    //인증 메일 생성
     public MimeMessage createMail(String mail, String authCode) throws MessagingException {
         MimeMessage message = javaMailSender.createMimeMessage();
 
         message.setFrom(senderEmail);
         message.setRecipients(MimeMessage.RecipientType.TO, mail);
-        message.setSubject("이메일 인증");
+        message.setSubject("SoundLink 이메일 인증");
 
-        String body = "<h3>요청하신 인증 번호입니다.</h3>"
+        String body = "<h3>[사운드링크] 요청하신 인증 번호입니다.</h3>"
                 + "<h1>" + authCode + "</h1>"
                 + "<h3>감사합니다.</h3>";
         message.setText(body, "UTF-8", "html");
 
         return message;
     }
-
-    public boolean sendSimpleMessage(String sendEmail) throws MessagingException {
+    //메일 발송
+    public String sendSimpleMessage(String sendEmail) throws MessagingException {
         String authCode = createCode();
         MimeMessage message = createMail(sendEmail, authCode);
 
         try {
             javaMailSender.send(message);
-            return true;
+            return authCode;
         } catch (MailException e) {
-            return false;
+            return null;
         }
     }
 }

@@ -25,7 +25,7 @@ public class Blocklist {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "blockeduser_id")
+    @JoinColumn(name = "blocked_user_id")
     private User blockedUser;
 
     @CreationTimestamp

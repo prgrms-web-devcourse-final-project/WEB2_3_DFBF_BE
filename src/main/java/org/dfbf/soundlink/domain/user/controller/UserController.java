@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.dfbf.soundlink.domain.user.dto.request.UserSignUpDto;
+import org.dfbf.soundlink.domain.user.dto.request.UserUpdateDto;
 import org.dfbf.soundlink.domain.user.service.UserService;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.web.bind.annotation.*;
@@ -23,4 +24,10 @@ public class UserController {
     @GetMapping
     @Operation(summary = "유저 조회", description = "유저 조회 API")
     public ResponseResult getUser(/*@AuthenticationPrincipal id: Int*/) { return userService.getUser(1L); }
+
+    @PutMapping
+    @Operation(summary = "유저 수정", description = "유저 수정 API")
+    public ResponseResult updateUser(/*@AuthenticationPrincipal id: Int, */@RequestBody UserUpdateDto userUpdateDto) {
+        return userService.updateUser(1L, userUpdateDto);
+    }
 }

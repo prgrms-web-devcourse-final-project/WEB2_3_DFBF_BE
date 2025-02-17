@@ -2,6 +2,7 @@ package org.dfbf.soundlink.domain.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.dfbf.soundlink.domain.user.dto.request.UserUpdateDto;
 import org.dfbf.soundlink.global.comm.enums.SocialType;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -45,5 +46,12 @@ public class User {
         this.loginId = loginId;
         this.password = password;
         this.email = email;
+    }
+
+    public void update(UserUpdateDto userUpdateDto) {
+        this.nickName = userUpdateDto.nickName();
+        this.loginId = userUpdateDto.loginId();
+        this.password = userUpdateDto.password();
+        this.email = userUpdateDto.email();
     }
 }

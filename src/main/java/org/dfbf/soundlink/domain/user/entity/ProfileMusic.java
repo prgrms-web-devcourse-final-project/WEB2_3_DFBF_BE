@@ -33,8 +33,12 @@ public class ProfileMusic {
     private Timestamp updateAt;
 
     @Builder
-    ProfileMusic(User user, SpotifyMusic spotifyMusic) {
+    public ProfileMusic(User user, SpotifyMusic spotifyMusic) {
         this.user = user;
+        this.spotifyMusic = spotifyMusic;
+    }
+
+    public void update(SpotifyMusic spotifyMusic) {
         this.spotifyMusic = spotifyMusic;
     }
 }

@@ -22,7 +22,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     private SocialType socialType;
 
+    @Column(nullable = true)
     private Long socialId;
+
     private String loginId;
     private String password;
     private String email;

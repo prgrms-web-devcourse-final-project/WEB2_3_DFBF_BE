@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.naming.AuthenticationException;
+
 @RestController
 @RequestMapping("/api/mail")
 @RequiredArgsConstructor
@@ -34,10 +36,14 @@ public class MailController {
     public ResponseResult validateAuthCode(
             @RequestParam String email,
             @RequestParam String authCode) {
-        boolean isSucces = userService.validateAuthCode(email, authCode);
-        return isSucces
-                ? new ResponseResult(ErrorCode.SUCCESS,"success")
-                : new ResponseResult(ErrorCode.BAD_REQUEST);
+        try {
+            boolean isSucces = userService.validateAuthCode(email, authCode);
+            return isSucces
+                    ? new ResponseResult(ErrorCode.SUCCESS,"success")
+                    : new ResponseResult(ErrorCode.BAD_REQUEST,"Invalid authentication code");
+        } catch (AuthenticationException e) {
+            return new ResponseResult(ErrorCode.BAD_REQUEST, "인증 코드가 일치하지 않습니다.");
+        }
 
     }
 }

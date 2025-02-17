@@ -23,8 +23,6 @@ public class User {
     private String password;
     private String email;
 
-    // 인증코드
-    private String authCode;
 
     @CreationTimestamp
     private Timestamp createdAt;
@@ -41,13 +39,6 @@ public class User {
         this.email = email;
     }
 
-    @Builder
-    public User(String email, String authCode){
-        this.email = email;
-        this.authCode = authCode;
-    }
 
-    public void patch(String authCode){
-        this.authCode = authCode;
-    }
+
 }

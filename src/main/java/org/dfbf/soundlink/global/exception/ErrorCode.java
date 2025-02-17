@@ -25,6 +25,8 @@ public enum ErrorCode {
     NOT_EQUALS_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
     DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "이미 사용중인 이메일입니다"),
     NOT_DUPLICATE_EMAIL(HttpStatus.OK, "사용 가능한 이메일입니다"),
+    DUPLICATE_NICKNAME(HttpStatus.BAD_REQUEST,"이미 사용중인 닉네임입니다."),
+    NOT_DUPLICATE_NICKNAME(HttpStatus.OK,"사용 가능한 닉네임입니다."),
 
     // Auth
     TOKEN_NOT_EXPIRED(HttpStatus.OK, "토큰 정상"),

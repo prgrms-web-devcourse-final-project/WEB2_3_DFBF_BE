@@ -2,15 +2,12 @@ package org.dfbf.soundlink.domain.user.service;
 
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
-import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.naming.AuthenticationException;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -39,5 +36,10 @@ public class UserService {
             return new ResponseResult(ErrorCode.DUPLICATE_EMAIL);
         }
         return new ResponseResult(ErrorCode.NOT_DUPLICATE_EMAIL);
+    }
+
+    //닉네임 중복 확인
+    public boolean checkNicName(String nicName){
+        return userRepository.existsByNickName(nicName);
     }
 }

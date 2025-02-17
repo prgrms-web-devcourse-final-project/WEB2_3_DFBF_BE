@@ -27,6 +27,4 @@ public interface BlockListRepository extends JpaRepository<Blocklist, Long> {
             @Param("userId") Long userId,
             @Param("blockedUserId") Long blockedUserId
             );
-
-// [Soundlink] 음악을 통해 감정을 기록하고, 같은 감정을 공유하는 사람들과 연결
 }

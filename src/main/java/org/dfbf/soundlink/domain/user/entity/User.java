@@ -2,6 +2,7 @@ package org.dfbf.soundlink.domain.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.dfbf.soundlink.global.comm.enums.SocialType;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -17,8 +18,11 @@ public class User {
 
     @Column(unique = true)
     private String nickName;
+
+    @Enumerated(EnumType.STRING)
+    private SocialType socialType;
+
     private Long socialId;
-    private String socialType;
     private String loginId;
     private String password;
     private String email;
@@ -32,7 +36,7 @@ public class User {
     private Timestamp updateAt;
 
     @Builder
-    User(String nickName, Long socialId, String socialType, String loginId, String password, String email) {
+    User(String nickName, Long socialId, SocialType socialType, String loginId, String password, String email) {
         this.nickName = nickName;
         this.socialId = socialId;
         this.socialType = socialType;

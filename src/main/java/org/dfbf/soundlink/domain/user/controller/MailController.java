@@ -1,5 +1,6 @@
 package org.dfbf.soundlink.domain.user.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.*;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +24,9 @@ public class MailController {
     private final UserRepository userRepository;
     private final UserService userService;
 
-    //인증코드 전송
-    @GetMapping("verify/{email}")
-    public ResponseResult requestAuthcode(@PathVariable String email) throws MessagingException {
+    @Operation(summary = "인증코드 요청", description = "이메일로 인증 코드를 전송.")
+    @GetMapping("verify")
+    public ResponseResult requestAuthcode(@RequestParam String email) throws MessagingException {
         //boolean isSend = mailService.sendSimpleMessage(email);
         boolean isSend = userService.sendAuthCode(email);
         return isSend
@@ -34,6 +35,7 @@ public class MailController {
     }
 
     //인증코드 확인
+    @Operation(summary="인증코드 확인",description = "사용자가 입력한 인증코드가 유효한지 확인")
     @PostMapping("/verify/check")
     public ResponseResult validateAuthCode(
             @RequestParam String email,
@@ -50,6 +52,7 @@ public class MailController {
     }
 
     //이메일 중복 확인.
+    @Operation(summary = "이메일 중복 확인", description="이메일이 이미 사용 중인지 확인")
     @GetMapping("/check-email")
     public ResponseResult checkEmail(@RequestParam String email) {
         return userService.checkEmail(email);

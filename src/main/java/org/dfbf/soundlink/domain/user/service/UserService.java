@@ -4,6 +4,8 @@ import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
+import org.dfbf.soundlink.global.exception.ErrorCode;
+import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,5 +30,14 @@ public class UserService {
     public boolean validateAuthCode(String email, String authCode) throws AuthenticationException {
         String savedCode = redisService.getCode(email);
         return authCode.equals(savedCode);
+    }
+
+    //이메일 중복 확인
+    public ResponseResult checkEmail(String email){
+        boolean exists = userRepository.existsByEmail(email);
+        if(exists){
+            return new ResponseResult(ErrorCode.DUPLICATE_EMAIL);
+        }
+        return new ResponseResult(ErrorCode.NOT_DUPLICATE_EMAIL);
     }
 }

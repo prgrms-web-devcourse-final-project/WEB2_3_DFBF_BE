@@ -17,12 +17,13 @@ import javax.naming.AuthenticationException;
 @RestController
 @RequestMapping("/api/mail")
 @RequiredArgsConstructor
-@Tag(name = "Email", description = "이메일 인증 관련 API")
+@Tag(name = "Email", description = "이메일 관련 API")
 public class MailController {
     private final MailService mailService;
     private final UserRepository userRepository;
     private final UserService userService;
 
+    //인증코드 전송
     @GetMapping("verify/{email}")
     public ResponseResult requestAuthcode(@PathVariable String email) throws MessagingException {
         //boolean isSend = mailService.sendSimpleMessage(email);
@@ -32,6 +33,7 @@ public class MailController {
                 : new ResponseResult(ErrorCode.BAD_REQUEST);
     }
 
+    //인증코드 확인
     @PostMapping("/verify/check")
     public ResponseResult validateAuthCode(
             @RequestParam String email,
@@ -45,5 +47,11 @@ public class MailController {
             return new ResponseResult(ErrorCode.BAD_REQUEST, "인증 코드가 일치하지 않습니다.");
         }
 
+    }
+
+    //이메일 중복 확인.
+    @GetMapping("/check-email")
+    public ResponseResult checkEmail(@RequestParam String email) {
+        return userService.checkEmail(email);
     }
 }

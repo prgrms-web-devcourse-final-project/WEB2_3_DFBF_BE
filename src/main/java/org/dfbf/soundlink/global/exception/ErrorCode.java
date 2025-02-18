@@ -20,6 +20,9 @@ public enum ErrorCode {
     // 클라이언트 오류 (Client Error, 400)
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "Validation Error"),
 
+    // 서버 관련 오류
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "내부 서버 에러"),
+
     // User
     FAIL_TO_FIND_USER(HttpStatus.NOT_FOUND, "존재하지 않는 회원입니다"),
     NOT_EQUALS_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
@@ -30,8 +33,6 @@ public enum ErrorCode {
     TOKEN_NOT_EXPIRED(HttpStatus.OK, "토큰 정상"),
     TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "토큰 만료됨"),
     TOKEN_TAMPERED(HttpStatus.BAD_REQUEST, "토큰 변조됨"),
-
-
 
     // 카카오페이 결제 에러
     KAKAOPAY_READY_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오페이 결제 준비 에러"),

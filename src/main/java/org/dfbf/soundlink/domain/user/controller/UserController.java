@@ -30,4 +30,8 @@ public class UserController {
     public ResponseResult updateUser(/*@AuthenticationPrincipal id: Int, */@RequestBody UserUpdateDto userUpdateDto) {
         return userService.updateUser(1L, userUpdateDto);
     }
+
+    @DeleteMapping
+    @Operation(summary = "유저 삭제", description = "회원 탈퇴하는 API (탈퇴시 프로필 정보도 삭제됩니다.)")
+    public ResponseResult deleteUser(/*@AuthenticationPrincipal id: Int*/) { return userService.deleteUser(1L); }
 }

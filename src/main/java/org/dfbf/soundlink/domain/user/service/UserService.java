@@ -3,7 +3,9 @@ package org.dfbf.soundlink.domain.user.service;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dfbf.soundlink.domain.emotionReocrd.entity.EmotionRecord;
 import org.dfbf.soundlink.domain.emotionReocrd.entity.SpotifyMusic;
+import org.dfbf.soundlink.domain.emotionReocrd.repository.EmotionRecordRepository;
 import org.dfbf.soundlink.domain.emotionReocrd.repository.SpotifyMusicRepository;
 import org.dfbf.soundlink.domain.user.dto.request.UserSignUpDto;
 import org.dfbf.soundlink.domain.user.dto.request.UserUpdateDto;
@@ -27,6 +29,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final ProfileMusicRepository profileMusicRepository;
     private final SpotifyMusicRepository spotifyMusicRepository;
+    private final EmotionRecordRepository emotionRecordRepository;
 
     // 회원가입
     public ResponseResult signUp(UserSignUpDto userSignUpDto) {
@@ -76,6 +79,24 @@ public class UserService {
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (NoUserDataException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
+        }
+    }
+
+    // 회원정보 삭제
+    @Transactional
+    public ResponseResult deleteUser(Long userId) {
+        try {
+            User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
+
+            profileMusicRepository.deleteByUser(user);  // 유저 프로필 음악 삭제
+            emotionRecordRepository.deleteByUser(user); // 유저 감정 기록 삭제
+            userRepository.deleteById(userId);          // 유저 삭제
+
+            return new ResponseResult(ErrorCode.SUCCESS);
+        } catch (NoUserDataException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.DB_ERROR);
         }
     }
 }

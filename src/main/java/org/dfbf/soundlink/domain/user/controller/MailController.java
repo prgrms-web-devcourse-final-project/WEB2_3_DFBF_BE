@@ -33,7 +33,7 @@ public class MailController {
                     ? new ResponseResult(ErrorCode.SUCCESS,email)
                     : new ResponseResult(ErrorCode.BAD_REQUEST);
         } catch (MessagingException e) {
-            throw new RuntimeException(e);
+            return new ResponseResult(ErrorCode.EMAIL_SEND_ERROR);
         }
     }
 

@@ -28,6 +28,9 @@ public enum ErrorCode {
     DUPLICATE_NICKNAME(HttpStatus.BAD_REQUEST,"이미 사용중인 닉네임입니다."),
     NOT_DUPLICATE_NICKNAME(HttpStatus.OK,"사용 가능한 닉네임입니다."),
 
+    //Email
+    EMAIL_SEND_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,"이메일 전송 중 오류 발생"),
+
     // Auth
     TOKEN_NOT_EXPIRED(HttpStatus.OK, "토큰 정상"),
     TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "토큰 만료됨"),

@@ -1,4 +1,4 @@
-package org.dfbf.soundlink.domain.emotionReocord.exception;
+package org.dfbf.soundlink.domain.emotionRecord.exception;
 
 import org.dfbf.soundlink.global.exception.BusinessException;
 import org.dfbf.soundlink.global.exception.ErrorCode;

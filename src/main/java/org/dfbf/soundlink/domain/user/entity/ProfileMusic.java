@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import jakarta.persistence.Id;
 import lombok.Builder;
 import lombok.Getter;
-import org.dfbf.soundlink.domain.emotionReocord.entity.SpotifyMusic;
+import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -17,7 +17,7 @@ public class ProfileMusic {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long profileMusicId;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "user_id")
     private User user;
 

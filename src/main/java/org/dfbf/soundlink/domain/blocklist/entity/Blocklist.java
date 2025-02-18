@@ -20,11 +20,11 @@ public class Blocklist {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long blocklistId;
 
-    @ManyToOne
+    @ManyToOne (cascade = CascadeType.REMOVE)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne
+    @ManyToOne (cascade = CascadeType.REMOVE)
     @JoinColumn(name = "blocked_user_id")
     private User blockedUser;
 

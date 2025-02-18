@@ -1,6 +1,6 @@
-package org.dfbf.soundlink.domain.emotionReocrd.repository;
+package org.dfbf.soundlink.domain.emotionRecord.repository;
 
-import org.dfbf.soundlink.domain.emotionReocrd.entity.EmotionRecord;
+import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
 import org.dfbf.soundlink.domain.user.dto.response.EmotionRecordDto;
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.springframework.data.jpa.repository.*;

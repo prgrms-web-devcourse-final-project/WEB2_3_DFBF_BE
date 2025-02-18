@@ -50,7 +50,7 @@ dependencies {
 //    implementation ("io.jsonwebtoken:jjwt-jackson:0.11.5")
 
     // Redis
-    // implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
     // Swagger
     implementation ("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")

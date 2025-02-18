@@ -1,4 +1,4 @@
-package org.dfbf.soundlink.domain.emotionReocord.entity;
+package org.dfbf.soundlink.domain.emotionRecord.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

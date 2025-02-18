@@ -2,7 +2,7 @@ package org.dfbf.soundlink.domain.user.dto.response;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.dfbf.soundlink.domain.emotionReocrd.entity.EmotionRecord;
+import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
 
 import java.util.List;
 

@@ -1,7 +1,10 @@
 package org.dfbf.soundlink.domain.user.repository;
 
+import org.dfbf.soundlink.domain.user.dto.response.UserMyPageDto;
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 

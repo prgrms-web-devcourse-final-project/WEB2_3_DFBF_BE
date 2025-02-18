@@ -9,8 +9,6 @@ import org.dfbf.soundlink.domain.user.service.MailService;
 import org.dfbf.soundlink.domain.user.service.UserService;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.naming.AuthenticationException;

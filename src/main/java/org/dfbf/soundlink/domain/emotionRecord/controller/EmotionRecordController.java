@@ -1,11 +1,11 @@
-package org.dfbf.soundlink.domain.emotionReocord.controller;
+package org.dfbf.soundlink.domain.emotionRecord.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.dfbf.soundlink.domain.emotionReocord.dto.request.EmotionRecordRequestDTO;
-import org.dfbf.soundlink.domain.emotionReocord.service.EmotionRecordService;
+import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordRequestDTO;
+import org.dfbf.soundlink.domain.emotionRecord.service.EmotionRecordService;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

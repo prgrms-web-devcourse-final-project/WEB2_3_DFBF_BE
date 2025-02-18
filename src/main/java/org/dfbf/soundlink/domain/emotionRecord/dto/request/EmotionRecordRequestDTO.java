@@ -1,4 +1,4 @@
-package org.dfbf.soundlink.domain.emotionReocord.dto.request;
+package org.dfbf.soundlink.domain.emotionRecord.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

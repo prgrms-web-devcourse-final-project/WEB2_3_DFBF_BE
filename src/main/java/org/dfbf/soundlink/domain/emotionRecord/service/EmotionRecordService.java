@@ -1,13 +1,13 @@
-package org.dfbf.soundlink.domain.emotionReocord.service;
+package org.dfbf.soundlink.domain.emotionRecord.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.dfbf.soundlink.domain.emotionReocord.dto.request.EmotionRecordRequestDTO;
-import org.dfbf.soundlink.domain.emotionReocord.entity.EmotionRecord;
-import org.dfbf.soundlink.domain.emotionReocord.entity.SpotifyMusic;
-import org.dfbf.soundlink.domain.emotionReocord.exception.UserNotFoundException;
-import org.dfbf.soundlink.domain.emotionReocord.repository.EmotionRecordRepository;
-import org.dfbf.soundlink.domain.emotionReocord.repository.SpotifyMusicRepository;
+import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordRequestDTO;
+import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
+import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
+import org.dfbf.soundlink.domain.emotionRecord.exception.UserNotFoundException;
+import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepository;
+import org.dfbf.soundlink.domain.emotionRecord.repository.SpotifyMusicRepository;
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
 import org.dfbf.soundlink.global.exception.ErrorCode;

@@ -1,11 +1,12 @@
 package org.dfbf.soundlink.domain.user.service;
 
+import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.dfbf.soundlink.domain.emotionReocrd.entity.SpotifyMusic;
-import org.dfbf.soundlink.domain.emotionReocrd.repository.EmotionRecordRepository;
-import org.dfbf.soundlink.domain.emotionReocrd.repository.SpotifyMusicRepository;
+import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
+import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepository;
+import org.dfbf.soundlink.domain.emotionRecord.repository.SpotifyMusicRepository;
 import org.dfbf.soundlink.domain.user.dto.request.UserSignUpDto;
 import org.dfbf.soundlink.domain.user.dto.request.UserUpdateDto;
 import org.dfbf.soundlink.domain.user.dto.response.UserGetDto;
@@ -19,6 +20,8 @@ import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import javax.naming.AuthenticationException;
 
 @Slf4j
 @Service
@@ -90,8 +93,8 @@ public class UserService {
         try {
             User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
 
-            profileMusicRepository.deleteByUser(user);  // 유저 프로필 음악 삭제
-            emotionRecordRepository.deleteByUser(user); // 유저 감정 기록 삭제
+//            profileMusicRepository.deleteByUser(user);  // 유저 프로필 음악 삭제
+//            emotionRecordRepository.deleteByUser(user); // 유저 감정 기록 삭제
             userRepository.deleteById(userId);          // 유저 삭제
 
             return new ResponseResult(ErrorCode.SUCCESS);

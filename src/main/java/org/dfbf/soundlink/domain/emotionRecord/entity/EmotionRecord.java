@@ -1,10 +1,10 @@
-package org.dfbf.soundlink.domain.emotionReocord.entity;
+package org.dfbf.soundlink.domain.emotionRecord.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.global.comm.enums.Emotions;
-import org.dfbf.soundlink.domain.emotionReocrd.entity.SpotifyMusic;
+import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -18,7 +18,7 @@ public class EmotionRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long recordId;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "user_id")
     private User user;
 
@@ -44,3 +44,10 @@ public class EmotionRecord {
         this.comment = comment;
     }
 }
+
+/**
+ * PERSIST - 부모와 자식엔티티를 한 번에 영속화
+ * REMOVE - 함께 저장했던 부모와 자식의 엔티티를 모두 제거할 경우 (고아로 만듭니다)
+ * ALL -  CascadeType.PERSIST 와 CascadeType.REMOVE 동시 적용
+ * orphanRemoval=true -> 해당 고아 객체를 자동으로 삭제해 주는 옵션
+ */

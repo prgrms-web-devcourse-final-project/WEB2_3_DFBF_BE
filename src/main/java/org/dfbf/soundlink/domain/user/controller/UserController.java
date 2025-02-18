@@ -34,4 +34,8 @@ public class UserController {
     @DeleteMapping
     @Operation(summary = "유저 삭제", description = "회원 탈퇴하는 API (탈퇴시 프로필 정보도 삭제됩니다.)")
     public ResponseResult deleteUser(/*@AuthenticationPrincipal id: Int*/) { return userService.deleteUser(1L); }
+
+    @GetMapping("/mypage")
+    @Operation(summary = "마이 페이지", description = "마이 페이지 조회 API")
+    public ResponseResult getMyPage(/*@AuthenticationPrincipal id: Int*/) { return userService.getMyPage(1L); }
 }

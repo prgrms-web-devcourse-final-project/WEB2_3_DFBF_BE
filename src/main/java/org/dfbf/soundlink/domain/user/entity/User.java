@@ -6,6 +6,7 @@ import org.dfbf.soundlink.domain.user.dto.request.UserUpdateDto;
 import org.dfbf.soundlink.global.comm.enums.SocialType;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.sql.Timestamp;
 
@@ -48,10 +49,10 @@ public class User {
         this.email = email;
     }
 
-    public void update(UserUpdateDto userUpdateDto) {
+    public void update(UserUpdateDto userUpdateDto, BCryptPasswordEncoder passwordEncoder) {
         this.nickName = userUpdateDto.nickName();
         this.loginId = userUpdateDto.loginId();
-        this.password = userUpdateDto.password();
+        this.password = passwordEncoder.encode(userUpdateDto.password());
         this.email = userUpdateDto.email();
     }
 }

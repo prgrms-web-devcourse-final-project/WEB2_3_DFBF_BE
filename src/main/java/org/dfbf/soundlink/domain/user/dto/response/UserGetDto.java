@@ -4,13 +4,13 @@ import org.dfbf.soundlink.domain.user.entity.User;
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
 
-public record UserGetResDto(
+public record UserGetDto(
         String nickName,
         String email,
         String loginId,
         String createdAt
 ) {
-    public UserGetResDto(User user) {
+    public UserGetDto(User user) {
         this(
                 user.getNickName(),
                 user.getEmail(),

@@ -1,10 +1,10 @@
 package org.dfbf.soundlink.domain.emotionReocrd.entity;
 
 import jakarta.persistence.*;
-import jakarta.persistence.*;
 import lombok.*;
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.global.comm.enums.Emotions;
+import org.dfbf.soundlink.domain.emotionReocrd.entity.SpotifyMusic;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -26,7 +26,7 @@ public class EmotionRecord {
     private Emotions emotion;
 
     @ManyToOne
-    @JoinColumn(name="spotify_id")
+    @JoinColumn(name = "spotify_music_id")
     private SpotifyMusic spotifyMusic;
 
     private String comment;

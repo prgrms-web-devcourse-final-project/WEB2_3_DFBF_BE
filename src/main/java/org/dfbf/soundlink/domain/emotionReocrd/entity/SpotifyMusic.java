@@ -27,7 +27,7 @@ public class SpotifyMusic {
     private Timestamp updateAt;
 
     @Builder
-    SpotifyMusic (Long spotifyId, String title, String artist, String albumImage) {
+    public SpotifyMusic (Long spotifyId, String title, String artist, String albumImage) {
         this.spotifyId = spotifyId;
         this.title = title;
         this.artist = artist;

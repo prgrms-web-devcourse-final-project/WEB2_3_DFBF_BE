@@ -1,9 +1,10 @@
 package org.dfbf.soundlink.domain.blocklist.repository;
 
-import io.lettuce.core.dynamic.annotation.Param;
+
 import org.dfbf.soundlink.domain.blocklist.entity.Blocklist;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

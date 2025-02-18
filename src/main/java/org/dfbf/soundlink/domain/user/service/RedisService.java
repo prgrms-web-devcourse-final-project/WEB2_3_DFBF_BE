@@ -16,8 +16,8 @@ public class RedisService {
     //인증코드 갱신
     public void setCode(String email, String authCode) {
         ValueOperations<String, String> op = redisTemplate.opsForValue();
-        //유효시간 300초
-        op.set(email, authCode, 300, TimeUnit.SECONDS);
+        //유효시간 3분
+        op.set(email, authCode, 3, TimeUnit.MINUTES);
     }
 
     public String getCode(String email) throws AuthenticationException {

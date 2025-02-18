@@ -25,7 +25,7 @@ public class MailController {
     private final UserService userService;
 
     @Operation(summary = "인증코드 요청", description = "이메일로 인증 코드를 전송.")
-    @GetMapping("/verify")
+    @PostMapping("/verify")
     public ResponseResult requestAuthcode(@RequestParam String email) throws MessagingException {
         try {
             boolean isSend = userService.sendAuthCode(email);

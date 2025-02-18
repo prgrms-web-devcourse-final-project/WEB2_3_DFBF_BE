@@ -67,6 +67,9 @@ dependencies {
     // logger
     implementation ("org.springframework.boot:spring-boot-starter-logging")
 
+    // validation
+    implementation ("org.springframework.boot:spring-boot-starter-validation")
+
     // Feign
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 

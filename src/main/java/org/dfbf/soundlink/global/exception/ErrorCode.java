@@ -26,6 +26,11 @@ public enum ErrorCode {
     DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "이미 사용중인 이메일입니다"),
     NOT_DUPLICATE_EMAIL(HttpStatus.OK, "사용 가능한 이메일입니다"),
 
+    // Block 관련 오류 (Block Error)
+    BLOCKED_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "차단된 유저의 아이디를 찾을 수 없습니다."),
+    BLOCKING_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "차단을 시도한 유저의 아이디를 찾을 수 없습니다."),
+    ALREADY_BLOCKED_USER(HttpStatus.BAD_REQUEST, "이미 차단한 유저입니다."),
+
     // Auth
     TOKEN_NOT_EXPIRED(HttpStatus.OK, "토큰 정상"),
     TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "토큰 만료됨"),

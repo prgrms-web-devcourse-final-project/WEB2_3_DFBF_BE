@@ -25,14 +25,7 @@ public class MailController {
     @Operation(summary = "인증코드 요청", description = "이메일로 인증 코드를 전송.")
     @PostMapping("/verify")
     public ResponseResult requestAuthcode(@RequestParam String email) throws MessagingException {
-        try {
-            boolean isSend = userService.sendAuthCode(email);
-            return isSend
-                    ? new ResponseResult(ErrorCode.SUCCESS,email)
-                    : new ResponseResult(ErrorCode.BAD_REQUEST);
-        } catch (MessagingException e) {
-            return new ResponseResult(ErrorCode.EMAIL_SEND_ERROR);
-        }
+        return userService.sendAuthCode(email);
     }
 
     //인증코드 확인
@@ -41,14 +34,7 @@ public class MailController {
     public ResponseResult validateAuthCode(
             @RequestParam String email,
             @RequestParam String authCode) {
-        try {
-            boolean isSucces = userService.validateAuthCode(email, authCode);
-            return isSucces
-                    ? new ResponseResult(ErrorCode.SUCCESS,email)
-                    : new ResponseResult(ErrorCode.BAD_REQUEST,"이메일 전송 실패: 잘못된 요청입니다.");
-        } catch (AuthenticationException e) {
-            return new ResponseResult(ErrorCode.EMAIL_SEND_ERROR);
-        }
+        return userService.validateAuthCode(email, authCode);
     }
 
     //이메일 중복 확인.

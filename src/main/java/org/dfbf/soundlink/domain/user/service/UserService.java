@@ -123,16 +123,30 @@ public class UserService {
     }
   
     //인증코드 발급. 이메일이 존재하는지 확인.
-    public boolean sendAuthCode(String email) throws MessagingException {
-        String authCode = mailService.sendSimpleMessage(email);
-        redisService.setCode(email, authCode);
-        return true;
+    public ResponseResult sendAuthCode(String email) {
+
+        try {
+            String authCode = mailService.sendSimpleMessage(email);
+            redisService.setCode(email, authCode);
+            return new ResponseResult(ErrorCode.SUCCESS, email);
+        } catch (MessagingException e) {
+            return new ResponseResult(ErrorCode.EMAIL_SEND_ERROR, "이메일 전송에 실패했습니다.");
+        }
     }
 
     //이메일과 인증코드를 검증
-    public boolean validateAuthCode(String email, String authCode) throws AuthenticationException {
-        String savedCode = redisService.getCode(email);
-        return authCode.equals(savedCode);
+    public ResponseResult validateAuthCode(String email, String authCode){
+        try {
+            String savedCode = redisService.getCode(email);
+            boolean isSuccess = authCode.equals(savedCode);
+            if (isSuccess) {
+                return new ResponseResult(ErrorCode.SUCCESS, email);
+            } else {
+                return new ResponseResult(ErrorCode.BAD_REQUEST, "이메일 전송 실패: 잘못된 요청입니다.");
+            }
+        } catch (AuthenticationException e) {
+            return new ResponseResult(ErrorCode.EMAIL_SEND_ERROR);
+        }
     }
 
     //이메일 중복 확인

@@ -25,6 +25,16 @@ public enum ErrorCode {
     NOT_EQUALS_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
     DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "이미 사용중인 이메일입니다"),
     NOT_DUPLICATE_EMAIL(HttpStatus.OK, "사용 가능한 이메일입니다"),
+    DUPLICATE_NICKNAME(HttpStatus.BAD_REQUEST,"이미 사용중인 닉네임입니다."),
+    NOT_DUPLICATE_NICKNAME(HttpStatus.OK,"사용 가능한 닉네임입니다."),
+
+    //Email
+    EMAIL_SEND_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,"이메일 전송 중 오류 발생"),
+
+    // Block 관련 오류 (Block Error)
+    BLOCKED_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "차단된 유저의 아이디를 찾을 수 없습니다."),
+    BLOCKING_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "차단을 시도한 유저의 아이디를 찾을 수 없습니다."),
+    ALREADY_BLOCKED_USER(HttpStatus.BAD_REQUEST, "이미 차단한 유저입니다."),
 
     // Auth
     TOKEN_NOT_EXPIRED(HttpStatus.OK, "토큰 정상"),

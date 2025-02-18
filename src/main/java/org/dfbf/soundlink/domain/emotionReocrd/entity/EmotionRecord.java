@@ -16,7 +16,7 @@ import java.sql.Timestamp;
 public class EmotionRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long recordId;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

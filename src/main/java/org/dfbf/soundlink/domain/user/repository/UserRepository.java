@@ -9,7 +9,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
+  
+    boolean existsByEmail(String email);
 
+    boolean existsByNickName(String nickName);
 
     // JPQL에서는 Inner Class에 직접 값을 넣을 수 있도록 하는 기능은 지원하지 않는다.
     @Query(

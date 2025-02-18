@@ -24,13 +24,15 @@ import org.springframework.stereotype.Service;
 @Service
 @AllArgsConstructor
 public class UserService {
-
+    
     private final UserRepository userRepository;
     private final ProfileMusicRepository profileMusicRepository;
     private final SpotifyMusicRepository spotifyMusicRepository;
     private final EmotionRecordRepository emotionRecordRepository;
     private final BCryptPasswordEncoder passwordEncoder;
-
+    private final MailService mailService;
+    private final RedisService redisService;
+  
     // 회원가입
     public ResponseResult signUp(UserSignUpDto userSignUpDto) {
         try {
@@ -115,5 +117,32 @@ public class UserService {
         } catch (Exception e) {
             return new ResponseResult(ErrorCode.DB_ERROR);
         }
+    }
+  
+    //인증코드 발급. 이메일이 존재하는지 확인.
+    public boolean sendAuthCode(String email) throws MessagingException {
+        String authCode = mailService.sendSimpleMessage(email);
+        redisService.setCode(email, authCode);
+        return true;
+    }
+
+    //이메일과 인증코드를 검증
+    public boolean validateAuthCode(String email, String authCode) throws AuthenticationException {
+        String savedCode = redisService.getCode(email);
+        return authCode.equals(savedCode);
+    }
+
+    //이메일 중복 확인
+    public ResponseResult checkEmail(String email){
+        boolean exists = userRepository.existsByEmail(email);
+        if(exists){
+            return new ResponseResult(ErrorCode.DUPLICATE_EMAIL);
+        }
+        return new ResponseResult(ErrorCode.NOT_DUPLICATE_EMAIL);
+    }
+  
+    //닉네임 중복 확인
+    public boolean checkNickName(String nickName){
+        return userRepository.existsByNickName(nickName);
     }
 }

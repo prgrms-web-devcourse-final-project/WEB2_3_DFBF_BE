@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface BlockListRepository extends JpaRepository<Blocklist, Long> {
@@ -24,7 +25,7 @@ public interface BlockListRepository extends JpaRepository<Blocklist, Long> {
                     "WHERE b.user.userId = :userId " +
                     "AND b.blockedUser.userId = :blockedUserId"
     )
-    List<Blocklist> findAllByUserId(
+    Optional<Blocklist> findByUserIdAndBlockedUserId(
             @Param("userId") Long userId,
             @Param("blockedUserId") Long blockedUserId
             );

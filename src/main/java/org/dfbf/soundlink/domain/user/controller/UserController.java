@@ -2,7 +2,9 @@ package org.dfbf.soundlink.domain.user.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
 import lombok.AllArgsConstructor;
+import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.domain.user.dto.request.UserSignUpDto;
 import org.dfbf.soundlink.domain.user.dto.request.UserUpdateDto;
 import org.dfbf.soundlink.domain.user.service.UserService;
@@ -20,6 +22,15 @@ public class UserController {
     @PostMapping("/signup")
     @Operation(summary = "회원가입", description = "일반회원은 Type이 NONE, 나머지는 알맞게 작성해주세요. (대문자로)")
     public ResponseResult signUp(@RequestBody UserSignUpDto userSignUpDto) { return userService.signUp(userSignUpDto); }
+    
+    @GetMapping("/checkNickName")
+    @Operation(summary = "닉네임 중복 확인", description = "닉네임이 이미 사용중인지 확인.")
+    public ResponseResult checkNickName(@RequestParam String nickName){
+        boolean exists = userService.checkNicName(nickName);
+        return exists
+                ? new ResponseResult(ErrorCode.DUPLICATE_NICKNAME) //중복 닉네임
+                : new ResponseResult(ErrorCode.NOT_DUPLICATE_NICKNAME);
+    }
 
     @GetMapping
     @Operation(summary = "유저 조회", description = "유저 조회 API")

@@ -13,7 +13,6 @@ import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
-import org.springframework.cglib.core.Block;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -42,20 +41,20 @@ public class BlockListService {
                 throw new AlreadyBlockedUser();
             });
 
-            Blocklist blocklist = Blocklist.builder()
+            Blocklist blockTarget = Blocklist.builder()
                     .user(user)
                     .blockedUser(blockedUser)
                     .build();
 
-            Blocklist savedBlocklist = blockListRepository.save(blocklist);
+            blockListRepository.save(blockTarget);
 
             return new ResponseResult(
                     ErrorCode.SUCCESS,
                     new BlockRes(
-                            savedBlocklist.getUser().getUserId(),
-                            savedBlocklist.getBlockedUser().getUserId(),
-                            savedBlocklist.getCreatedAt(),
-                            savedBlocklist.getUpdatedAt()
+                            blockTarget.getUser().getUserId(),
+                            blockTarget.getBlockedUser().getUserId(),
+                            blockTarget.getCreatedAt(),
+                            blockTarget.getUpdatedAt()
                     )
             );
         } catch (BlockedUserNotFound e) {
@@ -103,10 +102,10 @@ public class BlockListService {
     }
 
     public ResponseResult getBlockListByUserId(Long userId) {
-        List<Blocklist> blocklists = blockListRepository.findAllByUserId(userId);
+        List<Blocklist> blocklist = blockListRepository.findAllByUserId(userId);
         return new ResponseResult(
                 ErrorCode.SUCCESS,
-                blocklists.stream()
+                blocklist.stream()
                         .map(block -> new BlockRes(
                                 block.getUser().getUserId(),
                                 block.getBlockedUser().getUserId(),

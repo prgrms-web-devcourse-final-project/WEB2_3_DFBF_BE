@@ -1,9 +1,9 @@
 package org.dfbf.soundlink.domain.blocklist.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.dfbf.soundlink.domain.blocklist.dto.BlockReq;
-import org.dfbf.soundlink.domain.blocklist.dto.BlockRes;
 import org.dfbf.soundlink.domain.blocklist.service.BlockListService;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.web.bind.annotation.*;
@@ -16,16 +16,28 @@ public class BlockListController {
     private final BlockListService blockListService;
 
     @PostMapping
+    @Operation(
+            summary = "유저 차단",
+            description = "특정 유저를 차단합니다."
+    )
     public ResponseResult blockUser(@RequestBody BlockReq blockReq) {
         return blockListService.blockUser(blockReq);
     }
 
     @DeleteMapping
+    @Operation(
+            summary = "유저 차단 해제",
+            description = "차단한 유저를 해제합니다."
+    )
     public ResponseResult unblockUser(@RequestBody BlockReq blockReq) {
         return blockListService.unblockUser(blockReq);
     }
 
     @GetMapping("/{userId}")
+    @Operation(
+            summary = "차단 목록 조회",
+            description = "해당 유저의 차단 목록을 가져옵니다."
+    )
     public ResponseResult getBlockList(@PathVariable Long userId) {
         return blockListService.getBlockListByUserId(userId);
     }

@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepository;
 import org.dfbf.soundlink.domain.emotionRecord.repository.SpotifyMusicRepository;
+import org.dfbf.soundlink.domain.user.dto.request.LoginReqDto;
 import org.dfbf.soundlink.domain.user.dto.request.UserSignUpDto;
 import org.dfbf.soundlink.domain.user.dto.request.UserUpdateDto;
 import org.dfbf.soundlink.domain.user.dto.response.UserGetDto;
@@ -162,4 +163,25 @@ public class UserService {
     public boolean checkNickName(String nickName){
         return userRepository.existsByNickName(nickName);
     }
+
+    //로그인
+    public ResponseResult login(LoginReqDto loginReqDto) {
+        if(!userRepository.existsByLoginId(loginReqDto.loginId())) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, "계정을 찾을 수 없습니다.");
+        }
+        // 비밀번호 검증(암호화 된 비밀번호 비교)
+//        if(!passwordEncoder.matches(loginReqDto.getPassword(), userRepository.findByPassword(loginReqDto.getLoginId()))){
+//            return new ResponseResult( ErrorCode.NOT_EQUALS_PASSWORD,"잘못된 비밀번호 입니다.");
+//        }
+        // 암호화 없이 비밀번호 비교(테스트용)
+        String storedPassword = userRepository.findByPassword(loginReqDto.loginId());
+        if (!loginReqDto.password().equals(storedPassword)) {
+            return new ResponseResult(ErrorCode.NOT_EQUALS_PASSWORD, "잘못된 비밀번호 입니다.");
+        }
+        User user = userRepository.findByLoginId(loginReqDto.loginId())
+                .orElseThrow(NoUserDataException::new);
+        return new ResponseResult(ErrorCode.SUCCESS, user);
+
+        }
+
 }

@@ -26,4 +26,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
                     "WHERE u = :user"
     )
     UserMyPageDto findMyPageDtoByUserId(@Param("user") User user);
+
+    //로그인관련
+    boolean existsByLoginId(String loginId);
+
+    Optional<User> findByLoginId(String loginId);
+
+    @Query("Select u.password from User u  where u.loginId =:loginId ")
+    String findByPassword(@Param("loginId")String loginId);
+
+
+
+
 }

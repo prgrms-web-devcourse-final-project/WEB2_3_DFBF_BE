@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import lombok.AllArgsConstructor;
+import org.dfbf.soundlink.domain.user.dto.request.LoginReqDto;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.domain.user.dto.request.UserSignUpDto;
 import org.dfbf.soundlink.domain.user.dto.request.UserUpdateDto;
@@ -49,4 +50,10 @@ public class UserController {
     @GetMapping("/mypage")
     @Operation(summary = "마이 페이지", description = "마이 페이지 조회 API")
     public ResponseResult getMyPage(/*@AuthenticationPrincipal id: Int*/) { return userService.getMyPage(1L); }
+
+    @PostMapping("/login")
+    @Operation(summary = "로그인", description = "로그인 API")
+    public ResponseResult login(@RequestBody LoginReqDto loginReqDto) {
+        return userService.login(loginReqDto);
+    }
 }

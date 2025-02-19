@@ -3,6 +3,7 @@ package org.dfbf.soundlink.domain.user.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.dfbf.soundlink.domain.user.dto.request.LoginReqDto;
 import org.dfbf.soundlink.global.exception.ErrorCode;
@@ -53,7 +54,7 @@ public class UserController {
 
     @PostMapping("/login")
     @Operation(summary = "로그인", description = "로그인 API")
-    public ResponseResult login(@RequestBody LoginReqDto loginReqDto) {
-        return userService.login(loginReqDto);
+    public ResponseResult login(@RequestBody LoginReqDto loginReqDto, HttpServletResponse response) {
+        return userService.login(loginReqDto, response);
     }
 }

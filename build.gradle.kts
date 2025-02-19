@@ -79,9 +79,9 @@ dependencies {
     implementation ("org.springframework.boot:spring-boot-starter-mail")
 
     // Kafka
-//    implementation ("org.springframework.kafka:spring-kafka")
-//    implementation ("org.apache.kafka:kafka-streams")
-//    implementation ("org.apache.kafka:kafka-clients")
+    implementation ("org.springframework.kafka:spring-kafka")
+    implementation ("org.apache.kafka:kafka-streams")
+    implementation ("org.apache.kafka:kafka-clients")
 }
 
 tasks.withType<Test> {

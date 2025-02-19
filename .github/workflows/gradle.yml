@@ -1,67 +1,73 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
-
 name: Java CI with Gradle
 
 on:
   push:
     branches: [ "develop" ]
-  pull_request:
-    branches: [ "develop" ]
+
+permissions:
+  contents: read
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
 
-    # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
-    # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+      - name: checkout
+        uses: actions/checkout@v3
 
-    - name: Build with Gradle Wrapper
-      run: ./gradlew build
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-    # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
-    # If your project does not have the Gradle Wrapper configured, you can use the following configuration to run Gradle with a specified version.
-    #
-    # - name: Setup Gradle
-    #   uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
-    #   with:
-    #     gradle-version: '8.9'
-    #
-    # - name: Build with Gradle 8.9
-    #   run: gradle build
+      ## create application-database.yaml
+      - name: make application-database.yaml
+        run: |
+          ## create application-database.yaml
+          cd ./src/main/resources
+          
+          # application.yaml 파일 생성
+          touch ./application.properties
+          
+          # GitHub-Actions 에서 설정한 전체 값을 application.properties 파일에 쓰기
+          echo "${{ secrets.APPLICATION }}" >> ./application.properties
+        shell: bash
 
-  dependency-submission:
+      ## gradle build
+      - name: Build with Gradle
+        run: ./gradlew bootJar
 
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
+      ## 원격 서버에서 docker-compose 실행
+      - name: Build and Run Docker on Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            # 최신 코드 가져오기
+            cd /home/ubuntu/server
+            git pull origin develop
 
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
+            # application.properties 새로 생성
+            echo "${{ secrets.APPLICATION }}" | sudo tee /home/ubuntu/server/src/main/resources/application.properties > /dev/null
+            
+            # 🔹 JAR 빌드 (서버에서 실행)
+            ./gradlew bootJar
+            
+            # 파일명 변경
+            mv /home/ubuntu/server/build/libs/SoundLink_Java-0.0.1-SNAPSHOT.jar /home/ubuntu/docker/soundlink.jar
 
-    # Generates and submits a dependency graph, enabling Dependabot Alerts for all project dependencies.
-    # See: https://github.com/gradle/actions/blob/main/dependency-submission/README.md
-    - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+            # 기존 Spring 컨테이너 중지 및 제거
+            sudo docker-compose stop spring
+            sudo docker-compose rm -f spring
+
+            # Spring 컨테이너만 다시 빌드 & 실행
+            cd /home/ubuntu/docker
+            sudo docker-compose -f docker-compose.yml build --no-cache spring
+            sudo docker-compose -f docker-compose.yml up -d spring
+
+            # 불필요한 이미지 정리
+            sudo docker image prune -f

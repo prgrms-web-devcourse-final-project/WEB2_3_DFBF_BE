@@ -14,6 +14,6 @@ public class Controller {
     // health check
     @GetMapping("/health")
     public ResponseResult health() {
-        return new ResponseResult(ErrorCode.SUCCESS,"ok");
+        return new ResponseResult(ErrorCode.SUCCESS,"ok2");
     }
 }

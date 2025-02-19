@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "token")
 public class TokenProperties {
     private long refreshTokenExpirationTime;
+    private long accessTokenExpirationTime;
 
     public long getRefreshTokenExpirationTime(){
         return refreshTokenExpirationTime;
@@ -15,5 +16,12 @@ public class TokenProperties {
 
     public void setRefreshTokenExpirationTime(long refreshTokenExpirationTime){
         this.refreshTokenExpirationTime = refreshTokenExpirationTime;
+    }
+    public long getAccessTokenExpirationTime() {
+        return accessTokenExpirationTime;
+    }
+
+    public void setAccessTokenExpirationTime(long accessTokenExpirationTime) {
+        this.accessTokenExpirationTime = accessTokenExpirationTime;
     }
 }

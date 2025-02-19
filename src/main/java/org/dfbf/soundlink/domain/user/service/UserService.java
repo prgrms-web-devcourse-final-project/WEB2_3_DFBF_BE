@@ -27,6 +27,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -177,6 +179,7 @@ public class UserService {
         return userRepository.existsByNickName(nickName);
     }
 
+    //refreshToken을 쿠키로 설정
     public ResponseCookie getRefreshToken(String refreshToken) {
         return ResponseCookie
                 .from("REFRESHTOKEN", refreshToken)
@@ -204,28 +207,26 @@ public class UserService {
             String accessToken = jwtProvider.createAccessToken(user.getUserId());
             String refreshToken = jwtProvider.createRefreshToken(user.getUserId());
 
-//            System.out.println("Access Token: " + accessToken);
-//            System.out.println("Refresh Token: " + refreshToken);
 
-            //헤더에 refreshToken 추가
+            //refreshToken - 쿠키
             ResponseCookie refreshCookie = getRefreshToken(refreshToken);
             response.setHeader("Set-Cookie", refreshCookie.toString());
 
-            //바디에 accessToken 포함
+            //accessToken - 바디
             Map<String, String> responseBody = new HashMap<>();
             responseBody.put("accessToken", accessToken);
 
             return new ResponseResult(responseBody);
         } catch (Exception e) {
             System.out.println("[ERROR] " + e.getMessage());
-            return new ResponseResult(ErrorCode.DB_ERROR);
+            return new ResponseResult(ErrorCode. INTERNAL_SERVER_ERROR);
         }
     }
 
     //로그아웃
     public ResponseResult logout(HttpServletResponse response) {
         try {
-            //토큰 삭제
+            //클라이언트 - 토큰 삭제
             ResponseCookie refreshCookie = ResponseCookie
                     .from("REFRESHTOKEN", "") // 추후 토큰값 추가
                     .domain("localhost")
@@ -233,14 +234,15 @@ public class UserService {
                     .httpOnly(true)
                     .maxAge(0)
                     .build();
+            response.setHeader("Set-Cookie", refreshCookie.toString());//쿠키 삭제 요청
 
-            response.setHeader("Set-Cookie", refreshCookie.toString());//삭제 요청
             return new ResponseResult(ErrorCode.SUCCESS);
 
         } catch (Exception e) {
-            return new ResponseResult(ErrorCode.DB_ERROR,"로그아웃 중 오류가 발생했습니다.");
+            return new ResponseResult(ErrorCode. INTERNAL_SERVER_ERROR,"로그아웃 중 오류가 발생했습니다.");
         }
     }
+
 
 
 }

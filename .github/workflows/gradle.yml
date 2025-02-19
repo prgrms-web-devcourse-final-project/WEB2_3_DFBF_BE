@@ -31,6 +31,7 @@ jobs:
             git pull origin develop
 
             # application.properties 새로 생성
+            touch ./src/main/resources/application.properties
             echo "${{ secrets.APPLICATION }}" | sudo tee ./src/main/resources/application.properties > /dev/null
             
             # 🔹 JAR 빌드 (서버에서 실행)

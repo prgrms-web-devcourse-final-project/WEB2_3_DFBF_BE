@@ -17,7 +17,7 @@ public class JwtProvider {
     private long ACCESS_EXPIRATION_TIME;
 
     @Value("${REFRESH_TOKEN_EXPIRATION_TIME}")
-    private long REFRESH_EXPIRATION_TIME; 
+    private long REFRESH_EXPIRATION_TIME;
 
     //시크릿 키 생성
     private final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);;
@@ -48,6 +48,5 @@ public class JwtProvider {
 
         return refreshToken;
     }
-
 
 }

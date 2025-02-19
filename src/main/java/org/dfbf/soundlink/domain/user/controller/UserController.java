@@ -57,4 +57,10 @@ public class UserController {
     public ResponseResult login(@RequestBody LoginReqDto loginReqDto, HttpServletResponse response) {
         return userService.login(loginReqDto, response);
     }
+
+    @PostMapping("/logout")
+    @Operation(summary = "로그아웃", description = "로그아웃 API")
+    public ResponseResult logout(HttpServletResponse response) {
+        return userService.logout(response);
+    }
 }

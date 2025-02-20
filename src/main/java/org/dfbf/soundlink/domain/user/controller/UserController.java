@@ -3,12 +3,15 @@ package org.dfbf.soundlink.domain.user.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import org.dfbf.soundlink.domain.user.dto.request.LoginReqDto;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.domain.user.dto.request.UserSignUpDto;
 import org.dfbf.soundlink.domain.user.dto.request.UserUpdateDto;
 import org.dfbf.soundlink.domain.user.service.UserService;
 import org.dfbf.soundlink.global.exception.ResponseResult;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,27 +29,36 @@ public class UserController {
     @GetMapping("/checkNickName")
     @Operation(summary = "닉네임 중복 확인", description = "닉네임이 이미 사용중인지 확인.")
     public ResponseResult checkNickName(@RequestParam String nickName){
-        boolean exists = userService.checkNickName(nickName);
-        return exists
-                ? new ResponseResult(ErrorCode.DUPLICATE_NICKNAME) //중복 닉네임
-                : new ResponseResult(ErrorCode.NOT_DUPLICATE_NICKNAME);
+        return userService.checkNickName(nickName);
     }
 
     @GetMapping
     @Operation(summary = "유저 조회", description = "유저 조회 API")
-    public ResponseResult getUser(/*@AuthenticationPrincipal id: Long*/) { return userService.getUser(1L); }
+    public ResponseResult getUser(@AuthenticationPrincipal Long id) { return userService.getUser(id); }
 
     @PutMapping
     @Operation(summary = "유저 수정", description = "유저 수정 API")
-    public ResponseResult updateUser(/*@AuthenticationPrincipal id: Long, */@RequestBody UserUpdateDto userUpdateDto) {
-        return userService.updateUser(1L, userUpdateDto);
+    public ResponseResult updateUser(@AuthenticationPrincipal Long id,@RequestBody UserUpdateDto userUpdateDto) {
+        return userService.updateUser(id, userUpdateDto);
     }
 
     @DeleteMapping
     @Operation(summary = "유저 삭제", description = "회원 탈퇴하는 API (탈퇴시 프로필 정보도 삭제됩니다.)")
-    public ResponseResult deleteUser(/*@AuthenticationPrincipal id: Long*/) { return userService.deleteUser(1L); }
+    public ResponseResult deleteUser(@AuthenticationPrincipal Long id) { return userService.deleteUser(id); }
 
     @GetMapping("/mypage")
     @Operation(summary = "마이 페이지", description = "마이 페이지 조회 API")
-    public ResponseResult getMyPage(/*@AuthenticationPrincipal id: Long*/) { return userService.getMyPage(1L); }
+    public ResponseResult getMyPage(@AuthenticationPrincipal Long id) { return userService.getMyPage(id); }
+
+    @PostMapping("/login")
+    @Operation(summary = "로그인", description = "로그인 API")
+    public ResponseResult login(@RequestBody LoginReqDto loginReqDto, HttpServletResponse response) {
+        return userService.login(loginReqDto, response);
+    }
+
+    @PostMapping("/logout")
+    @Operation(summary = "로그아웃", description = "로그아웃 API")
+    public ResponseResult logout(HttpServletResponse response) {
+        return userService.logout(response);
+    }
 }

@@ -1,12 +1,14 @@
 package org.dfbf.soundlink.domain.user.service;
 
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepository;
 import org.dfbf.soundlink.domain.emotionRecord.repository.SpotifyMusicRepository;
+import org.dfbf.soundlink.domain.user.dto.request.LoginReqDto;
 import org.dfbf.soundlink.domain.user.dto.request.UserSignUpDto;
 import org.dfbf.soundlink.domain.user.dto.request.UserUpdateDto;
 import org.dfbf.soundlink.domain.user.dto.response.UserGetDto;
@@ -16,12 +18,18 @@ import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.exception.NoUserDataException;
 import org.dfbf.soundlink.domain.user.repository.ProfileMusicRepository;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
+import org.dfbf.soundlink.global.auth.JwtProvider;
+import org.dfbf.soundlink.global.auth.TokenProperties;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.naming.AuthenticationException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -35,6 +43,10 @@ public class UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final MailService mailService;
     private final RedisService redisService;
+    private final JwtProvider jwtProvider;
+    private final TokenProperties tokenProperties;
+    private RedisTemplate<String, String> redisTemplate;
+
   
     // 회원가입
     public ResponseResult signUp(UserSignUpDto userSignUpDto) {
@@ -92,9 +104,6 @@ public class UserService {
     public ResponseResult deleteUser(Long userId) {
         try {
             User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
-
-//            profileMusicRepository.deleteByUser(user);  // 유저 프로필 음악 삭제
-//            emotionRecordRepository.deleteByUser(user); // 유저 감정 기록 삭제
             userRepository.deleteById(userId);          // 유저 삭제
 
             return new ResponseResult(ErrorCode.SUCCESS);
@@ -159,7 +168,77 @@ public class UserService {
     }
   
     //닉네임 중복 확인
-    public boolean checkNickName(String nickName){
-        return userRepository.existsByNickName(nickName);
+    public ResponseResult checkNickName(String nickName){
+        boolean exists =userRepository.existsByNickName(nickName);
+        if(exists){
+            return new ResponseResult(ErrorCode.DUPLICATE_NICKNAME);
+        }
+        return new ResponseResult(ErrorCode.NOT_DUPLICATE_NICKNAME);
     }
+
+    //refreshToken을 쿠키로 설정
+    private ResponseCookie getRefreshToken(String refreshToken) {
+        return ResponseCookie
+                .from("REFRESHTOKEN", refreshToken)
+                .domain("localhost")
+                .path("/")
+                .httpOnly(true)
+                .maxAge(tokenProperties.getRefreshTokenExpirationTime()) //만료시간 설정
+                .build();
+    }
+
+    //로그인
+    public ResponseResult login(LoginReqDto loginReqDto, HttpServletResponse response) {
+        try {
+            if(!userRepository.existsByLoginId(loginReqDto.loginId())) {
+                return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, "계정을 찾을 수 없습니다.");
+            }
+            // 비밀번호 검증(암호화 된 비밀번호 비교)
+            if(!passwordEncoder.matches(loginReqDto.password(), userRepository.findByPassword(loginReqDto.loginId()))){
+                return new ResponseResult( ErrorCode.NOT_EQUALS_PASSWORD,"잘못된 비밀번호 입니다.");
+            }
+
+            User user = userRepository.findByLoginId(loginReqDto.loginId())
+                    .orElseThrow(NoUserDataException::new);
+
+            String accessToken = jwtProvider.createAccessToken(user.getUserId());
+            String refreshToken = jwtProvider.createRefreshToken(user.getUserId());
+
+            //refreshToken - 쿠키
+            ResponseCookie refreshCookie = getRefreshToken(refreshToken);
+            response.setHeader("Set-Cookie", refreshCookie.toString());
+
+            //accessToken - 바디
+            Map<String, String> responseBody = new HashMap<>();
+            responseBody.put("accessToken", accessToken);
+
+            return new ResponseResult(responseBody);
+        } catch (Exception e) {
+            System.out.println("[ERROR] " + e.getMessage());
+            return new ResponseResult(ErrorCode. INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    //로그아웃
+    public ResponseResult logout(HttpServletResponse response) {
+        try {
+            //클라이언트 - 토큰 삭제
+            ResponseCookie refreshCookie = ResponseCookie
+                    .from("REFRESHTOKEN", "") // 추후 토큰값 추가
+                    .domain("localhost")
+                    .path("/")
+                    .httpOnly(true)
+                    .maxAge(0)
+                    .build();
+            response.setHeader("Set-Cookie", refreshCookie.toString());//쿠키 삭제 요청
+
+            return new ResponseResult(ErrorCode.SUCCESS);
+
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode. INTERNAL_SERVER_ERROR,"로그아웃 중 오류가 발생했습니다.");
+        }
+    }
+
+
+
 }

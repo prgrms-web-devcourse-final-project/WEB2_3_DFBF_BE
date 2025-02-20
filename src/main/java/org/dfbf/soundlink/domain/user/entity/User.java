@@ -30,7 +30,9 @@ public class User {
     @Column(nullable = true)
     private Long socialId;
 
+    @Column(name="login_id")
     private String loginId;
+
     private String password;
     private String email;
 

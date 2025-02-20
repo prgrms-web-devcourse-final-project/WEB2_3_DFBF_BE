@@ -34,19 +34,19 @@ public class UserController {
 
     @GetMapping
     @Operation(summary = "유저 조회", description = "유저 조회 API")
-    public ResponseResult getUser(/*@AuthenticationPrincipal id: Int*/) { return userService.getUser(1L); }
+    public ResponseResult getUser(/*@AuthenticationPrincipal id: Long*/) { return userService.getUser(1L); }
 
     @PutMapping
     @Operation(summary = "유저 수정", description = "유저 수정 API")
-    public ResponseResult updateUser(/*@AuthenticationPrincipal id: Int, */@RequestBody UserUpdateDto userUpdateDto) {
+    public ResponseResult updateUser(/*@AuthenticationPrincipal id: Long, */@RequestBody UserUpdateDto userUpdateDto) {
         return userService.updateUser(1L, userUpdateDto);
     }
 
     @DeleteMapping
     @Operation(summary = "유저 삭제", description = "회원 탈퇴하는 API (탈퇴시 프로필 정보도 삭제됩니다.)")
-    public ResponseResult deleteUser(/*@AuthenticationPrincipal id: Int*/) { return userService.deleteUser(1L); }
+    public ResponseResult deleteUser(/*@AuthenticationPrincipal id: Long*/) { return userService.deleteUser(1L); }
 
     @GetMapping("/mypage")
     @Operation(summary = "마이 페이지", description = "마이 페이지 조회 API")
-    public ResponseResult getMyPage(/*@AuthenticationPrincipal id: Int*/) { return userService.getMyPage(1L); }
+    public ResponseResult getMyPage(/*@AuthenticationPrincipal id: Long*/) { return userService.getMyPage(1L); }
 }

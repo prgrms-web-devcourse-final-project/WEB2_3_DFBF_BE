@@ -26,7 +26,7 @@ public interface EmotionRecordRepository extends JpaRepository<EmotionRecord, Lo
     @Query( "SELECT er FROM EmotionRecord er " +
             "JOIN FETCH er.user u " +
             "LEFT JOIN FETCH er.spotifyMusic sm " +
-            "WHERE u.userId = :userId ")
+            "WHERE u.userId <> :userId ")
     List<EmotionRecord> findByUserId(@Param("userId") Long userId);
 
     @Query( "SELECT er FROM EmotionRecord er " +

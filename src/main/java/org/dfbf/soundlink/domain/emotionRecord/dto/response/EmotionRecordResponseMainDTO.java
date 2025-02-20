@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public record EmotionRecordResponseDTO(
+public record EmotionRecordResponseMainDTO(
         Long recordId,
         Long userId,
         String nickName,
@@ -17,8 +17,8 @@ public record EmotionRecordResponseDTO(
         String createAt
         ) {
 
-    public static EmotionRecordResponseDTO fromEntity(EmotionRecord record) {
-        return new EmotionRecordResponseDTO(
+    public static EmotionRecordResponseMainDTO fromEntity(EmotionRecord record) {
+        return new EmotionRecordResponseMainDTO(
                 record.getRecordId(),
                 record.getUser().getUserId(),
                 record.getUser().getNickName(),
@@ -29,8 +29,8 @@ public record EmotionRecordResponseDTO(
         );
     }
 
-    public static List<EmotionRecordResponseDTO> fromEntities(List<EmotionRecord> records) {
-        return records.stream().map(EmotionRecordResponseDTO::fromEntity).collect(Collectors.toList());
+    public static List<EmotionRecordResponseMainDTO> fromEntities(List<EmotionRecord> records) {
+        return records.stream().map(EmotionRecordResponseMainDTO::fromEntity).collect(Collectors.toList());
     }
 
     private static String formatTimestamp(Timestamp timestamp) {

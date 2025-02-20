@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/user/emotion")
+@RequestMapping("/api/emotion")
 @RequiredArgsConstructor
 @Tag(name = "EmotionRecord API", description = "감정기록 관련 API")
 public class EmotionRecordController {
@@ -31,7 +31,7 @@ public class EmotionRecordController {
     @GetMapping
     @Operation(
             summary = "감정 기록 전체 조회 API",
-            description = "유저가 작성한 감정 기록 전체를 조회합니다."
+            description = "유저들이 작성한 감정 기록 전체를 조회합니다.(자신의 아이디에 해당하는 감정 기록은 조회되지 않습니다.)"
     )
     public ResponseEntity<ResponseResult> getEmotionRecords(/*@AuthenticationPrincipal*/ Long userId) {
         ResponseResult response = emotionRecordService.getEmotionRecordsByUserId(userId);

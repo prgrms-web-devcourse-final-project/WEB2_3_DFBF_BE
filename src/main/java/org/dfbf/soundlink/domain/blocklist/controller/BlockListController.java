@@ -3,6 +3,7 @@ package org.dfbf.soundlink.domain.blocklist.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.dfbf.soundlink.domain.blocklist.dto.BlockListReq;
 import org.dfbf.soundlink.domain.blocklist.dto.BlockReq;
 import org.dfbf.soundlink.domain.blocklist.service.BlockListService;
 import org.dfbf.soundlink.global.exception.ResponseResult;
@@ -25,22 +26,22 @@ public class BlockListController {
             @AuthenticationPrincipal Long userId,
             @RequestBody BlockReq req
     ) {
-        return blockListService.blockUser(userId, req.blockedUserId());
+        return blockListService.blockUser(userId, req.tag());
     }
 
-    @DeleteMapping("/{blockedUserId}")
+    @DeleteMapping
     @Operation(
             summary = "유저 차단 해제",
             description = "차단한 유저를 해제합니다."
     )
     public ResponseResult unblockUser(
             @AuthenticationPrincipal Long userId,
-            @PathVariable Long blockedUserId
+            @RequestBody BlockListReq req
     ) {
-        return blockListService.unblockUser(userId, blockedUserId);
+        return blockListService.unblockUser(userId, req.blocklistId());
     }
 
-    @GetMapping
+    @GetMapping("/mypage/blackListSearch")
     @Operation(
             summary = "차단 목록 조회",
             description = "해당 유저의 차단 목록을 가져옵니다."

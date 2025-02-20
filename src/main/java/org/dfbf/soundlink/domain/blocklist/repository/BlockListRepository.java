@@ -23,10 +23,21 @@ public interface BlockListRepository extends JpaRepository<Blocklist, Long> {
             "SELECT b " +
                     "FROM Blocklist b " +
                     "WHERE b.user.userId = :userId " +
+                    "AND b.blockedUser.loginId = :loginId"
+    )
+    Optional<Blocklist> findByUserIdAndLoginId(
+            @Param("userId") Long userId,
+            @Param("loginId") String loginId
+            );
+
+    @Query(
+            "SELECT b " +
+                    "FROM Blocklist b " +
+                    "WHERE b.user.userId = :userId " +
                     "AND b.blockedUser.userId = :blockedUserId"
     )
     Optional<Blocklist> findByUserIdAndBlockedUserId(
             @Param("userId") Long userId,
             @Param("blockedUserId") Long blockedUserId
-            );
+    );
 }

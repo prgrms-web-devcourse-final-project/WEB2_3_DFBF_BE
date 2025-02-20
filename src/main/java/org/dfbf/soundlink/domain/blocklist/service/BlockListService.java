@@ -24,18 +24,18 @@ public class BlockListService {
     private final UserRepository userRepository;
 
     @Transactional
-    public ResponseResult blockUser(Long userId, Long blockedUserId) {
+    public ResponseResult blockUser(Long userId, String tag) {
         try {
             User user = userRepository.findById(userId)
                     .orElseThrow(
                             BlockedUserNotFound::new
                     );
-            User blockedUser = userRepository.findById(blockedUserId)
+            User blockedUser = userRepository.findByLoginId(tag)
                     .orElseThrow(
                             BlockingUserNotFound::new
                     );
-            blockListRepository.findByUserIdAndBlockedUserId(
-                    userId, blockedUserId
+            blockListRepository.findByUserIdAndLoginId(
+                    userId, tag
             ).ifPresent(block -> {
                 throw new AlreadyBlockedUser();
             });

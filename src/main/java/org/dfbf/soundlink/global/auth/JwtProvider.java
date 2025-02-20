@@ -98,4 +98,14 @@ public class JwtProvider {
         return null;
     }
 
+    // 토큰에서 id 반환
+    public Long getUserId(String token){
+        return Long.parseLong(Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject());
+    }
+
 }

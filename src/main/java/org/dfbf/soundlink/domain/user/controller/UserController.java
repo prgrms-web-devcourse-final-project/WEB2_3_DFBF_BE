@@ -11,6 +11,7 @@ import org.dfbf.soundlink.domain.user.dto.request.UserSignUpDto;
 import org.dfbf.soundlink.domain.user.dto.request.UserUpdateDto;
 import org.dfbf.soundlink.domain.user.service.UserService;
 import org.dfbf.soundlink.global.exception.ResponseResult;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -36,7 +37,7 @@ public class UserController {
 
     @GetMapping
     @Operation(summary = "유저 조회", description = "유저 조회 API")
-    public ResponseResult getUser(/*@AuthenticationPrincipal id: Int*/) { return userService.getUser(1L); }
+    public ResponseResult getUser(@AuthenticationPrincipal Long id) { return userService.getUser(id); }
 
     @PutMapping
     @Operation(summary = "유저 수정", description = "유저 수정 API")

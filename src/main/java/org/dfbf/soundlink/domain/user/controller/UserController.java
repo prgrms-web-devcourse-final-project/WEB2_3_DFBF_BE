@@ -41,17 +41,17 @@ public class UserController {
 
     @PutMapping
     @Operation(summary = "유저 수정", description = "유저 수정 API")
-    public ResponseResult updateUser(/*@AuthenticationPrincipal id: Int, */@RequestBody UserUpdateDto userUpdateDto) {
-        return userService.updateUser(1L, userUpdateDto);
+    public ResponseResult updateUser(@AuthenticationPrincipal Long id,@RequestBody UserUpdateDto userUpdateDto) {
+        return userService.updateUser(id, userUpdateDto);
     }
 
     @DeleteMapping
     @Operation(summary = "유저 삭제", description = "회원 탈퇴하는 API (탈퇴시 프로필 정보도 삭제됩니다.)")
-    public ResponseResult deleteUser(/*@AuthenticationPrincipal id: Int*/) { return userService.deleteUser(1L); }
+    public ResponseResult deleteUser(@AuthenticationPrincipal Long id) { return userService.deleteUser(id); }
 
     @GetMapping("/mypage")
     @Operation(summary = "마이 페이지", description = "마이 페이지 조회 API")
-    public ResponseResult getMyPage(/*@AuthenticationPrincipal id: Int*/) { return userService.getMyPage(1L); }
+    public ResponseResult getMyPage(@AuthenticationPrincipal Long id) { return userService.getMyPage(id); }
 
     @PostMapping("/login")
     @Operation(summary = "로그인", description = "로그인 API")

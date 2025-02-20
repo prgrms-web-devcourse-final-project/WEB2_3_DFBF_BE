@@ -29,24 +29,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     public void setAuthentication(String token) {
         Long userId = jwtProvider.getUserId(token); //userId 추출
 
-        // 로그 추가
-        System.out.println("Extracted User ID: " + userId);
-
         if (userId == null) {
             throw new IllegalArgumentException("userId cannot be null");
         }
 
         CustomUserDetails userDetails = new CustomUserDetails(userId);
 
-        // 로그 추가
-        System.out.println("Created CustomUserDetails: " + userDetails);
-
         // 인증토큰 생성
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(userId, null, userDetails.getAuthorities());
 
         // 인증정보 설정
-        System.out.println("Setting authentication with user ID: " + userId); // 로그 추가
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 

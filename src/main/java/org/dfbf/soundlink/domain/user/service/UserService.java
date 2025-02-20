@@ -1,7 +1,6 @@
 package org.dfbf.soundlink.domain.user.service;
 
 import jakarta.mail.MessagingException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -23,12 +22,8 @@ import org.dfbf.soundlink.global.auth.JwtProvider;
 import org.dfbf.soundlink.global.auth.TokenProperties;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -50,6 +45,7 @@ public class UserService {
     private final RedisService redisService;
     private final JwtProvider jwtProvider;
     private final TokenProperties tokenProperties;
+    private RedisTemplate<String, String> redisTemplate;
 
   
     // 회원가입
@@ -108,9 +104,6 @@ public class UserService {
     public ResponseResult deleteUser(Long userId) {
         try {
             User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
-
-//            profileMusicRepository.deleteByUser(user);  // 유저 프로필 음악 삭제
-//            emotionRecordRepository.deleteByUser(user); // 유저 감정 기록 삭제
             userRepository.deleteById(userId);          // 유저 삭제
 
             return new ResponseResult(ErrorCode.SUCCESS);
@@ -180,7 +173,7 @@ public class UserService {
     }
 
     //refreshToken을 쿠키로 설정
-    public ResponseCookie getRefreshToken(String refreshToken) {
+    private ResponseCookie getRefreshToken(String refreshToken) {
         return ResponseCookie
                 .from("REFRESHTOKEN", refreshToken)
                 .domain("localhost")
@@ -206,7 +199,6 @@ public class UserService {
 
             String accessToken = jwtProvider.createAccessToken(user.getUserId());
             String refreshToken = jwtProvider.createRefreshToken(user.getUserId());
-
 
             //refreshToken - 쿠키
             ResponseCookie refreshCookie = getRefreshToken(refreshToken);

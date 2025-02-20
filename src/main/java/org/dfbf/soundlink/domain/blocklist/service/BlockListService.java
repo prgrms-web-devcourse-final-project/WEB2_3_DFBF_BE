@@ -2,7 +2,6 @@ package org.dfbf.soundlink.domain.blocklist.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.dfbf.soundlink.domain.blocklist.dto.BlockReq;
 import org.dfbf.soundlink.domain.blocklist.dto.BlockRes;
 import org.dfbf.soundlink.domain.blocklist.entity.Blocklist;
 import org.dfbf.soundlink.domain.blocklist.exception.AlreadyBlockedUser;
@@ -25,18 +24,18 @@ public class BlockListService {
     private final UserRepository userRepository;
 
     @Transactional
-    public ResponseResult blockUser(BlockReq blockReq) {
+    public ResponseResult blockUser(Long userId, Long blockedUserId) {
         try {
-            User user = userRepository.findById(blockReq.userId())
+            User user = userRepository.findById(userId)
                     .orElseThrow(
                             BlockedUserNotFound::new
                     );
-            User blockedUser = userRepository.findById(blockReq.blockedUserId())
+            User blockedUser = userRepository.findById(blockedUserId)
                     .orElseThrow(
                             BlockingUserNotFound::new
                     );
             blockListRepository.findByUserIdAndBlockedUserId(
-                    blockReq.userId(), blockReq.blockedUserId()
+                    userId, blockedUserId
             ).ifPresent(block -> {
                 throw new AlreadyBlockedUser();
             });
@@ -76,10 +75,10 @@ public class BlockListService {
     }
 
     @Transactional
-    public ResponseResult unblockUser(BlockReq blockReq) {
+    public ResponseResult unblockUser(Long userId, Long blockedUserId) {
         try {
             Blocklist block = blockListRepository.findByUserIdAndBlockedUserId(
-                    blockReq.userId(), blockReq.blockedUserId()
+                    userId, blockedUserId
             ).orElseThrow(BlockingUserNotFound::new);
 
             blockListRepository.delete(block);

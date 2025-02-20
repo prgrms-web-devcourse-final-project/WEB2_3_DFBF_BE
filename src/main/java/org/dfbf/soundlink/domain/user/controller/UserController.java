@@ -29,10 +29,7 @@ public class UserController {
     @GetMapping("/checkNickName")
     @Operation(summary = "닉네임 중복 확인", description = "닉네임이 이미 사용중인지 확인.")
     public ResponseResult checkNickName(@RequestParam String nickName){
-        boolean exists = userService.checkNickName(nickName);
-        return exists
-                ? new ResponseResult(ErrorCode.DUPLICATE_NICKNAME) //중복 닉네임
-                : new ResponseResult(ErrorCode.NOT_DUPLICATE_NICKNAME);
+        return userService.checkNickName(nickName);
     }
 
     @GetMapping

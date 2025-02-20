@@ -168,8 +168,12 @@ public class UserService {
     }
   
     //닉네임 중복 확인
-    public boolean checkNickName(String nickName){
-        return userRepository.existsByNickName(nickName);
+    public ResponseResult checkNickName(String nickName){
+        boolean exists =userRepository.existsByNickName(nickName);
+        if(exists){
+            return new ResponseResult(ErrorCode.DUPLICATE_NICKNAME);
+        }
+        return new ResponseResult(ErrorCode.NOT_DUPLICATE_NICKNAME);
     }
 
     //refreshToken을 쿠키로 설정

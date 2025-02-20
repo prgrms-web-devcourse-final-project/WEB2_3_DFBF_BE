@@ -3,7 +3,7 @@ package org.dfbf.soundlink.domain.emotionRecord.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordRequestDTO;
-import org.dfbf.soundlink.domain.emotionRecord.dto.response.EmotionRecordResponseDTO;
+import org.dfbf.soundlink.domain.emotionRecord.dto.response.EmotionRecordResponseMainDTO;
 import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.emotionRecord.exception.EmotionRecordNotFoundException;
@@ -69,7 +69,7 @@ public class EmotionRecordService {
 
         try {
             List<EmotionRecord> records = emotionRecordRepository.findByUserId(userId);
-            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordResponseDTO.fromEntities(records));
+            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordResponseMainDTO.fromEntities(records));
         } catch (UserNotFoundException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
         } catch (DataAccessException e) {
@@ -85,7 +85,7 @@ public class EmotionRecordService {
         try {
             EmotionRecord records = emotionRecordRepository.findByRecordId(recordId)
                     .orElseThrow(EmotionRecordNotFoundException::new);
-            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordResponseDTO.fromEntity(records));
+            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordResponseMainDTO.fromEntity(records));
         } catch (EmotionRecordNotFoundException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
         } catch (DataAccessException e) {

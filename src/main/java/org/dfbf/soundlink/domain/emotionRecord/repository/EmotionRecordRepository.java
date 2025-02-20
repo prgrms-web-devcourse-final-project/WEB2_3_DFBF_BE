@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface EmotionRecordRepository extends JpaRepository<EmotionRecord, Long> {
@@ -27,6 +28,12 @@ public interface EmotionRecordRepository extends JpaRepository<EmotionRecord, Lo
             "LEFT JOIN FETCH er.spotifyMusic sm " +
             "WHERE u.userId = :userId ")
     List<EmotionRecord> findByUserId(@Param("userId") Long userId);
+
+    @Query( "SELECT er FROM EmotionRecord er " +
+            "JOIN FETCH er.user u " +
+            "LEFT JOIN FETCH er.spotifyMusic sm " +
+            "WHERE er.recordId = :recordId")
+    Optional<EmotionRecord> findByRecordId(@Param("recordId") Long recordId);
 }
 
 /**

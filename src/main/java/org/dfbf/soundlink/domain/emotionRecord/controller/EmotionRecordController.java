@@ -37,4 +37,14 @@ public class EmotionRecordController {
         ResponseResult response = emotionRecordService.getEmotionRecordsByUserId(userId);
         return ResponseEntity.status(response.getCode()).body(response);
     }
+
+    @GetMapping("/{recordId}")
+    @Operation(
+            summary = "감정 기록 조회 API",
+            description = "유저가 작성한 감정 기록을 조회합니다."
+    )
+    public ResponseEntity<ResponseResult> getEmotionRecord(@PathVariable Long recordId) {
+        ResponseResult response = emotionRecordService.getEmotionRecord(recordId);
+        return ResponseEntity.status(response.getCode()).body(response);
+    }
 }

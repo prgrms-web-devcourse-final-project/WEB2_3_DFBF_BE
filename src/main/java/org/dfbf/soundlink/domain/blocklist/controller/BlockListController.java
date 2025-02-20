@@ -3,6 +3,7 @@ package org.dfbf.soundlink.domain.blocklist.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.dfbf.soundlink.domain.blocklist.dto.BlockReq;
 import org.dfbf.soundlink.domain.blocklist.service.BlockListService;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,21 +23,21 @@ public class BlockListController {
     )
     public ResponseResult blockUser(
             @AuthenticationPrincipal Long userId,
-            @AuthenticationPrincipal Long blockUserId
+            @RequestBody BlockReq req
     ) {
-        return blockListService.blockUser(userId, blockUserId);
+        return blockListService.blockUser(userId, req.blockedUserId());
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{blockedUserId}")
     @Operation(
             summary = "유저 차단 해제",
             description = "차단한 유저를 해제합니다."
     )
     public ResponseResult unblockUser(
             @AuthenticationPrincipal Long userId,
-            @AuthenticationPrincipal Long blockUserId
+            @PathVariable Long blockedUserId
     ) {
-        return blockListService.unblockUser(userId, blockUserId);
+        return blockListService.unblockUser(userId, blockedUserId);
     }
 
     @GetMapping

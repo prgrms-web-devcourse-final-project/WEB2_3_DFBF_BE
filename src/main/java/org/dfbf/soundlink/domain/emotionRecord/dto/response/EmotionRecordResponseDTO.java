@@ -1,0 +1,42 @@
+package org.dfbf.soundlink.domain.emotionRecord.dto.response;
+
+import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
+
+import java.sql.Timestamp;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public record EmotionRecordResponseDTO(
+        Long recordId,
+        Long userId,
+        String nickName,
+        String emotion,
+        SpotifyMusicResponseDTO spotifyMusic,
+        String comment,
+        String createAt
+        ) {
+
+    public static EmotionRecordResponseDTO fromEntity(EmotionRecord record) {
+        return new EmotionRecordResponseDTO(
+                record.getRecordId(),
+                record.getUser().getUserId(),
+                record.getUser().getNickName(),
+                record.getEmotion().name(),
+                record.getSpotifyMusic() != null ? SpotifyMusicResponseDTO.fromEntity(record.getSpotifyMusic()) : null,
+                record.getComment(),
+                formatTimestamp(record.getCreatedAt())
+        );
+    }
+
+    public static List<EmotionRecordResponseDTO> fromEntities(List<EmotionRecord> records) {
+        return records.stream().map(EmotionRecordResponseDTO::fromEntity).collect(Collectors.toList());
+    }
+
+    private static String formatTimestamp(Timestamp timestamp) {
+        DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
+        if (timestamp == null) return null;
+        return timestamp.toLocalDateTime().format(FORMATTER);
+    }
+}

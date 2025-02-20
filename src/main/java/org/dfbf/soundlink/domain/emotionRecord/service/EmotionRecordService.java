@@ -3,6 +3,7 @@ package org.dfbf.soundlink.domain.emotionRecord.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordRequestDTO;
+import org.dfbf.soundlink.domain.emotionRecord.dto.response.EmotionRecordResponseDTO;
 import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.emotionRecord.exception.UserNotFoundException;
@@ -15,6 +16,8 @@ import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -56,6 +59,21 @@ public class EmotionRecordService {
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         } catch (Exception e) {
             log.error("감정기록 저장 서버 에러 {}", e.getMessage());
+            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseResult getEmotionRecordsByUserId(Long userId) {
+
+        try {
+            List<EmotionRecord> records = emotionRecordRepository.findByUserId(userId);
+            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordResponseDTO.fromEntities(records));
+        } catch (UserNotFoundException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
+        } catch (DataAccessException e) {
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
+        } catch (Exception e) {
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }

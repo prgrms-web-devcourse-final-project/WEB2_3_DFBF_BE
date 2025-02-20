@@ -8,10 +8,7 @@ import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordRequestD
 import org.dfbf.soundlink.domain.emotionRecord.service.EmotionRecordService;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/user/emotion")
@@ -28,6 +25,16 @@ public class EmotionRecordController {
     )
     public ResponseEntity<ResponseResult> saveEmotionWithMusic(@Valid @RequestBody EmotionRecordRequestDTO request) {
         ResponseResult response = emotionRecordService.saveEmotionRecordWithMusic(request);
+        return ResponseEntity.status(response.getCode()).body(response);
+    }
+
+    @GetMapping
+    @Operation(
+            summary = "감정 기록 전체 조회 API",
+            description = "유저가 작성한 감정 기록 전체를 조회합니다."
+    )
+    public ResponseEntity<ResponseResult> getEmotionRecords(/*@AuthenticationPrincipal*/ Long userId) {
+        ResponseResult response = emotionRecordService.getEmotionRecordsByUserId(userId);
         return ResponseEntity.status(response.getCode()).body(response);
     }
 }

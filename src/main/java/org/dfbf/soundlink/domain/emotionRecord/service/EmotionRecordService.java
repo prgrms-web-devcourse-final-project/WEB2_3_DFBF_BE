@@ -94,4 +94,23 @@ public class EmotionRecordService {
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
+
+    @Transactional
+    public ResponseResult deleteEmotionRecord(Long recordId) {
+        try {
+            int deletedCount = emotionRecordRepository.deleteByRecordId(recordId);
+
+            // 삭제할 데이터가 없는 경우
+            if (deletedCount == 0) {
+                return new ResponseResult(ErrorCode.SUCCESS, "이미 삭제되었거나 존재하지 않는 감정 기록입니다.");
+            }
+            return new ResponseResult(ErrorCode.SUCCESS, "감정 기록이 성공적으로 삭제되었습니다.");
+        } catch (EmotionRecordNotFoundException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
+        } catch (DataAccessException e) {
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
 }

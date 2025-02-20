@@ -47,4 +47,14 @@ public class EmotionRecordController {
         ResponseResult response = emotionRecordService.getEmotionRecord(recordId);
         return ResponseEntity.status(response.getCode()).body(response);
     }
+
+    @DeleteMapping("/{recordId}")
+    @Operation(
+            summary = "감정 기록 삭제 API",
+            description = "특정 감정 기록을 삭제합니다."
+    )
+    public ResponseEntity<ResponseResult> deleteEmotionRecord(@PathVariable Long recordId) {
+        ResponseResult response = emotionRecordService.deleteEmotionRecord(recordId);
+        return ResponseEntity.status(response.getCode()).body(response);
+    }
 }

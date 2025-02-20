@@ -34,6 +34,11 @@ public interface EmotionRecordRepository extends JpaRepository<EmotionRecord, Lo
             "LEFT JOIN FETCH er.spotifyMusic sm " +
             "WHERE er.recordId = :recordId")
     Optional<EmotionRecord> findByRecordId(@Param("recordId") Long recordId);
+
+    @Modifying
+    @Query( "DELETE FROM EmotionRecord er " +
+            "WHERE er.recordId = :recordId")
+    int deleteByRecordId(@Param("recordId") Long recordId);
 }
 
 /**

@@ -39,6 +39,9 @@ public enum ErrorCode {
     BLOCKING_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "차단을 시도한 유저의 아이디를 찾을 수 없습니다."),
     ALREADY_BLOCKED_USER(HttpStatus.BAD_REQUEST, "이미 차단한 유저입니다."),
 
+    // EmotionRecord
+    FAIL_TO_FIND_EMOTION_RECORD(HttpStatus.NOT_FOUND, "해당 감정 기록을 찾을 수 없습니다."),
+
     // Auth
     TOKEN_NOT_EXPIRED(HttpStatus.OK, "토큰 정상"),
     TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "토큰 만료됨"),

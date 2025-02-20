@@ -6,6 +6,7 @@ import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordRequestD
 import org.dfbf.soundlink.domain.emotionRecord.dto.response.EmotionRecordResponseDTO;
 import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
+import org.dfbf.soundlink.domain.emotionRecord.exception.EmotionRecordNotFoundException;
 import org.dfbf.soundlink.domain.emotionRecord.exception.UserNotFoundException;
 import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepository;
 import org.dfbf.soundlink.domain.emotionRecord.repository.SpotifyMusicRepository;
@@ -71,6 +72,22 @@ public class EmotionRecordService {
             return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordResponseDTO.fromEntities(records));
         } catch (UserNotFoundException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
+        } catch (DataAccessException e) {
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseResult getEmotionRecord(Long recordId) {
+
+        try {
+            EmotionRecord records = emotionRecordRepository.findByRecordId(recordId)
+                    .orElseThrow(EmotionRecordNotFoundException::new);
+            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordResponseDTO.fromEntity(records));
+        } catch (EmotionRecordNotFoundException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
         } catch (DataAccessException e) {
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         } catch (Exception e) {

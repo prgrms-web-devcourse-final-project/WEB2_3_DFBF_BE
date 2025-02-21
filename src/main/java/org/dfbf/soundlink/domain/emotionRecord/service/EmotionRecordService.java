@@ -3,9 +3,11 @@ package org.dfbf.soundlink.domain.emotionRecord.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordRequestDTO;
+import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordUpdateRequestDTO;
 import org.dfbf.soundlink.domain.emotionRecord.dto.response.EmotionRecordResponseMainDTO;
 import org.dfbf.soundlink.domain.emotionRecord.dto.response.EmotionRecordResponseWithOwnerDTO;
 import org.dfbf.soundlink.domain.emotionRecord.dto.response.EmotionRecordResponseWithoutNicknameDTO;
+import org.dfbf.soundlink.domain.emotionRecord.dto.response.EmotionRecordUpdateResponseDTO;
 import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.emotionRecord.exception.EmotionRecordNotFoundException;
@@ -103,6 +105,42 @@ public class EmotionRecordService {
             EmotionRecord records = emotionRecordRepository.findByRecordId(recordId)
                     .orElseThrow(EmotionRecordNotFoundException::new);
             return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordResponseWithOwnerDTO.fromEntity(records, userId));
+        } catch (EmotionRecordNotFoundException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
+        } catch (DataAccessException e) {
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    @Transactional
+    public ResponseResult updateEmotionRecord(Long recordId, EmotionRecordUpdateRequestDTO updateDTO) {
+        try {
+            // 기존 감정 기록 조회
+            EmotionRecord record = emotionRecordRepository.findByRecordId(recordId)
+                    .orElseThrow(EmotionRecordNotFoundException::new);
+
+            // SpotifyMusic이 DB에 있는지 먼저 확인
+            // SpotifyMusic 엔티티가 저장되지 않은 상태에서 EmotionRecord 저장 시 영속성 컨텍스트 미저장 오류 발생
+            // EmotionRecord를 업데이트하기 전에 SpotifyMusic이 없다면 생성 후 먼저 저장해줘야 함
+            SpotifyMusic spotifyMusic = spotifyMusicRepository.findById(updateDTO.spotifyId())
+                    .orElseGet(() -> {
+                        SpotifyMusic newMusic = new SpotifyMusic(
+                                updateDTO.spotifyId(),
+                                updateDTO.title(),
+                                updateDTO.artist(),
+                                updateDTO.albumImage()
+                        );
+                        return spotifyMusicRepository.save(newMusic);
+                    });
+
+            record.updateEmotionRecord(updateDTO.emotion(), updateDTO.comment(), spotifyMusic);
+
+            // 수정된 정보를 Response DTO로 변환
+            EmotionRecordUpdateResponseDTO responseDTO = EmotionRecordUpdateResponseDTO.fromEntity(record);
+
+            return new ResponseResult(ErrorCode.SUCCESS, responseDTO);
         } catch (EmotionRecordNotFoundException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
         } catch (DataAccessException e) {

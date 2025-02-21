@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordRequestDTO;
 import org.dfbf.soundlink.domain.emotionRecord.dto.response.EmotionRecordResponseMainDTO;
+import org.dfbf.soundlink.domain.emotionRecord.dto.response.EmotionRecordResponseWithOwnerDTO;
+import org.dfbf.soundlink.domain.emotionRecord.dto.response.EmotionRecordResponseWithoutNicknameDTO;
 import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.emotionRecord.exception.EmotionRecordNotFoundException;
@@ -65,10 +67,10 @@ public class EmotionRecordService {
     }
 
     @Transactional(readOnly = true)
-    public ResponseResult getEmotionRecordsByUserId(Long userId) {
+    public ResponseResult getEmotionRecordsExcludingUserId(Long userId) {
 
         try {
-            List<EmotionRecord> records = emotionRecordRepository.findByUserId(userId);
+            List<EmotionRecord> records = emotionRecordRepository.findByWithoutUserId(userId);
             return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordResponseMainDTO.fromEntities(records));
         } catch (UserNotFoundException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
@@ -80,12 +82,27 @@ public class EmotionRecordService {
     }
 
     @Transactional(readOnly = true)
-    public ResponseResult getEmotionRecord(Long recordId) {
+    public ResponseResult getEmotionRecordsByUserId(Long userId) {
+
+        try {
+            List<EmotionRecord> records = emotionRecordRepository.findByUserId(userId);
+            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordResponseWithoutNicknameDTO.fromEntities(records));
+        } catch (UserNotFoundException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
+        } catch (DataAccessException e) {
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseResult getEmotionRecord(Long userId, Long recordId) {
 
         try {
             EmotionRecord records = emotionRecordRepository.findByRecordId(recordId)
                     .orElseThrow(EmotionRecordNotFoundException::new);
-            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordResponseMainDTO.fromEntity(records));
+            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordResponseWithOwnerDTO.fromEntity(records, userId));
         } catch (EmotionRecordNotFoundException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
         } catch (DataAccessException e) {

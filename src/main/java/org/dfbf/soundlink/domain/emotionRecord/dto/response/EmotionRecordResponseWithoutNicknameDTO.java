@@ -7,19 +7,16 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public record EmotionRecordResponseMainDTO(
+public record EmotionRecordResponseWithoutNicknameDTO(
         Long recordId,
-        String nickName,
         String emotion,
         SpotifyMusicResponseDTO spotifyMusic,
         String comment,
         String createAt
-        ) {
-
-    public static EmotionRecordResponseMainDTO fromEntity(EmotionRecord record) {
-        return new EmotionRecordResponseMainDTO(
+) {
+    public static EmotionRecordResponseWithoutNicknameDTO fromEntity(EmotionRecord record) {
+        return new EmotionRecordResponseWithoutNicknameDTO(
                 record.getRecordId(),
-                record.getUser().getNickName(),
                 record.getEmotion().name(),
                 record.getSpotifyMusic() != null ? SpotifyMusicResponseDTO.fromEntity(record.getSpotifyMusic()) : null,
                 record.getComment(),
@@ -27,8 +24,8 @@ public record EmotionRecordResponseMainDTO(
         );
     }
 
-    public static List<EmotionRecordResponseMainDTO> fromEntities(List<EmotionRecord> records) {
-        return records.stream().map(EmotionRecordResponseMainDTO::fromEntity).collect(Collectors.toList());
+    public static List<EmotionRecordResponseWithoutNicknameDTO> fromEntities(List<EmotionRecord> records) {
+        return records.stream().map(EmotionRecordResponseWithoutNicknameDTO::fromEntity).collect(Collectors.toList());
     }
 
     private static String formatTimestamp(Timestamp timestamp) {

@@ -30,21 +30,31 @@ public class EmotionRecordController {
 
     @GetMapping
     @Operation(
-            summary = "감정 기록 전체 조회 API",
+            summary = "감정 기록 전체 조회 메인 API",
             description = "유저들이 작성한 감정 기록 전체를 조회합니다.(자신의 아이디에 해당하는 감정 기록은 조회되지 않습니다.)"
     )
-    public ResponseEntity<ResponseResult> getEmotionRecords(/*@AuthenticationPrincipal*/ Long userId) {
+    public ResponseEntity<ResponseResult> getEmotionRecordsWithoutMine(/*@AuthenticationPrincipal*/ Long userId) {
+        ResponseResult response = emotionRecordService.getEmotionRecordsExcludingUserId(userId);
+        return ResponseEntity.status(response.getCode()).body(response);
+    }
+
+    @GetMapping("/user")
+    @Operation(
+            summary = "유저별 감정 기록 전체 조회 API",
+            description = "유저들이 작성한 감정 기록 전체를 조회합니다.(닉네임은 조회되지 않습니다.)"
+    )
+    public ResponseEntity<ResponseResult> getAllEmotionRecords(/*@AuthenticationPrincipal*/ Long userId) {
         ResponseResult response = emotionRecordService.getEmotionRecordsByUserId(userId);
         return ResponseEntity.status(response.getCode()).body(response);
     }
 
     @GetMapping("/{recordId}")
     @Operation(
-            summary = "감정 기록 조회 API",
-            description = "유저가 작성한 감정 기록을 조회합니다."
+            summary = "상세 감정 기록 조회 API",
+            description = "상세 감정 기록을 조회합니다. (자신이 쓴 감정 기록이면 isOwner 값이 true, 아니면 false)"
     )
-    public ResponseEntity<ResponseResult> getEmotionRecord(@PathVariable Long recordId) {
-        ResponseResult response = emotionRecordService.getEmotionRecord(recordId);
+    public ResponseEntity<ResponseResult> getEmotionRecord(/*@AuthenticationPrincipal*/ Long userId, @PathVariable Long recordId) {
+        ResponseResult response = emotionRecordService.getEmotionRecord(userId, recordId);
         return ResponseEntity.status(response.getCode()).body(response);
     }
 

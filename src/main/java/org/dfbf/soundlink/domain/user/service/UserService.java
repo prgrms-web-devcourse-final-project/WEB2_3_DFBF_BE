@@ -1,6 +1,8 @@
 package org.dfbf.soundlink.domain.user.service;
 
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Service;
 import javax.naming.AuthenticationException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -43,9 +46,10 @@ public class UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final MailService mailService;
     private final RedisService redisService;
+
     private final JwtProvider jwtProvider;
     private final TokenProperties tokenProperties;
-    private RedisTemplate<String, String> redisTemplate;
+    private final TokenService tokenService;
 
   
     // 회원가입
@@ -194,7 +198,7 @@ public class UserService {
                 return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, "계정을 찾을 수 없습니다.");
             }
             // 비밀번호 검증(암호화 된 비밀번호 비교)
-            if(!passwordEncoder.matches(loginReqDto.password(), userRepository.findByPassword(loginReqDto.loginId()))){
+            if(!passwordEncoder.matches(loginReqDto.password(), userRepository.findPasswordByLoginId(loginReqDto.loginId()))){
                 return new ResponseResult( ErrorCode.NOT_EQUALS_PASSWORD,"잘못된 비밀번호 입니다.");
             }
 
@@ -203,6 +207,10 @@ public class UserService {
 
             String accessToken = jwtProvider.createAccessToken(user.getUserId());
             String refreshToken = jwtProvider.createRefreshToken(user.getUserId());
+
+            // 로그로 출력
+            System.out.println("Generated Access Token: " + accessToken);
+            System.out.println("Generated Refresh Token: " + refreshToken);
 
             //refreshToken - 쿠키
             ResponseCookie refreshCookie = getRefreshToken(refreshToken);
@@ -238,6 +246,74 @@ public class UserService {
             return new ResponseResult(ErrorCode. INTERNAL_SERVER_ERROR,"로그아웃 중 오류가 발생했습니다.");
         }
     }
+
+    //토큰 재발급
+    public ResponseResult reissueToken(HttpServletRequest request, HttpServletResponse response) {
+        String accessToken = jwtProvider.resolveAccessToken(request);
+        String refreshToken = jwtProvider.resolveRefreshToken(request);
+
+        if (refreshToken == null) {
+            // 쿠키에서 리프레시 토큰 확인
+            for (Cookie cookie : request.getCookies()) {
+                if (cookie.getName().equals("REFRESHTOKEN")) {
+                    refreshToken = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        System.out.println("AccessToken: " + accessToken);
+        System.out.println("RefreshToken from Cookie: " + refreshToken);
+
+        // AccessToken과 RefreshToken이 모두 없는 경우
+        if (accessToken == null || refreshToken == null) {
+            logout(response);
+            return new ResponseResult(ErrorCode.TOKEN_INVALID, "토큰이 존재하지 않거나 만료되었습니다.");
+        }
+
+        // AccessToken 유효성 확인
+        if (jwtProvider.validateToken(accessToken)) {
+            // 유효한 액세스 토큰이 있으면 재발급하지 않음
+            return new ResponseResult(ErrorCode.TOKEN_NOT_EXPIRED);
+        }
+
+        // 액세스 토큰이 만료되었으므로 리프레시 토큰으로 새 액세스 토큰 발급
+        System.out.println("AccessToken is expired, proceeding to issue a new one.");
+
+        // RefreshToken 유효성 확인
+        if (jwtProvider.validateToken(refreshToken)) {
+            Long userId = jwtProvider.getUserId(refreshToken);
+
+            // Redis에서 리프레시 토큰 가져오기
+            String redisRefreshToken = tokenService.getRefreshToken(userId);
+
+            // Redis에서 리프레시 토큰을 확인하고, 일치하면 새 액세스 토큰 발급
+            if (redisRefreshToken != null && redisRefreshToken.equals(refreshToken)) {
+                // 새 액세스 토큰 발급
+                String newAccessToken = jwtProvider.createAccessToken(userId);
+
+                // 로그에 새 액세스 토큰 출력
+                System.out.println("New AccessToken: " + newAccessToken);
+
+                // 응답에 새 액세스 토큰 포함
+                Map<String, String> responseBody = new HashMap<>();
+                responseBody.put("accessToken", newAccessToken);
+
+                // 새 액세스 토큰을 발급한 후 응답으로 반환
+                return new ResponseResult(ErrorCode.SUCCESS, responseBody);
+            } else {
+                // 리프레시 토큰이 일치하지 않으면 INVALID 에러 반환
+                return new ResponseResult(ErrorCode.TOKEN_INVALID, "리프레시 토큰이 일치하지 않습니다.");
+            }
+        } else {
+            // 리프레시 토큰이 유효하지 않으면 INVALID 에러 반환
+            return new ResponseResult(ErrorCode.TOKEN_INVALID, "리프레시 토큰이 유효하지 않습니다.");
+        }
+    }
+
+
+
+
 
 
 

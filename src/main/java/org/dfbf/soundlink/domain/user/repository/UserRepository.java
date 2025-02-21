@@ -33,9 +33,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByLoginId(String loginId);
 
     @Query("Select u.password from User u  where u.loginId =:loginId ")
-    String findByPassword(@Param("loginId")String loginId);
-
-
-
+    String findPasswordByLoginId(@Param("loginId")String loginId); //비밀번호만 조회
 
 }

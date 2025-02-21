@@ -43,6 +43,7 @@ public enum ErrorCode {
     TOKEN_NOT_EXPIRED(HttpStatus.OK, "토큰 정상"),
     TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "토큰 만료됨"),
     TOKEN_TAMPERED(HttpStatus.BAD_REQUEST, "토큰 변조됨"),
+    TOKEN_INVALID(HttpStatus.BAD_REQUEST,"유효하지 않은 토큰"),
 
     // 카카오페이 결제 에러
     KAKAOPAY_READY_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오페이 결제 준비 에러"),

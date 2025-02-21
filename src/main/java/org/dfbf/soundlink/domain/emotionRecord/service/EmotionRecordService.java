@@ -4,10 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordRequestDTO;
 import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordUpdateRequestDTO;
-import org.dfbf.soundlink.domain.emotionRecord.dto.response.EmotionRecordResponseMainDTO;
-import org.dfbf.soundlink.domain.emotionRecord.dto.response.EmotionRecordResponseWithOwnerDTO;
-import org.dfbf.soundlink.domain.emotionRecord.dto.response.EmotionRecordResponseWithoutNicknameDTO;
-import org.dfbf.soundlink.domain.emotionRecord.dto.response.EmotionRecordUpdateResponseDTO;
+import org.dfbf.soundlink.domain.emotionRecord.dto.response.*;
 import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.emotionRecord.exception.EmotionRecordNotFoundException;
@@ -19,10 +16,15 @@ import org.dfbf.soundlink.domain.user.repository.UserRepository;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
@@ -69,13 +71,15 @@ public class EmotionRecordService {
     }
 
     @Transactional(readOnly = true)
-    public ResponseResult getEmotionRecordsExcludingUserId(Long userId) {
-
+    public <T> ResponseResult getEmotionRecords(Long userId, int page, int size, Function<EmotionRecord, T> mapper, boolean excludeUser) {
         try {
-            List<EmotionRecord> records = emotionRecordRepository.findByWithoutUserId(userId);
-            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordResponseMainDTO.fromEntities(records));
-        } catch (UserNotFoundException e) {
-            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
+            Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+            Page<EmotionRecord> recordsPage = excludeUser
+                    ? emotionRecordRepository.findByWithoutUserId(userId, pageable)
+                    : emotionRecordRepository.findByUserId(userId, pageable);
+
+            List<T> dtoList = recordsPage.getContent().stream().map(mapper).toList();
+            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordPageResponseDTO.fromPage(recordsPage, dtoList));
         } catch (DataAccessException e) {
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         } catch (Exception e) {
@@ -84,18 +88,13 @@ public class EmotionRecordService {
     }
 
     @Transactional(readOnly = true)
-    public ResponseResult getEmotionRecordsByUserId(Long userId) {
+    public ResponseResult getEmotionRecordsExcludingUserId(Long userId, int page, int size) {
+        return getEmotionRecords(userId, page, size, EmotionRecordResponseMainDTO::fromEntity, true);
+    }
 
-        try {
-            List<EmotionRecord> records = emotionRecordRepository.findByUserId(userId);
-            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordResponseWithoutNicknameDTO.fromEntities(records));
-        } catch (UserNotFoundException e) {
-            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
-        } catch (DataAccessException e) {
-            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
-        } catch (Exception e) {
-            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
-        }
+    @Transactional(readOnly = true)
+    public ResponseResult getEmotionRecordsByUserId(Long userId, int page, int size) {
+        return getEmotionRecords(userId, page, size, EmotionRecordResponseWithoutNicknameDTO::fromEntity, false);
     }
 
     @Transactional(readOnly = true)

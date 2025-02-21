@@ -3,7 +3,7 @@ package org.dfbf.soundlink.domain.user.service;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepository;
@@ -33,7 +33,7 @@ import java.util.Map;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserService {
     
     private final UserRepository userRepository;
@@ -45,8 +45,19 @@ public class UserService {
     private final RedisService redisService;
     private final JwtProvider jwtProvider;
     private final TokenProperties tokenProperties;
+
     private RedisTemplate<String, String> redisTemplate;
 
+    //refreshToken을 쿠키로 설정
+    private ResponseCookie getRefreshToken(String refreshToken) {
+        return ResponseCookie
+                .from("REFRESHTOKEN", refreshToken)
+                .domain("localhost")
+                .path("/")
+                .httpOnly(true)
+                .maxAge(tokenProperties.getRefreshTokenExpirationTime()) //만료시간 설정
+                .build();
+    }
   
     // 회원가입
     public ResponseResult signUp(UserSignUpDto userSignUpDto) {
@@ -72,26 +83,31 @@ public class UserService {
     }
 
     // 회원정보 수정
-    @Transactional
     public ResponseResult updateUser(Long userId, UserUpdateDto userUpdateDto) {
         try {
-            User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
+            User user = userRepository.findById(userId).orElseThrow(NoUserDataException::new);
             user.update(userUpdateDto, passwordEncoder);
 
-            // SpotifyMusic 객체 찾고 없으면 새로 생성
+            // SpotifyMusic 객체 찾기 (없으면 새로 생성 & 저장)
             SpotifyMusic spotifyMusic = spotifyMusicRepository.findById(userUpdateDto.spotifyId())
-                    .orElse(new SpotifyMusic(userUpdateDto.spotifyId(), userUpdateDto.title(), userUpdateDto.artist(), userUpdateDto.albumImage()));
+                    .orElseGet(() -> {
+                        SpotifyMusic sm = new SpotifyMusic(userUpdateDto);
+                        spotifyMusicRepository.save(sm);
+                        return sm;
+                    });
 
-            // SpotifyMusic 저장
-            spotifyMusicRepository.save(spotifyMusic);
-
-            // ProfileMusic 객체 찾고 없으면 새로 생성
+            // ProfileMusic 객체 찾기 (없으면 새로 생성 & 저장)
             ProfileMusic profileMusic = profileMusicRepository.findByUserId(userId)
-                    .orElse(new ProfileMusic(user, spotifyMusic));
+                    .map(pm -> {
+                        pm.update(spotifyMusic);
+                        return pm;
+                    })
+                    .orElseGet(() -> profileMusicRepository.save(new ProfileMusic(user, spotifyMusic)));
 
-            // ProfileMusic이 업데이트
-            profileMusic.update(spotifyMusic);
-            profileMusicRepository.save(profileMusic);
+            /**
+             * orElse -> 일단 함수는 실행, 그러나 값이 null이면 orElse의 값으로 대체 (함수O, 람다x)
+             * orElseGet -> null일때만 실행 (함수O, 람다O)
+             */
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (NoUserDataException e) {
@@ -104,6 +120,9 @@ public class UserService {
     public ResponseResult deleteUser(Long userId) {
         try {
             User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
+
+            profileMusicRepository.deleteByUser(user);  // 유저 프로필 음악 삭제
+            emotionRecordRepository.deleteByUser(user); // 유저 감정 기록 삭제
             userRepository.deleteById(userId);          // 유저 삭제
 
             return new ResponseResult(ErrorCode.SUCCESS);
@@ -169,22 +188,11 @@ public class UserService {
   
     //닉네임 중복 확인
     public ResponseResult checkNickName(String nickName){
-        boolean exists =userRepository.existsByNickname(nickName);
+        boolean exists = userRepository.existsByNickname(nickName);
         if(exists){
             return new ResponseResult(ErrorCode.DUPLICATE_NICKNAME);
         }
         return new ResponseResult(ErrorCode.NOT_DUPLICATE_NICKNAME);
-    }
-
-    //refreshToken을 쿠키로 설정
-    private ResponseCookie getRefreshToken(String refreshToken) {
-        return ResponseCookie
-                .from("REFRESHTOKEN", refreshToken)
-                .domain("localhost")
-                .path("/")
-                .httpOnly(true)
-                .maxAge(tokenProperties.getRefreshTokenExpirationTime()) //만료시간 설정
-                .build();
     }
 
     //로그인
@@ -238,7 +246,4 @@ public class UserService {
             return new ResponseResult(ErrorCode. INTERNAL_SERVER_ERROR,"로그아웃 중 오류가 발생했습니다.");
         }
     }
-
-
-
 }

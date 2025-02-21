@@ -60,8 +60,12 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok:1.18.30")
 
     // Test (Junit5)
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.mockito:mockito-core:4.0.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:4.0.0")
+    testImplementation("org.mockito:mockito-inline:4.7.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine")
 
     // Json (Jackson)
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")

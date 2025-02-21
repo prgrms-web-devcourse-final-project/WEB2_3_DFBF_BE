@@ -34,8 +34,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("Select u.password from User u  where u.loginId =:loginId ")
     String findByPassword(@Param("loginId")String loginId);
-
-
-
-
 }

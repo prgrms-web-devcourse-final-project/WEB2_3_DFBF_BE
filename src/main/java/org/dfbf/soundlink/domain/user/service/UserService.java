@@ -261,10 +261,6 @@ public class UserService {
                 }
             }
         }
-
-        System.out.println("AccessToken: " + accessToken);
-        System.out.println("RefreshToken from Cookie: " + refreshToken);
-
         // AccessToken과 RefreshToken이 모두 없는 경우
         if (accessToken == null || refreshToken == null) {
             logout(response);
@@ -273,12 +269,8 @@ public class UserService {
 
         // AccessToken 유효성 확인
         if (jwtProvider.validateToken(accessToken)) {
-            // 유효한 액세스 토큰이 있으면 재발급하지 않음
-            return new ResponseResult(ErrorCode.TOKEN_NOT_EXPIRED);
+            return new ResponseResult(ErrorCode.TOKEN_NOT_EXPIRED);// 유효한 액세스 토큰: 재발급 x
         }
-
-        // 액세스 토큰이 만료되었으므로 리프레시 토큰으로 새 액세스 토큰 발급
-        System.out.println("AccessToken is expired, proceeding to issue a new one.");
 
         // RefreshToken 유효성 확인
         if (jwtProvider.validateToken(refreshToken)) {
@@ -289,32 +281,18 @@ public class UserService {
 
             // Redis에서 리프레시 토큰을 확인하고, 일치하면 새 액세스 토큰 발급
             if (redisRefreshToken != null && redisRefreshToken.equals(refreshToken)) {
-                // 새 액세스 토큰 발급
                 String newAccessToken = jwtProvider.createAccessToken(userId);
 
-                // 로그에 새 액세스 토큰 출력
-                System.out.println("New AccessToken: " + newAccessToken);
-
-                // 응답에 새 액세스 토큰 포함
                 Map<String, String> responseBody = new HashMap<>();
                 responseBody.put("accessToken", newAccessToken);
 
-                // 새 액세스 토큰을 발급한 후 응답으로 반환
                 return new ResponseResult(ErrorCode.SUCCESS, responseBody);
             } else {
-                // 리프레시 토큰이 일치하지 않으면 INVALID 에러 반환
                 return new ResponseResult(ErrorCode.TOKEN_INVALID, "리프레시 토큰이 일치하지 않습니다.");
             }
         } else {
-            // 리프레시 토큰이 유효하지 않으면 INVALID 에러 반환
             return new ResponseResult(ErrorCode.TOKEN_INVALID, "리프레시 토큰이 유효하지 않습니다.");
         }
     }
-
-
-
-
-
-
 
 }

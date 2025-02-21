@@ -15,16 +15,25 @@ import java.sql.Timestamp;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SpotifyMusic {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long spotifyId;
 
+    @Column(name = "title")
     private String title;
+
+    @Column(name = "artist")
     private String artist;
+
+    @Column(name = "album_image")
     private String albumImage;
 
     @CreationTimestamp
+    @Column(name = "created_at")
     private Timestamp createdAt;
+
     @UpdateTimestamp
-    private Timestamp updateAt;
+    @Column(name = "updated_at")
+    private Timestamp updatedAt;
 
     @Builder
     public SpotifyMusic (Long spotifyId, String title, String artist, String albumImage) {

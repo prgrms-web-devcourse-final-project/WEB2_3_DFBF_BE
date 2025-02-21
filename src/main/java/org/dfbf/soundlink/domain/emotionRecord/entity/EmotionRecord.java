@@ -16,6 +16,7 @@ import java.sql.Timestamp;
 public class EmotionRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "record_id")
     private Long recordId;
 
     @ManyToOne
@@ -23,18 +24,22 @@ public class EmotionRecord {
     private User user;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "emotion")
     private Emotions emotion;
 
     @ManyToOne
     @JoinColumn(name = "spotify_music_id")
     private SpotifyMusic spotifyMusic;
 
+    @Column(name = "comment")
     private String comment;
 
     @CreationTimestamp
+    @Column(name = "created_at")
     private Timestamp createdAt;
 
     @UpdateTimestamp
+    @Column(name = "updated_at")
     private Timestamp updatedAt;
 
     @Builder

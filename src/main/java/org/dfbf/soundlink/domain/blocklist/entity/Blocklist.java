@@ -18,6 +18,7 @@ public class Blocklist {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "blocklist_id")
     private Long blocklistId;
 
     @ManyToOne
@@ -29,9 +30,11 @@ public class Blocklist {
     private User blockedUser;
 
     @CreationTimestamp
+    @Column(name = "created_at")
     private Timestamp createdAt;
 
     @UpdateTimestamp
+    @Column(name = "updated_at")
     private Timestamp updatedAt;
 
     @Builder

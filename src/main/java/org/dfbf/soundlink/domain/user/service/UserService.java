@@ -169,7 +169,7 @@ public class UserService {
   
     //닉네임 중복 확인
     public ResponseResult checkNickName(String nickName){
-        boolean exists =userRepository.existsByNickName(nickName);
+        boolean exists =userRepository.existsByNickname(nickName);
         if(exists){
             return new ResponseResult(ErrorCode.DUPLICATE_NICKNAME);
         }

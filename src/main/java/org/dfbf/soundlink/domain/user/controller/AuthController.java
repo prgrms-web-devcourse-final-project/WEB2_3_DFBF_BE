@@ -29,8 +29,8 @@ public class AuthController {
 
     @PostMapping("/logout")
     @Operation(summary = "로그아웃", description = "로그아웃 API")
-    public ResponseResult logout(HttpServletResponse response) {
-        return userService.logout(response);
+    public ResponseResult logout(HttpServletResponse response, HttpServletRequest request) {
+        return userService.logout(response, request);
     }
 
     @PostMapping("/token")

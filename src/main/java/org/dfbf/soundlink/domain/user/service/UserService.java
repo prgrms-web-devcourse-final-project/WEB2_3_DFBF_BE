@@ -208,10 +208,6 @@ public class UserService {
             String accessToken = jwtProvider.createAccessToken(user.getUserId());
             String refreshToken = jwtProvider.createRefreshToken(user.getUserId());
 
-            // 로그로 출력
-            System.out.println("Generated Access Token: " + accessToken);
-            System.out.println("Generated Refresh Token: " + refreshToken);
-
             //refreshToken - 쿠키
             ResponseCookie refreshCookie = getRefreshToken(refreshToken);
             response.setHeader("Set-Cookie", refreshCookie.toString());
@@ -228,7 +224,7 @@ public class UserService {
     }
 
     //로그아웃
-    public ResponseResult logout(HttpServletResponse response) {
+    public ResponseResult logout(HttpServletResponse response, HttpServletRequest request) {
         try {
             //클라이언트 - 토큰 삭제
             ResponseCookie refreshCookie = ResponseCookie
@@ -240,7 +236,12 @@ public class UserService {
                     .build();
             response.setHeader("Set-Cookie", refreshCookie.toString());//쿠키 삭제 요청
 
-            return new ResponseResult(ErrorCode.SUCCESS);
+            String accessToken = jwtProvider.resolveAccessToken(request); // 요청에서 액세스 토큰 추출
+            Long userId = jwtProvider.getUserId(accessToken); // 액세스 토큰을 넘겨서 userId 추출
+
+            tokenService.deleteRefreshToken(userId);
+
+            return new ResponseResult(ErrorCode.SUCCESS,"로그아웃 되었습니다.");
 
         } catch (Exception e) {
             return new ResponseResult(ErrorCode. INTERNAL_SERVER_ERROR,"로그아웃 중 오류가 발생했습니다.");
@@ -261,9 +262,12 @@ public class UserService {
                 }
             }
         }
+        System.out.println("AccessToken: " + accessToken);
+        System.out.println("RefreshToken from Cookie: " + refreshToken);
+
         // AccessToken과 RefreshToken이 모두 없는 경우
         if (accessToken == null || refreshToken == null) {
-            logout(response);
+            logout(response,request);
             return new ResponseResult(ErrorCode.TOKEN_INVALID, "토큰이 존재하지 않거나 만료되었습니다.");
         }
 
@@ -282,6 +286,8 @@ public class UserService {
             // Redis에서 리프레시 토큰을 확인하고, 일치하면 새 액세스 토큰 발급
             if (redisRefreshToken != null && redisRefreshToken.equals(refreshToken)) {
                 String newAccessToken = jwtProvider.createAccessToken(userId);
+
+                System.out.println("New AccessToken: " + newAccessToken);
 
                 Map<String, String> responseBody = new HashMap<>();
                 responseBody.put("accessToken", newAccessToken);

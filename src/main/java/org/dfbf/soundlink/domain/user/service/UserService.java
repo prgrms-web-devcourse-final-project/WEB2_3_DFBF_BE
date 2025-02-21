@@ -24,7 +24,6 @@ import org.dfbf.soundlink.global.auth.JwtProvider;
 import org.dfbf.soundlink.global.auth.TokenProperties;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,7 +31,6 @@ import org.springframework.stereotype.Service;
 import javax.naming.AuthenticationException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -253,17 +251,8 @@ public class UserService {
         String accessToken = jwtProvider.resolveAccessToken(request);
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
-        if (refreshToken == null) {
-            // 쿠키에서 리프레시 토큰 확인
-            for (Cookie cookie : request.getCookies()) {
-                if (cookie.getName().equals("REFRESHTOKEN")) {
-                    refreshToken = cookie.getValue();
-                    break;
-                }
-            }
-        }
-        System.out.println("AccessToken: " + accessToken);
-        System.out.println("RefreshToken from Cookie: " + refreshToken);
+//        System.out.println("AccessToken: " + accessToken);
+//        System.out.println("RefreshToken from Cookie: " + refreshToken);
 
         // AccessToken과 RefreshToken이 모두 없는 경우
         if (accessToken == null || refreshToken == null) {
@@ -287,7 +276,7 @@ public class UserService {
             if (redisRefreshToken != null && redisRefreshToken.equals(refreshToken)) {
                 String newAccessToken = jwtProvider.createAccessToken(userId);
 
-                System.out.println("New AccessToken: " + newAccessToken);
+//                System.out.println("New AccessToken: " + newAccessToken);
 
                 Map<String, String> responseBody = new HashMap<>();
                 responseBody.put("accessToken", newAccessToken);

@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordRequestDTO;
+import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordUpdateRequestDTO;
 import org.dfbf.soundlink.domain.emotionRecord.service.EmotionRecordService;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.http.ResponseEntity;
@@ -55,6 +56,18 @@ public class EmotionRecordController {
     )
     public ResponseEntity<ResponseResult> getEmotionRecord(/*@AuthenticationPrincipal*/ Long userId, @PathVariable Long recordId) {
         ResponseResult response = emotionRecordService.getEmotionRecord(userId, recordId);
+        return ResponseEntity.status(response.getCode()).body(response);
+    }
+
+    @PutMapping("/{recordId}")
+    @Operation(
+            summary = "감정 기록 수정 API",
+            description = "특정 감정 기록을 수정하고 수정한 결과를 반환합니다."
+    )
+    public ResponseEntity<ResponseResult> updateEmotionRecord(
+            @PathVariable Long recordId,
+            @RequestBody EmotionRecordUpdateRequestDTO updateDTO) {
+        ResponseResult response = emotionRecordService.updateEmotionRecord(recordId, updateDTO);
         return ResponseEntity.status(response.getCode()).body(response);
     }
 

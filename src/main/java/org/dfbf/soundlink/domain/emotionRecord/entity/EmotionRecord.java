@@ -38,10 +38,18 @@ public class EmotionRecord {
     private Timestamp updatedAt;
 
     @Builder
-    public EmotionRecord(User user, Emotions emotion, String comment) {
+    public EmotionRecord(User user, Emotions emotion, String comment, SpotifyMusic spotifyMusic) {
         this.user = user;
         this.emotion = emotion;
         this.comment = comment;
+        this.spotifyMusic = spotifyMusic;
+    }
+
+    // 감정 기록 업데이트 메서드
+    public void updateEmotionRecord(String emotion, String comment, SpotifyMusic spotifyMusic) {
+        this.emotion = Emotions.valueOf(emotion);
+        this.comment = comment;
+        this.spotifyMusic = spotifyMusic;
     }
 }
 

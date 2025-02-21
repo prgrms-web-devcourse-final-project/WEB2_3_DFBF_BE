@@ -24,10 +24,6 @@ public record EmotionRecordResponseWithoutNicknameDTO(
         );
     }
 
-    public static List<EmotionRecordResponseWithoutNicknameDTO> fromEntities(List<EmotionRecord> records) {
-        return records.stream().map(EmotionRecordResponseWithoutNicknameDTO::fromEntity).collect(Collectors.toList());
-    }
-
     private static String formatTimestamp(Timestamp timestamp) {
         DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 

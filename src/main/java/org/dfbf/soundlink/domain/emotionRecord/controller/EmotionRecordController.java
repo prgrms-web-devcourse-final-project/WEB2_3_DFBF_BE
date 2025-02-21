@@ -34,8 +34,11 @@ public class EmotionRecordController {
             summary = "감정 기록 전체 조회 메인 API",
             description = "유저들이 작성한 감정 기록 전체를 조회합니다.(자신의 아이디에 해당하는 감정 기록은 조회되지 않습니다.)"
     )
-    public ResponseEntity<ResponseResult> getEmotionRecordsWithoutMine(/*@AuthenticationPrincipal*/ Long userId) {
-        ResponseResult response = emotionRecordService.getEmotionRecordsExcludingUserId(userId);
+    public ResponseEntity<ResponseResult> getEmotionRecordsWithoutMine(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            /*@AuthenticationPrincipal*/ Long userId) {
+        ResponseResult response = emotionRecordService.getEmotionRecordsExcludingUserId(userId, page, size);
         return ResponseEntity.status(response.getCode()).body(response);
     }
 
@@ -44,8 +47,11 @@ public class EmotionRecordController {
             summary = "유저별 감정 기록 전체 조회 API",
             description = "유저들이 작성한 감정 기록 전체를 조회합니다.(닉네임은 조회되지 않습니다.)"
     )
-    public ResponseEntity<ResponseResult> getAllEmotionRecords(/*@AuthenticationPrincipal*/ Long userId) {
-        ResponseResult response = emotionRecordService.getEmotionRecordsByUserId(userId);
+    public ResponseEntity<ResponseResult> getAllEmotionRecords(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            /*@AuthenticationPrincipal*/ Long userId) {
+        ResponseResult response = emotionRecordService.getEmotionRecordsByUserId(userId, page, size);
         return ResponseEntity.status(response.getCode()).body(response);
     }
 

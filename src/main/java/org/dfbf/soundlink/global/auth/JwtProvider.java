@@ -55,10 +55,10 @@ public class JwtProvider {
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
         try {
-            redisTemplate.opsForValue().set("refreshToken: "+userId, refreshToken,REFRESH_EXPIRATION_TIME, TimeUnit.MILLISECONDS);
+            redisTemplate.opsForValue().set("refreshToken:"+userId, refreshToken,REFRESH_EXPIRATION_TIME, TimeUnit.MILLISECONDS);
             return refreshToken;
         } catch (Exception e) {
-            System.out.println("[Redis] RefreshToken save failed: " + e.getMessage());
+            System.out.println("[Redis] RefreshToken save failed:" + e.getMessage());
             return null;
         }
     }

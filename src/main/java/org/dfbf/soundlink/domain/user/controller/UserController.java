@@ -50,15 +50,5 @@ public class UserController {
     @Operation(summary = "마이 페이지", description = "마이 페이지 조회 API")
     public ResponseResult getMyPage(@AuthenticationPrincipal Long id) { return userService.getMyPage(id); }
 
-    @PostMapping("/login")
-    @Operation(summary = "로그인", description = "로그인 API")
-    public ResponseResult login(@RequestBody LoginReqDto loginReqDto, HttpServletResponse response) {
-        return userService.login(loginReqDto, response);
-    }
 
-    @PostMapping("/logout")
-    @Operation(summary = "로그아웃", description = "로그아웃 API")
-    public ResponseResult logout(HttpServletResponse response) {
-        return userService.logout(response);
-    }
 }

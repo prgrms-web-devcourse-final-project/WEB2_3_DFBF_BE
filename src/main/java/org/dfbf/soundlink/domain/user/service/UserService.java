@@ -140,7 +140,6 @@ public class UserService {
             User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
 
             UserMyPageDto result = userRepository.findMyPageDtoByUserId(user);
-            result.setEmotionRecords(emotionRecordRepository.findByUser(user));
 
             return new ResponseResult(ErrorCode.SUCCESS, result);
         } catch (NoUserDataException e) {
@@ -244,6 +243,33 @@ public class UserService {
 
         } catch (Exception e) {
             return new ResponseResult(ErrorCode. INTERNAL_SERVER_ERROR,"로그아웃 중 오류가 발생했습니다.");
+        }
+    }
+
+    // loginId 중복 확인
+    public ResponseResult checkLoginiId(String loginId) {
+        try {
+            if (userRepository.existsByLoginId(loginId)) {
+                return new ResponseResult(400, "Duplicate");
+            } else {
+                return new ResponseResult(ErrorCode.SUCCESS);
+            }
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.DB_ERROR);
+        }
+    }
+
+    // 타 유저 프로필
+    public ResponseResult getProfile(String tag) {
+        try {
+            UserMyPageDto result = userRepository.findMyPageDtoByLoginId(tag)
+                    .orElseThrow(() -> new NoUserDataException());
+
+            return new ResponseResult(ErrorCode.SUCCESS, result);
+        } catch (NoUserDataException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.DB_ERROR);
         }
     }
 }

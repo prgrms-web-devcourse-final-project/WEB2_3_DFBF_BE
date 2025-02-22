@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.function.Function;
 
 @Service
 @RequiredArgsConstructor
@@ -71,14 +70,16 @@ public class EmotionRecordService {
     }
 
     @Transactional(readOnly = true)
-    public <T> ResponseResult getEmotionRecords(Long userId, int page, int size, Function<EmotionRecord, T> mapper, boolean excludeUser) {
+    public ResponseResult getEmotionRecordsByLoginId(String userTag, int page, int size) {
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-            Page<EmotionRecord> recordsPage = excludeUser
-                    ? emotionRecordRepository.findByWithoutUserId(userId, pageable)
-                    : emotionRecordRepository.findByUserId(userId, pageable);
+            Page<EmotionRecord> recordsPage = emotionRecordRepository.findEmotionRecordsByLoginId(userTag, pageable);
 
-            List<T> dtoList = recordsPage.getContent().stream().map(mapper).toList();
+            List<EmotionRecordResponseWithoutNicknameDTO> dtoList = recordsPage.getContent()
+                    .stream()
+                    .map(EmotionRecordResponseWithoutNicknameDTO::fromEntity)
+                    .toList();
+
             return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordPageResponseDTO.fromPage(recordsPage, dtoList));
         } catch (DataAccessException e) {
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
@@ -87,16 +88,35 @@ public class EmotionRecordService {
         }
     }
 
-    @Transactional(readOnly = true)
+    public ResponseResult getEmotionRecordsExcludingUserId(Long userId, int page, int size) {
+
+        try {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+            Page<EmotionRecord> recordsPage = emotionRecordRepository.findByWithoutUserId(userId, pageable);
+
+            List<EmotionRecordResponseMainDTO> dtoList = recordsPage.getContent()
+                    .stream()
+                    .map(EmotionRecordResponseMainDTO::fromEntity)
+                    .toList();
+
+            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordPageResponseDTO.fromPage(recordsPage, dtoList));
+        } catch (DataAccessException e) {
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    /*@Transactional(readOnly = true)
     public ResponseResult getEmotionRecordsExcludingUserId(Long userId, int page, int size) {
         return getEmotionRecords(userId, page, size, EmotionRecordResponseMainDTO::fromEntity, true);
     }
 
     @Transactional(readOnly = true)
-    public ResponseResult getEmotionRecordsByUserId(Long userId, int page, int size) {
-        return getEmotionRecords(userId, page, size, EmotionRecordResponseWithoutNicknameDTO::fromEntity, false);
+    public ResponseResult getEmotionRecordsByUserId(String loginId, int page, int size) {
+        return getEmotionRecords(loginId, page, size, EmotionRecordResponseWithoutNicknameDTO::fromEntity, false);
     }
-
+*/
     @Transactional(readOnly = true)
     public ResponseResult getEmotionRecord(Long userId, Long recordId) {
 

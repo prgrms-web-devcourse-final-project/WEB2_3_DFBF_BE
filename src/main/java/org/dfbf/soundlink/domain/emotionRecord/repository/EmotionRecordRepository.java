@@ -25,13 +25,13 @@ public interface EmotionRecordRepository extends JpaRepository<EmotionRecord, Lo
             "WHERE er.user = :user" )
     List<EmotionRecordDto> findByUser(@Param("user") User user);
 
-    @Query( "SELECT er FROM EmotionRecord er " +
+    @Query("SELECT er FROM EmotionRecord er " +
             "JOIN FETCH er.user u " +
-            "LEFT JOIN FETCH er.spotifyMusic sm " +
-            "WHERE u.userId = :userId ")
-    Page<EmotionRecord> findByUserId(@Param("userId") Long userId, Pageable pageable);
+            "JOIN FETCH er.spotifyMusic sm " +
+            "WHERE u.loginId = :loginId")
+    Page<EmotionRecord> findEmotionRecordsByLoginId(@Param("loginId") String loginId, Pageable pageable);
 
-    @Query( "SELECT er FROM EmotionRecord er " +
+    @Query("SELECT er FROM EmotionRecord er " +
             "JOIN FETCH er.user u " +
             "LEFT JOIN FETCH er.spotifyMusic sm " +
             "WHERE u.userId <> :userId ")

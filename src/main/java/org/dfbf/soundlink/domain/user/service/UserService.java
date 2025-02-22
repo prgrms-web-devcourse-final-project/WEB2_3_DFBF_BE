@@ -49,7 +49,7 @@ public class UserService {
     private final TokenProperties tokenProperties;
     private final TokenService tokenService;
 
-    private final String domain = "43.203.98.65";
+    private final String domain = "";
   
     // 회원가입
     public ResponseResult signUp(UserSignUpDto userSignUpDto) {

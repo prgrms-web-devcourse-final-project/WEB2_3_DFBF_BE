@@ -49,6 +49,7 @@ public class UserService {
     private final TokenProperties tokenProperties;
     private final TokenService tokenService;
 
+    private final String domain = "43.203.98.65";
   
     // 회원가입
     public ResponseResult signUp(UserSignUpDto userSignUpDto) {
@@ -171,7 +172,7 @@ public class UserService {
   
     //닉네임 중복 확인
     public ResponseResult checkNickName(String nickName){
-        boolean exists =userRepository.existsByNickName(nickName);
+        boolean exists = userRepository.existsByNickName(nickName);
         if(exists){
             return new ResponseResult(ErrorCode.DUPLICATE_NICKNAME);
         }
@@ -182,7 +183,7 @@ public class UserService {
     private ResponseCookie getRefreshToken(String refreshToken) {
         return ResponseCookie
                 .from("REFRESHTOKEN", refreshToken)
-                .domain("localhost")
+                .domain(this.domain)
                 .path("/")
                 .httpOnly(true)
                 .maxAge(tokenProperties.getRefreshTokenExpirationTime()) //만료시간 설정
@@ -227,7 +228,7 @@ public class UserService {
             //클라이언트 - 토큰 삭제
             ResponseCookie refreshCookie = ResponseCookie
                     .from("REFRESHTOKEN", "") // 추후 토큰값 추가
-                    .domain("localhost")
+                    .domain(this.domain)
                     .path("/")
                     .httpOnly(true)
                     .maxAge(0)

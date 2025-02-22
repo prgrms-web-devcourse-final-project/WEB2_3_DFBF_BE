@@ -12,7 +12,7 @@ public record EmotionRecordResponseWithOwnerDTO(
         SpotifyMusicResponseDTO spotifyMusic,
         String comment,
         String createAt,
-        boolean isOwner // 유저 본인 여부 추가
+        boolean disable // 유저 본인이면 사용 불가
 ) {
     public static EmotionRecordResponseWithOwnerDTO fromEntity(EmotionRecord record, Long requestUserId) {
         return new EmotionRecordResponseWithOwnerDTO(
@@ -22,7 +22,7 @@ public record EmotionRecordResponseWithOwnerDTO(
                 record.getSpotifyMusic() != null ? SpotifyMusicResponseDTO.fromEntity(record.getSpotifyMusic()) : null,
                 record.getComment(),
                 formatTimestamp(record.getCreatedAt()),
-                record.getUser().getUserId().equals(requestUserId) // 요청한 유저와 저장된 유저 비교
+                !record.getUser().getUserId().equals(requestUserId) // 요청한 유저와 저장된 유저 비교
         );
     }
 

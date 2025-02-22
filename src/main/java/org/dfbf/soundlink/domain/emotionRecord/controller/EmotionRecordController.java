@@ -9,6 +9,7 @@ import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordUpdateRe
 import org.dfbf.soundlink.domain.emotionRecord.service.EmotionRecordService;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -35,9 +36,9 @@ public class EmotionRecordController {
             description = "유저들이 작성한 감정 기록 전체를 조회합니다.(자신의 아이디에 해당하는 감정 기록은 조회되지 않습니다.)"
     )
     public ResponseEntity<ResponseResult> getEmotionRecordsWithoutMine(
+            /*@AuthenticationPrincipal*/ Long userId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            /*@AuthenticationPrincipal*/ Long userId) {
+            @RequestParam(defaultValue = "10") int size) {
         ResponseResult response = emotionRecordService.getEmotionRecordsExcludingUserId(userId, page, size);
         return ResponseEntity.status(response.getCode()).body(response);
     }
@@ -48,19 +49,21 @@ public class EmotionRecordController {
             description = "유저들이 작성한 감정 기록 전체를 조회합니다.(닉네임은 조회되지 않습니다.)"
     )
     public ResponseEntity<ResponseResult> getAllEmotionRecords(
+            @RequestParam("tag") String loginId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            /*@AuthenticationPrincipal*/ Long userId) {
-        ResponseResult response = emotionRecordService.getEmotionRecordsByUserId(userId, page, size);
+            @RequestParam(defaultValue = "10") int size) {
+        ResponseResult response = emotionRecordService.getEmotionRecordsByLoginId(loginId, page, size);
         return ResponseEntity.status(response.getCode()).body(response);
     }
 
     @GetMapping("/{recordId}")
     @Operation(
             summary = "상세 감정 기록 조회 API",
-            description = "상세 감정 기록을 조회합니다. (자신이 쓴 감정 기록이면 isOwner 값이 true, 아니면 false)"
+            description = "상세 감정 기록을 조회합니다. (자신이 쓴 감정 기록이면 disable 값이 false, 아니면 true)"
     )
-    public ResponseEntity<ResponseResult> getEmotionRecord(/*@AuthenticationPrincipal*/ Long userId, @PathVariable Long recordId) {
+    public ResponseEntity<ResponseResult> getEmotionRecord(
+            @PathVariable Long recordId,
+            /*@AuthenticationPrincipal*/ Long userId) {
         ResponseResult response = emotionRecordService.getEmotionRecord(userId, recordId);
         return ResponseEntity.status(response.getCode()).body(response);
     }

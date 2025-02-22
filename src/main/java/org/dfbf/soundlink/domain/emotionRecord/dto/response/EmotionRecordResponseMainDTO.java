@@ -27,6 +27,10 @@ public record EmotionRecordResponseMainDTO(
         );
     }
 
+  /*  public static List<EmotionRecordResponseMainDTO> fromEntities(List<EmotionRecord> records) {
+        return records.stream().map(EmotionRecordResponseMainDTO::fromEntity).collect(Collectors.toList());
+    }
+*/
     private static String formatTimestamp(Timestamp timestamp) {
         DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 

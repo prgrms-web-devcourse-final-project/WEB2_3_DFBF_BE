@@ -75,10 +75,10 @@ public class BlockListService {
     }
 
     @Transactional
-    public ResponseResult unblockUser(Long userId, Long blockedUserId) {
+    public ResponseResult unblockUser(Long userId, Long blocklistId) {
         try {
-            Blocklist block = blockListRepository.findByUserIdAndBlockedUserId(
-                    userId, blockedUserId
+            Blocklist block = blockListRepository.findByUserIdAndBlocklistId(
+                    userId, blocklistId
             ).orElseThrow(BlockingUserNotFound::new);
 
             blockListRepository.delete(block);

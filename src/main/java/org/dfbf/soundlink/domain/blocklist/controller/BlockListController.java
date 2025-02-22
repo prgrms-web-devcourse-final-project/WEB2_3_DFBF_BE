@@ -3,8 +3,6 @@ package org.dfbf.soundlink.domain.blocklist.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.dfbf.soundlink.domain.blocklist.dto.BlockListReq;
-import org.dfbf.soundlink.domain.blocklist.dto.BlockReq;
 import org.dfbf.soundlink.domain.blocklist.service.BlockListService;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,9 +22,9 @@ public class BlockListController {
     )
     public ResponseResult blockUser(
             @AuthenticationPrincipal Long userId,
-            @RequestBody BlockReq req
+            @RequestBody String tag
     ) {
-        return blockListService.blockUser(userId, req.tag());
+        return blockListService.blockUser(userId, tag);
     }
 
     @DeleteMapping
@@ -36,9 +34,9 @@ public class BlockListController {
     )
     public ResponseResult unblockUser(
             @AuthenticationPrincipal Long userId,
-            @RequestBody BlockListReq req
+            @RequestBody Long blocklistId
     ) {
-        return blockListService.unblockUser(userId, req.blocklistId());
+        return blockListService.unblockUser(userId, blocklistId);
     }
 
     @GetMapping("/mypage/blackListSearch")

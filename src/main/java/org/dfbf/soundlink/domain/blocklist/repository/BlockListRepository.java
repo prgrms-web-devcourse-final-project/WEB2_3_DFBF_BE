@@ -36,7 +36,7 @@ public interface BlockListRepository extends JpaRepository<Blocklist, Long> {
                     "WHERE b.user.userId = :userId " +
                     "AND b.blockedUser.userId = :blockedUserId"
     )
-    Optional<Blocklist> findByUserIdAndBlockedUserId(
+    Optional<Blocklist> findByUserIdAndBlocklistId(
             @Param("userId") Long userId,
             @Param("blockedUserId") Long blockedUserId
     );

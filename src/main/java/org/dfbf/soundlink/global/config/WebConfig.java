@@ -33,6 +33,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedMethods("*")          // 모든 HTTP 메서드 허용
                 .allowedHeaders("*")          // 모든 헤더 허용
                 .exposedHeaders("*")          // 모든 응답 헤더 허용
-                .allowCredentials(true);     // 인증 정보는 제외
+                .allowCredentials(true)     // 인증 정보는 제외
+                .exposedHeaders("Authorization");
     }
 }

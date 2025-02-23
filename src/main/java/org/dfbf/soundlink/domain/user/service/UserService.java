@@ -257,9 +257,19 @@ public class UserService {
 //        System.out.println("RefreshToken from Cookie: " + refreshToken);
 
         // AccessToken과 RefreshToken이 모두 없는 경우
-        if (accessToken == null || refreshToken == null) {
+        if (accessToken == null && refreshToken == null) {
             logout(response,request);
             return new ResponseResult(ErrorCode.TOKEN_INVALID, "토큰이 존재하지 않거나 만료되었습니다.");
+        }
+
+        if (accessToken == null) {
+            logout(response,request);
+            return new ResponseResult(ErrorCode.TOKEN_INVALID, "AT가 존재하지 않거나 만료되었습니다.");
+        }
+
+        if (refreshToken == null) {
+            logout(response,request);
+            return new ResponseResult(ErrorCode.TOKEN_INVALID, "RT가 존재하지 않거나 만료되었습니다.");
         }
 
         // AccessToken 유효성 확인

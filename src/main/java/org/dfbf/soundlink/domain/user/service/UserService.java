@@ -183,10 +183,11 @@ public class UserService {
     private ResponseCookie getRefreshToken(String refreshToken) {
         return ResponseCookie
                 .from("REFRESHTOKEN", refreshToken)
-                .domain(this.domain)
+                .domain(domain)
                 .path("/")
                 .httpOnly(true)
-                .maxAge(tokenProperties.getRefreshTokenExpirationTime()) //만료시간 설정
+                .secure(false)
+                .maxAge(1800000) //만료시간 설정
                 .build();
     }
 
@@ -227,10 +228,11 @@ public class UserService {
         try {
             //클라이언트 - 토큰 삭제
             ResponseCookie refreshCookie = ResponseCookie
-                    .from("REFRESHTOKEN", "") // 추후 토큰값 추가
-                    .domain(this.domain)
+                    .from("REFRESHTOKEN", "localhost")
+                    .domain(domain)
                     .path("/")
                     .httpOnly(true)
+                    .secure(false)
                     .maxAge(0)
                     .build();
             response.setHeader("Set-Cookie", refreshCookie.toString());//쿠키 삭제 요청

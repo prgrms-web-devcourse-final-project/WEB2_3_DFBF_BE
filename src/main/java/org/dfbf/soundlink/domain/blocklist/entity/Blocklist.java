@@ -18,6 +18,7 @@ public class Blocklist {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "blocklist_id")
     private Long blocklistId;
 
     @ManyToOne

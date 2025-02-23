@@ -139,9 +139,10 @@ public class UserService {
         try {
             User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
 
-            UserMyPageDto result = userRepository.findMyPageDtoByUserId(user);
+//            UserMyPageDto result = userRepository.findUserMyPageDtoByUserId(user.getUserId())
+//                    .orElseThrow(() -> new NoUserDataException());
 
-            return new ResponseResult(ErrorCode.SUCCESS, result);
+            return new ResponseResult(ErrorCode.SUCCESS, 3);
         } catch (NoUserDataException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
         } catch (Exception e) {
@@ -250,9 +251,9 @@ public class UserService {
     public ResponseResult checkLoginiId(String loginId) {
         try {
             if (userRepository.existsByLoginId(loginId)) {
-                return new ResponseResult(400, "Duplicate");
+                return new ResponseResult(ErrorCode.DUPLICATE_LOGINID);
             } else {
-                return new ResponseResult(ErrorCode.SUCCESS);
+                return new ResponseResult(ErrorCode.NOT_DUPLICATE_LOGINID);
             }
         } catch (Exception e) {
             return new ResponseResult(ErrorCode.DB_ERROR);
@@ -262,14 +263,14 @@ public class UserService {
     // 타 유저 프로필
     public ResponseResult getProfile(String tag) {
         try {
-            UserMyPageDto result = userRepository.findMyPageDtoByLoginId(tag)
-                    .orElseThrow(() -> new NoUserDataException());
+//            UserMyPageDto result = userRepository.findUserMyPageDtoByLoginId(tag)
+//                    .orElseThrow(() -> new NoUserDataException());
 
-            return new ResponseResult(ErrorCode.SUCCESS, result);
+            return new ResponseResult(ErrorCode.SUCCESS, 3);
         } catch (NoUserDataException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
         } catch (Exception e) {
-            return new ResponseResult(ErrorCode.DB_ERROR);
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         }
     }
 }

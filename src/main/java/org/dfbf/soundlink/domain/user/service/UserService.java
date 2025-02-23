@@ -1,7 +1,6 @@
 package org.dfbf.soundlink.domain.user.service;
 
 import jakarta.mail.MessagingException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -283,6 +282,7 @@ public class UserService {
 
                 Map<String, String> responseBody = new HashMap<>();
                 responseBody.put("accessToken", newAccessToken);
+                response.setHeader("Set-Cookie", refreshToken);
 
                 return new ResponseResult(ErrorCode.SUCCESS, responseBody);
             } else {

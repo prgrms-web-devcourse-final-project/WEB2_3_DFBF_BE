@@ -3,8 +3,11 @@ package org.dfbf.soundlink.domain.emotionRecord.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordRequestDTO;
+import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordUpdateRequestDTO;
+import org.dfbf.soundlink.domain.emotionRecord.dto.response.*;
 import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
+import org.dfbf.soundlink.domain.emotionRecord.exception.EmotionRecordNotFoundException;
 import org.dfbf.soundlink.domain.emotionRecord.exception.UserNotFoundException;
 import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepository;
 import org.dfbf.soundlink.domain.emotionRecord.repository.SpotifyMusicRepository;
@@ -13,8 +16,14 @@ import org.dfbf.soundlink.domain.user.repository.UserRepository;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -56,6 +65,115 @@ public class EmotionRecordService {
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         } catch (Exception e) {
             log.error("감정기록 저장 서버 에러 {}", e.getMessage());
+            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseResult getEmotionRecordsByLoginId(String userTag, int page, int size) {
+        try {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+            Page<EmotionRecord> recordsPage = emotionRecordRepository.findByLoginId(userTag, pageable);
+
+            List<EmotionRecordResponseWithoutNicknameDTO> dtoList = recordsPage.getContent()
+                    .stream()
+                    .map(EmotionRecordResponseWithoutNicknameDTO::fromEntity)
+                    .toList();
+
+            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordPageResponseDTO.fromPage(recordsPage, dtoList));
+        } catch (DataAccessException e) {
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    public ResponseResult getEmotionRecordsExcludingUserId(Long userId, int page, int size) {
+
+        try {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+            Page<EmotionRecord> recordsPage = emotionRecordRepository.findByWithoutUserId(userId, pageable);
+
+            List<EmotionRecordResponseMainDTO> dtoList = recordsPage.getContent()
+                    .stream()
+                    .map(EmotionRecordResponseMainDTO::fromEntity)
+                    .toList();
+
+            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordPageResponseDTO.fromPage(recordsPage, dtoList));
+        } catch (DataAccessException e) {
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseResult getEmotionRecord(Long userId, Long recordId) {
+
+        try {
+            EmotionRecord records = emotionRecordRepository.findByRecordId(recordId)
+                    .orElseThrow(EmotionRecordNotFoundException::new);
+            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordResponseWithOwnerDTO.fromEntity(records, userId));
+        } catch (EmotionRecordNotFoundException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
+        } catch (DataAccessException e) {
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    @Transactional
+    public ResponseResult updateEmotionRecord(Long recordId, EmotionRecordUpdateRequestDTO updateDTO) {
+        try {
+            // 기존 감정 기록 조회
+            EmotionRecord record = emotionRecordRepository.findByRecordId(recordId)
+                    .orElseThrow(EmotionRecordNotFoundException::new);
+
+            // SpotifyMusic이 DB에 있는지 먼저 확인
+            // SpotifyMusic 엔티티가 저장되지 않은 상태에서 EmotionRecord 저장 시 영속성 컨텍스트 미저장 오류 발생
+            // EmotionRecord를 업데이트하기 전에 SpotifyMusic이 없다면 생성 후 먼저 저장해줘야 함
+            SpotifyMusic spotifyMusic = spotifyMusicRepository.findById(updateDTO.spotifyId())
+                    .orElseGet(() -> {
+                        SpotifyMusic newMusic = new SpotifyMusic(
+                                updateDTO.spotifyId(),
+                                updateDTO.title(),
+                                updateDTO.artist(),
+                                updateDTO.albumImage()
+                        );
+                        return spotifyMusicRepository.save(newMusic);
+                    });
+
+            record.updateEmotionRecord(updateDTO.emotion(), updateDTO.comment(), spotifyMusic);
+
+            // 수정된 정보를 Response DTO로 변환
+            EmotionRecordUpdateResponseDTO responseDTO = EmotionRecordUpdateResponseDTO.fromEntity(record);
+
+            return new ResponseResult(ErrorCode.SUCCESS, responseDTO);
+        } catch (EmotionRecordNotFoundException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
+        } catch (DataAccessException e) {
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    @Transactional
+    public ResponseResult deleteEmotionRecord(Long recordId) {
+        try {
+            int deletedCount = emotionRecordRepository.deleteByRecordId(recordId);
+
+            // 삭제할 데이터가 없는 경우
+            if (deletedCount == 0) {
+                return new ResponseResult(ErrorCode.SUCCESS, "이미 삭제되었거나 존재하지 않는 감정 기록입니다.");
+            }
+            return new ResponseResult(ErrorCode.SUCCESS, "감정 기록이 성공적으로 삭제되었습니다.");
+        } catch (EmotionRecordNotFoundException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
+        } catch (DataAccessException e) {
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
+        } catch (Exception e) {
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }

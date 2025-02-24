@@ -6,9 +6,9 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface UserCustomerRepository {
+public interface UserRepositoryCustom {
 
-    UserMyPageDto findMyPageDtoByUserId(@Param("user") User user);
+    UserMyPageDto findUserMyPageDtoByUserId(Long userId);
 
-    Optional<UserMyPageDto> findMyPageDtoByLoginId(@Param("loginId") String loginId);
+    Optional<UserMyPageDto> findUserMyPageDtoByLoginId(@Param("loginId") String loginId);
 }

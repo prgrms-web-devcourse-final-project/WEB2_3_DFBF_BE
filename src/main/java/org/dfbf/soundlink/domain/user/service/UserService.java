@@ -14,7 +14,6 @@ import org.dfbf.soundlink.domain.user.dto.request.UserSignUpDto;
 import org.dfbf.soundlink.domain.user.dto.request.UserUpdateDto;
 import org.dfbf.soundlink.domain.user.dto.response.UserGetDto;
 import org.dfbf.soundlink.domain.user.dto.response.UserMyPageDto;
-import org.dfbf.soundlink.domain.user.entity.ProfileMusic;
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.exception.NoUserDataException;
 import org.dfbf.soundlink.domain.user.repository.ProfileMusicRepository;
@@ -77,6 +76,7 @@ public class UserService {
     }
 
     // 회원정보 수정
+    @Transactional
     public ResponseResult updateUser(Long userId, UserUpdateDto userUpdateDto) {
         try {
             User user = userRepository.findById(userId).orElseThrow(NoUserDataException::new);
@@ -274,10 +274,13 @@ public class UserService {
     // 타 유저 프로필
     public ResponseResult getProfile(String tag) {
         try {
-//            UserMyPageDto result = userRepository.findUserMyPageDtoByLoginId(tag)
-//                    .orElseThrow(() -> new NoUserDataException());
+            User user = userRepository.findByLoginId(tag)
+                    .orElseThrow(() -> new NoUserDataException());
+
+            UserMyPageDto result = userRepository.findUserMyPageDtoByLoginId(user.getLoginId())
+                    .orElseThrow(() -> new NoUserDataException());
           
-            return new ResponseResult(ErrorCode.SUCCESS, 3);
+            return new ResponseResult(ErrorCode.SUCCESS, result);
         } catch (NoUserDataException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
         } catch (Exception e) {

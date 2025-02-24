@@ -16,6 +16,7 @@ import java.sql.Timestamp;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SpotifyMusic {
     @Id
+    @Column(name = "spotify_id")
     private Long spotifyId;
 
     @Column(name = "title")

@@ -17,7 +17,7 @@ public record EmotionRecordResponseWithOwnerDTO(
     public static EmotionRecordResponseWithOwnerDTO fromEntity(EmotionRecord record, Long requestUserId) {
         return new EmotionRecordResponseWithOwnerDTO(
                 record.getRecordId(),
-                record.getUser().getNickName(),
+                record.getUser().getNickname(),
                 record.getEmotion().name(),
                 record.getSpotifyMusic() != null ? SpotifyMusicResponseDTO.fromEntity(record.getSpotifyMusic()) : null,
                 record.getComment(),

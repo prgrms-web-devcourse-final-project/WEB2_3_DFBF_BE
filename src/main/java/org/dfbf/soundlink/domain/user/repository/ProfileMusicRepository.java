@@ -12,14 +12,14 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface ProfileMusicRepository extends JpaRepository<ProfileMusic, Long> {
+public interface ProfileMusicRepository extends JpaRepository<ProfileMusic, Long>, ProfileMusicCustomRepository {
 
-    @Query("SELECT p FROM ProfileMusic p WHERE p.user.userId = :userId" )
-    Optional<ProfileMusic> findByUserId(@Param("userId") Long userId);
-
-    @Modifying(clearAutomatically = true)
-    @Query("DELETE FROM ProfileMusic p WHERE p.user = :user")
-    public void deleteByUser(@Param("user") User user);
+//    @Query("SELECT p FROM ProfileMusic p WHERE p.user.userId = :userId" )
+//    Optional<ProfileMusic> findByUserId(@Param("userId") Long userId);
+//
+//    @Modifying(clearAutomatically = true)
+//    @Query("DELETE FROM ProfileMusic p WHERE p.user = :user")
+//    public void deleteByUser(@Param("user") User user);
 }
 
 /**

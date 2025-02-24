@@ -60,9 +60,4 @@ public class UserController {
     @Operation(summary = "타 유저 프로필 조회", description = "타 유저 프로필 조회 API")
     public ResponseResult getProfile(@RequestParam("tag") String tag) { return userService.getProfile(tag); }
 
-    @PostMapping("/login")
-    @Operation(summary = "로그인", description = "로그인 API")
-    public ResponseResult login(@RequestBody LoginReqDto loginReqDto, HttpServletResponse response) {
-        return userService.login(loginReqDto, response);
-    }
 }

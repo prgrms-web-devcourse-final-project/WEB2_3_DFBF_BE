@@ -41,9 +41,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     )
     Optional<UserMyPageDto> findMyPageDtoByLoginId(@Param("loginId") String loginId);
 
-    //로그인관련
+    // 로그인관련
     Optional<User> findByLoginId(String loginId);
-
+    
+    // 비밀번호만 조회
     @Query("Select u.password from User u  where u.loginId =:loginId ")
-    String findByPassword(@Param("loginId")String loginId);
+    String findPasswordByLoginId(@Param("loginId")String loginId);
 }

@@ -2,12 +2,12 @@ package org.dfbf.soundlink.domain.blocklist.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.dfbf.soundlink.domain.blocklist.dto.BlockReq;
 import org.dfbf.soundlink.domain.blocklist.dto.BlockRes;
 import org.dfbf.soundlink.domain.blocklist.entity.Blocklist;
 import org.dfbf.soundlink.domain.blocklist.exception.AlreadyBlockedUser;
 import org.dfbf.soundlink.domain.blocklist.exception.BlockedUserNotFound;
 import org.dfbf.soundlink.domain.blocklist.exception.BlockingUserNotFound;
+import org.dfbf.soundlink.domain.blocklist.repository.BlockListQueryRepository;
 import org.dfbf.soundlink.domain.blocklist.repository.BlockListRepository;
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
@@ -21,22 +21,23 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class BlockListService {
-    private final BlockListRepository blockListRepository;
+    private final BlockListQueryRepository blockListQueryRepository;
     private final UserRepository userRepository;
+    private final BlockListRepository blockListRepository;
 
     @Transactional
-    public ResponseResult blockUser(BlockReq blockReq) {
+    public ResponseResult blockUser(Long userId, String tag) {
         try {
-            User user = userRepository.findById(blockReq.userId())
+            User user = userRepository.findById(userId)
                     .orElseThrow(
                             BlockedUserNotFound::new
                     );
-            User blockedUser = userRepository.findById(blockReq.blockedUserId())
+            User blockedUser = userRepository.findByLoginId(tag)
                     .orElseThrow(
                             BlockingUserNotFound::new
                     );
-            blockListRepository.findByUserIdAndBlockedUserId(
-                    blockReq.userId(), blockReq.blockedUserId()
+            blockListQueryRepository.findByUser_UserIdAndBlockedUser_LoginId(
+                    userId, tag
             ).ifPresent(block -> {
                 throw new AlreadyBlockedUser();
             });
@@ -49,13 +50,7 @@ public class BlockListService {
             blockListRepository.save(blockTarget);
 
             return new ResponseResult(
-                    ErrorCode.SUCCESS,
-                    new BlockRes(
-                            blockTarget.getUser().getUserId(),
-                            blockTarget.getBlockedUser().getUserId(),
-                            blockTarget.getCreatedAt(),
-                            blockTarget.getUpdatedAt()
-                    )
+                    ErrorCode.SUCCESS
             );
         } catch (BlockedUserNotFound e) {
             return new ResponseResult(
@@ -76,22 +71,16 @@ public class BlockListService {
     }
 
     @Transactional
-    public ResponseResult unblockUser(BlockReq blockReq) {
+    public ResponseResult unblockUser(Long userId, Long blocklistId) {
         try {
-            Blocklist block = blockListRepository.findByUserIdAndBlockedUserId(
-                    blockReq.userId(), blockReq.blockedUserId()
+            Blocklist block = blockListQueryRepository.findByUser_UserIdAndBlockedUser_UserId(
+                    userId, blocklistId
             ).orElseThrow(BlockingUserNotFound::new);
 
             blockListRepository.delete(block);
 
             return new ResponseResult(
-                    ErrorCode.SUCCESS,
-                    new BlockRes(
-                            block.getUser().getUserId(),
-                            block.getBlockedUser().getUserId(),
-                            block.getCreatedAt(),
-                            block.getUpdatedAt()
-                    )
+                    ErrorCode.SUCCESS
             );
         } catch (BlockingUserNotFound e) {
             return new ResponseResult(
@@ -102,7 +91,7 @@ public class BlockListService {
     }
 
     public ResponseResult getBlockListByUserId(Long userId) {
-        List<Blocklist> blocklist = blockListRepository.findAllByUserId(userId);
+        List<Blocklist> blocklist = blockListQueryRepository.findAllByUser_UserId(userId);
         return new ResponseResult(
                 ErrorCode.SUCCESS,
                 blocklist.stream()

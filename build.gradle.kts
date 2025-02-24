@@ -35,25 +35,25 @@ dependencies {
 
     // Spring OAuth2
     // implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-    implementation ("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-security")
 
     // Valid
     // implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // MariaDB & Spring JPA
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    runtimeOnly ("org.mariadb.jdbc:mariadb-java-client")
+    runtimeOnly("org.mariadb.jdbc:mariadb-java-client")
 
     // JWT
-    implementation ("io.jsonwebtoken:jjwt-api:0.11.5")
-    implementation ("io.jsonwebtoken:jjwt-impl:0.11.5")
-    implementation ("io.jsonwebtoken:jjwt-jackson:0.11.5")
+    implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+    implementation("io.jsonwebtoken:jjwt-impl:0.11.5")
+    implementation("io.jsonwebtoken:jjwt-jackson:0.11.5")
 
     // Redis
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
 
     // Swagger
-    implementation ("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
 
     // Lombok
     compileOnly("org.projectlombok:lombok:1.18.30")
@@ -71,23 +71,54 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
     // logger
-    implementation ("org.springframework.boot:spring-boot-starter-logging")
+    implementation("org.springframework.boot:spring-boot-starter-logging")
 
     // validation
-    implementation ("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // Feign
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 
     // Mail
-    implementation ("org.springframework.boot:spring-boot-starter-mail")
+    implementation("org.springframework.boot:spring-boot-starter-mail")
 
     // Kafka
 //    implementation ("org.springframework.kafka:spring-kafka")
 //    implementation ("org.apache.kafka:kafka-streams")
 //    implementation ("org.apache.kafka:kafka-clients")
+
+    //QueryDSL 추가
+    implementation ("com.querydsl:querydsl-apt:5.0.0")
+    implementation ("com.querydsl:querydsl-jpa:5.0.0:jakarta")
+    implementation ("com.querydsl:querydsl-core:5.0.0")
+    annotationProcessor ("com.querydsl:querydsl-apt:5.0.0:jakarta")
+    annotationProcessor ("jakarta.annotation:jakarta.annotation-api")
+    annotationProcessor ("jakarta.persistence:jakarta.persistence-api")
+
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+// Querydsl 빌드 옵션 설정
+val generatedDir = "src/main/generated"
+
+// querydsl QClass 파일 생성 위치를 지정
+tasks.withType<JavaCompile> {
+    options.generatedSourceOutputDirectory.set(file(generatedDir))
+}
+
+// java source set에 querydsl QClass 위치 추가
+sourceSets {
+    getByName("main") {
+        java {
+            srcDir(generatedDir)
+        }
+    }
+}
+
+// gradle clean 시에 QClass 디렉토리 삭제
+tasks.named<Delete>("clean") {
+    delete(file(generatedDir))
 }

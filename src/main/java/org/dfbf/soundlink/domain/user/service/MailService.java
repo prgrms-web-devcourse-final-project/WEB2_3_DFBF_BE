@@ -47,6 +47,7 @@ public class MailService {
 
         return message;
     }
+
     //메일 발송
     public String sendSimpleMessage(String sendEmail) throws MessagingException {
         String authCode = createCode();

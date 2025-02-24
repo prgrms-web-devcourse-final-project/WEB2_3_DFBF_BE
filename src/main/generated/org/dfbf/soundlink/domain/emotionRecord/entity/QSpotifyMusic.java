@@ -29,7 +29,7 @@ public class QSpotifyMusic extends EntityPathBase<SpotifyMusic> {
 
     public final StringPath title = createString("title");
 
-    public final DateTimePath<java.sql.Timestamp> updateAt = createDateTime("updateAt", java.sql.Timestamp.class);
+    public final DateTimePath<java.sql.Timestamp> updatedAt = createDateTime("updatedAt", java.sql.Timestamp.class);
 
     public QSpotifyMusic(String variable) {
         super(SpotifyMusic.class, forVariable(variable));

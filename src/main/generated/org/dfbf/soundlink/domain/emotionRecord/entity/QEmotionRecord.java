@@ -55,7 +55,7 @@ public class QEmotionRecord extends EntityPathBase<EmotionRecord> {
     public QEmotionRecord(Class<? extends EmotionRecord> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this.spotifyMusic = inits.isInitialized("spotifyMusic") ? new QSpotifyMusic(forProperty("spotifyMusic")) : null;
-        this.user = inits.isInitialized("user") ? new org.dfbf.soundlink.domain.user.entity.QUser(forProperty("user"), inits.get("user")) : null;
+        this.user = inits.isInitialized("user") ? new org.dfbf.soundlink.domain.user.entity.QUser(forProperty("user")) : null;
     }
 
 }

@@ -23,6 +23,7 @@ import org.dfbf.soundlink.global.auth.JwtProvider;
 import org.dfbf.soundlink.global.auth.TokenProperties;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -181,7 +182,7 @@ public class UserService {
   
     // 닉네임 중복 확인
     public ResponseResult checkNickName(String nickName){
-        boolean exists = userRepository.existsByNickName(nickName);
+        boolean exists = userRepository.existsByNickname(nickName);
         
         if(exists) { return new ResponseResult(ErrorCode.DUPLICATE_NICKNAME); }
         return new ResponseResult(ErrorCode.NOT_DUPLICATE_NICKNAME);

@@ -22,13 +22,13 @@ public class QProfileMusic extends EntityPathBase<ProfileMusic> {
 
     public static final QProfileMusic profileMusic = new QProfileMusic("profileMusic");
 
-    public final DateTimePath<java.sql.Timestamp> createAt = createDateTime("createAt", java.sql.Timestamp.class);
+    public final DateTimePath<java.sql.Timestamp> createdAt = createDateTime("createdAt", java.sql.Timestamp.class);
 
     public final NumberPath<Long> profileMusicId = createNumber("profileMusicId", Long.class);
 
     public final org.dfbf.soundlink.domain.emotionRecord.entity.QSpotifyMusic spotifyMusic;
 
-    public final DateTimePath<java.sql.Timestamp> updateAt = createDateTime("updateAt", java.sql.Timestamp.class);
+    public final DateTimePath<java.sql.Timestamp> updatedAt = createDateTime("updatedAt", java.sql.Timestamp.class);
 
     public final QUser user;
 
@@ -51,7 +51,7 @@ public class QProfileMusic extends EntityPathBase<ProfileMusic> {
     public QProfileMusic(Class<? extends ProfileMusic> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this.spotifyMusic = inits.isInitialized("spotifyMusic") ? new org.dfbf.soundlink.domain.emotionRecord.entity.QSpotifyMusic(forProperty("spotifyMusic")) : null;
-        this.user = inits.isInitialized("user") ? new QUser(forProperty("user"), inits.get("user")) : null;
+        this.user = inits.isInitialized("user") ? new QUser(forProperty("user")) : null;
     }
 
 }

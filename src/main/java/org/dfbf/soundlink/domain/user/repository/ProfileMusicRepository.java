@@ -2,24 +2,12 @@ package org.dfbf.soundlink.domain.user.repository;
 
 
 import org.dfbf.soundlink.domain.user.entity.ProfileMusic;
-import org.dfbf.soundlink.domain.user.entity.User;
+import org.dfbf.soundlink.domain.user.repository.dsl.ProfileMusicCustomRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
 
 @Repository
 public interface ProfileMusicRepository extends JpaRepository<ProfileMusic, Long>, ProfileMusicCustomRepository {
-
-//    @Query("SELECT p FROM ProfileMusic p WHERE p.user.userId = :userId" )
-//    Optional<ProfileMusic> findByUserId(@Param("userId") Long userId);
-//
-//    @Modifying(clearAutomatically = true)
-//    @Query("DELETE FROM ProfileMusic p WHERE p.user = :user")
-//    public void deleteByUser(@Param("user") User user);
 }
 
 /**

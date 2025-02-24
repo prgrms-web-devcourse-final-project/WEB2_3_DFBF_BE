@@ -329,8 +329,13 @@ public class UserService {
             // Redis에서 리프레시 토큰을 확인하고, 일치하면 새 액세스 토큰 발급
             if (redisRefreshToken != null && redisRefreshToken.equals(refreshToken)) {
                 String newAccessToken = jwtProvider.createAccessToken(userId);
+                String newRefreshToken = jwtProvider.createRefreshToken(userId);
 
-//                System.out.println("New AccessToken: " + newAccessToken);
+                System.out.println("New AccessToken: " + newAccessToken);
+                System.out.println("New RefreshToken: " + newRefreshToken);
+
+                //레디스에 새로운 리프레시 토큰 업데이트!
+                tokenService.updateRefreshToken(userId, newRefreshToken);
 
                 Map<String, String> responseBody = new HashMap<>();
                 responseBody.put("accessToken", newAccessToken);

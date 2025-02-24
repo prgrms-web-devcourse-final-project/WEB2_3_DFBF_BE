@@ -1,4 +1,4 @@
-package org.dfbf.soundlink.domain.user.repository;
+package org.dfbf.soundlink.domain.user.repository.dsl;
 
 import org.dfbf.soundlink.domain.user.entity.ProfileMusic;
 import org.dfbf.soundlink.domain.user.entity.User;

@@ -1,4 +1,4 @@
-package org.dfbf.soundlink.domain.user.repository;
+package org.dfbf.soundlink.domain.user.repository.dsl;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;

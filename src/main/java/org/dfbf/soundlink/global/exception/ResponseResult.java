@@ -43,6 +43,14 @@ public class ResponseResult {
     }
 
     @Builder
+    public ResponseResult(int code, String message){
+        this.code = code;
+        this.message = message;
+        this.timestamp = Instant.now().toString();
+        this.data = null;
+    }
+
+    @Builder
     public ResponseResult(Object data){
         this.code = ErrorCode.SUCCESS.getStatus().value();
         this.message = ErrorCode.SUCCESS.getMessage();

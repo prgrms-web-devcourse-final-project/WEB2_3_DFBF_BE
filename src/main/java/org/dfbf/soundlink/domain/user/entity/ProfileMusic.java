@@ -17,6 +17,7 @@ import java.sql.Timestamp;
 public class ProfileMusic {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JoinColumn(name = "profile_music_id")
     private Long profileMusicId;
 
     @OneToOne(cascade = CascadeType.REMOVE)
@@ -28,9 +29,12 @@ public class ProfileMusic {
     private SpotifyMusic spotifyMusic;
 
     @CreationTimestamp
-    private Timestamp createAt;
+    @Column(name = "created_at")
+    private Timestamp createdAt;
+
     @UpdateTimestamp
-    private Timestamp updateAt;
+    @Column(name = "updated_at")
+    private Timestamp updatedAt;
 
     @Builder
     public ProfileMusic(User user, SpotifyMusic spotifyMusic) {

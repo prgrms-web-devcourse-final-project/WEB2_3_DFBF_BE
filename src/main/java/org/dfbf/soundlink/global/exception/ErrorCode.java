@@ -26,10 +26,12 @@ public enum ErrorCode {
     // User
     FAIL_TO_FIND_USER(HttpStatus.NOT_FOUND, "존재하지 않는 회원입니다"),
     NOT_EQUALS_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
-    DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "이미 사용중인 이메일입니다"),
+    DUPLICATE_EMAIL(HttpStatus.CONFLICT, "이미 사용중인 이메일입니다"),
     NOT_DUPLICATE_EMAIL(HttpStatus.OK, "사용 가능한 이메일입니다"),
-    DUPLICATE_NICKNAME(HttpStatus.BAD_REQUEST,"이미 사용중인 닉네임입니다."),
+    DUPLICATE_NICKNAME(HttpStatus.CONFLICT,"이미 사용중인 닉네임입니다."),
     NOT_DUPLICATE_NICKNAME(HttpStatus.OK,"사용 가능한 닉네임입니다."),
+    DUPLICATE_LOGINID(HttpStatus.CONFLICT,"이미 사용중인 로그인ID입니다."),
+    NOT_DUPLICATE_LOGINID(HttpStatus.OK,"사용 가능한 로그인ID입니다."),
 
     //Email
     EMAIL_SEND_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,"이메일 전송 중 오류 발생"),

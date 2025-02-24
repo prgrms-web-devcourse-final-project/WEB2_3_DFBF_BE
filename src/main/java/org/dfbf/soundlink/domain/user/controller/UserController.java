@@ -32,6 +32,12 @@ public class UserController {
         return userService.checkNickName(nickName);
     }
 
+    @GetMapping("/checkLoginId")
+    @Operation(summary = "LoginId 중복 확인", description = "LoginId가 이미 사용중인지 확인.")
+    public ResponseResult checkLoginiId(@RequestParam String loginiId){
+        return userService.checkLoginiId(loginiId);
+    }
+
     @GetMapping
     @Operation(summary = "유저 조회", description = "유저 조회 API")
     public ResponseResult getUser(@AuthenticationPrincipal Long id) { return userService.getUser(id); }
@@ -50,5 +56,13 @@ public class UserController {
     @Operation(summary = "마이 페이지", description = "마이 페이지 조회 API")
     public ResponseResult getMyPage(@AuthenticationPrincipal Long id) { return userService.getMyPage(id); }
 
+    @GetMapping("/profile")
+    @Operation(summary = "타 유저 프로필 조회", description = "타 유저 프로필 조회 API")
+    public ResponseResult getProfile(@RequestParam("tag") String tag) { return userService.getProfile(tag); }
 
+    @PostMapping("/login")
+    @Operation(summary = "로그인", description = "로그인 API")
+    public ResponseResult login(@RequestBody LoginReqDto loginReqDto, HttpServletResponse response) {
+        return userService.login(loginReqDto, response);
+    }
 }

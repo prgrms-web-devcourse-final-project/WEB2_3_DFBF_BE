@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.dfbf.soundlink.domain.user.dto.request.UserUpdateDto;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -17,14 +18,22 @@ public class SpotifyMusic {
     @Id
     private Long spotifyId;
 
+    @Column(name = "title")
     private String title;
+
+    @Column(name = "artist")
     private String artist;
+
+    @Column(name = "album_image")
     private String albumImage;
 
     @CreationTimestamp
+    @Column(name = "created_at")
     private Timestamp createdAt;
+
     @UpdateTimestamp
-    private Timestamp updateAt;
+    @Column(name = "updated_at")
+    private Timestamp updatedAt;
 
     @Builder
     public SpotifyMusic (Long spotifyId, String title, String artist, String albumImage) {
@@ -32,5 +41,12 @@ public class SpotifyMusic {
         this.title = title;
         this.artist = artist;
         this.albumImage = albumImage;
+    }
+
+    public SpotifyMusic (UserUpdateDto userUpdateDto) {
+        this.spotifyId = userUpdateDto.spotifyId();
+        this.title = userUpdateDto.title();
+        this.artist = userUpdateDto.artist();
+        this.albumImage = userUpdateDto.albumImage();
     }
 }

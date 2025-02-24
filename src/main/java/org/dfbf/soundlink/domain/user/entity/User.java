@@ -22,38 +22,36 @@ public class User {
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(unique = true)
-    private String nickName;
+    @Column(name = "nickname", unique = true)
+    private String nickname;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "social_type")
     private SocialType socialType;
 
-    @Column(nullable = true)
+    @Column(name = "social_id", nullable = true)
     private Long socialId;
 
     @Column(name="login_id")
     private String loginId;
 
+    @Column(name="password")
     private String password;
+
+    @Column(name="email")
     private String email;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<Blocklist> blocklist;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<EmotionRecord> emotionRecord;
-
-    @OneToOne(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private ProfileMusic profileMusic;
-
     @CreationTimestamp
+    @Column(name = "created_at")
     private Timestamp createdAt;
+
     @UpdateTimestamp
-    private Timestamp updateAt;
+    @Column(name = "updated_at")
+    private Timestamp updatedAt;
 
     @Builder
     User(String nickName, Long socialId, SocialType socialType, String loginId, String password, String email) {
-        this.nickName = nickName;
+        this.nickname = nickName;
         this.socialId = socialId;
         this.socialType = socialType;
         this.loginId = loginId;
@@ -62,7 +60,7 @@ public class User {
     }
 
     public void update(UserUpdateDto userUpdateDto, BCryptPasswordEncoder passwordEncoder) {
-        this.nickName = userUpdateDto.nickName();
+        this.nickname = userUpdateDto.nickName();
         this.loginId = userUpdateDto.loginId();
         this.password = passwordEncoder.encode(userUpdateDto.password());
         this.email = userUpdateDto.email();
@@ -82,6 +80,6 @@ public class User {
  * CascadeType.REMOVE -> 부모 엔티티가 삭제될 때 자식 엔티티는 삭제
  * orphanRemoval = true -> 자식 엔티티가 부모와의 관계에서 제거될 때 삭제
  * 가끔 사용하지 않는 데이터가 DB에 남아있는 경우가 있는데, 이를 방지하기 위해 사용
- * 혹은 User쪽에 있는 리스트에서 제거할 경우, 양방향 매핑이기 떄문에 자식이 고아가 댐 -> 이를 위헤서  orphanRemoval를 사용
+ * 혹은 User쪽에 있는 리스트에서 제거할 경우, 양방향 매핑이기 떄문에 자식이 고아가 댐 -> 이를 위헤서 orphanRemoval를 사용
  * 근데 우린 사용 안하니까 사실 빼도 무방할 듯....
  */

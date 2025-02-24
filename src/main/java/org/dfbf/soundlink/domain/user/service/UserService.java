@@ -4,7 +4,7 @@ import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepository;
@@ -33,7 +33,7 @@ import java.util.Map;
 
 @Slf4j
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserService {
     
     private final UserRepository userRepository;
@@ -46,8 +46,10 @@ public class UserService {
 
     private final JwtProvider jwtProvider;
     private final TokenProperties tokenProperties;
-    private final TokenService tokenService;
 
+    private RedisTemplate<String, String> redisTemplate;
+    private final TokenService tokenService;
+  
     private final String domain = "";
   
     // 회원가입
@@ -74,26 +76,31 @@ public class UserService {
     }
 
     // 회원정보 수정
-    @Transactional
     public ResponseResult updateUser(Long userId, UserUpdateDto userUpdateDto) {
         try {
-            User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
+            User user = userRepository.findById(userId).orElseThrow(NoUserDataException::new);
             user.update(userUpdateDto, passwordEncoder);
 
-            // SpotifyMusic 객체 찾고 없으면 새로 생성
+            // SpotifyMusic 객체 찾기 (없으면 새로 생성 & 저장)
             SpotifyMusic spotifyMusic = spotifyMusicRepository.findById(userUpdateDto.spotifyId())
-                    .orElse(new SpotifyMusic(userUpdateDto.spotifyId(), userUpdateDto.title(), userUpdateDto.artist(), userUpdateDto.albumImage()));
+                    .orElseGet(() -> {
+                        SpotifyMusic sm = new SpotifyMusic(userUpdateDto);
+                        spotifyMusicRepository.save(sm);
+                        return sm;
+                    });
 
-            // SpotifyMusic 저장
-            spotifyMusicRepository.save(spotifyMusic);
-
-            // ProfileMusic 객체 찾고 없으면 새로 생성
+            // ProfileMusic 객체 찾기 (없으면 새로 생성 & 저장)
             ProfileMusic profileMusic = profileMusicRepository.findByUserId(userId)
-                    .orElse(new ProfileMusic(user, spotifyMusic));
+                    .map(pm -> {
+                        pm.update(spotifyMusic);
+                        return pm;
+                    })
+                    .orElseGet(() -> profileMusicRepository.save(new ProfileMusic(user, spotifyMusic)));
 
-            // ProfileMusic이 업데이트
-            profileMusic.update(spotifyMusic);
-            profileMusicRepository.save(profileMusic);
+            /**
+             * orElse -> 일단 함수는 실행, 그러나 값이 null이면 orElse의 값으로 대체 (함수O, 람다x)
+             * orElseGet -> null일때만 실행 (함수O, 람다O)
+             */
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (NoUserDataException e) {
@@ -106,6 +113,9 @@ public class UserService {
     public ResponseResult deleteUser(Long userId) {
         try {
             User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
+
+            profileMusicRepository.deleteByUser(user);  // 유저 프로필 음악 삭제
+            emotionRecordRepository.deleteByUser(user); // 유저 감정 기록 삭제
             userRepository.deleteById(userId);          // 유저 삭제
 
             return new ResponseResult(ErrorCode.SUCCESS);
@@ -122,10 +132,10 @@ public class UserService {
         try {
             User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
 
-            UserMyPageDto result = userRepository.findMyPageDtoByUserId(user);
-            result.setEmotionRecords(emotionRecordRepository.findByUser(user));
+//            UserMyPageDto result = userRepository.findUserMyPageDtoByUserId(user.getUserId())
+//                    .orElseThrow(() -> new NoUserDataException());
 
-            return new ResponseResult(ErrorCode.SUCCESS, result);
+            return new ResponseResult(ErrorCode.SUCCESS, 3);
         } catch (NoUserDataException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
         } catch (Exception e) {
@@ -133,7 +143,7 @@ public class UserService {
         }
     }
   
-    //인증코드 발급. 이메일이 존재하는지 확인.
+    // 인증코드 발급. 이메일이 존재하는지 확인.
     public ResponseResult sendAuthCode(String email) {
 
         try {
@@ -145,7 +155,7 @@ public class UserService {
         }
     }
 
-    //이메일과 인증코드를 검증
+    // 이메일과 인증코드를 검증
     public ResponseResult validateAuthCode(String email, String authCode){
         try {
             String savedCode = redisService.getCode(email);
@@ -160,7 +170,7 @@ public class UserService {
         }
     }
 
-    //이메일 중복 확인
+    // 이메일 중복 확인
     public ResponseResult checkEmail(String email){
         boolean exists = userRepository.existsByEmail(email);
         if(exists){
@@ -169,16 +179,15 @@ public class UserService {
         return new ResponseResult(ErrorCode.NOT_DUPLICATE_EMAIL);
     }
   
-    //닉네임 중복 확인
+    // 닉네임 중복 확인
     public ResponseResult checkNickName(String nickName){
         boolean exists = userRepository.existsByNickName(nickName);
-        if(exists){
-            return new ResponseResult(ErrorCode.DUPLICATE_NICKNAME);
-        }
+        
+        if(exists) { return new ResponseResult(ErrorCode.DUPLICATE_NICKNAME); }
         return new ResponseResult(ErrorCode.NOT_DUPLICATE_NICKNAME);
     }
 
-    //refreshToken을 쿠키로 설정
+    // RefreshToken을 쿠키로 설정
     private ResponseCookie getRefreshToken(String refreshToken) {
         return ResponseCookie
                 .from("REFRESHTOKEN", refreshToken)
@@ -187,11 +196,11 @@ public class UserService {
                 .httpOnly(true)
                 .secure(false)
                 .sameSite("None")
-                .maxAge(1800000) //만료시간 설정
+                .maxAge(1800000) // 만료시간 설정
                 .build();
     }
-
-    //로그인
+  
+    // 로그인
     public ResponseResult login(LoginReqDto loginReqDto, HttpServletResponse response) {
         try {
             if(!userRepository.existsByLoginId(loginReqDto.loginId())) {
@@ -223,7 +232,7 @@ public class UserService {
         }
     }
 
-    //로그아웃
+    // 로그아웃
     public ResponseResult logout(HttpServletResponse response, HttpServletRequest request) {
         try {
             //클라이언트 - 토큰 삭제
@@ -250,7 +259,34 @@ public class UserService {
         }
     }
 
-    //토큰 재발급
+    // loginId 중복 확인
+    public ResponseResult checkLoginiId(String loginId) {
+        try {
+            if (userRepository.existsByLoginId(loginId)) {
+                return new ResponseResult(ErrorCode.DUPLICATE_LOGINID);
+            } else {
+                return new ResponseResult(ErrorCode.NOT_DUPLICATE_LOGINID);
+            }
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.DB_ERROR);
+        }
+    }
+
+    // 타 유저 프로필
+    public ResponseResult getProfile(String tag) {
+        try {
+//            UserMyPageDto result = userRepository.findUserMyPageDtoByLoginId(tag)
+//                    .orElseThrow(() -> new NoUserDataException());
+          
+            return new ResponseResult(ErrorCode.SUCCESS, 3);
+        } catch (NoUserDataException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
+        }
+    }
+
+    // 토큰 재발급
     public ResponseResult reissueToken(HttpServletRequest request, HttpServletResponse response) {
         String accessToken = jwtProvider.resolveAccessToken(request);
         String refreshToken = jwtProvider.resolveRefreshToken(request);
@@ -276,7 +312,7 @@ public class UserService {
 
         // AccessToken 유효성 확인
         if (jwtProvider.validateToken(accessToken)) {
-            return new ResponseResult(ErrorCode.TOKEN_NOT_EXPIRED);// 유효한 액세스 토큰: 재발급 x
+            return new ResponseResult(ErrorCode.TOKEN_NOT_EXPIRED); // 유효한 액세스 토큰: 재발급 x
         }
 
         // RefreshToken 유효성 확인
@@ -304,5 +340,4 @@ public class UserService {
             return new ResponseResult(ErrorCode.TOKEN_INVALID, "리프레시 토큰이 유효하지 않습니다.");
         }
     }
-
 }

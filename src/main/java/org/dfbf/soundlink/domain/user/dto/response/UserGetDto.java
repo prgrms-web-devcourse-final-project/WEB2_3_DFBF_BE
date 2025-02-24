@@ -12,7 +12,7 @@ public record UserGetDto(
 ) {
     public UserGetDto(User user) {
         this(
-                user.getNickName(),
+                user.getNickname(),
                 user.getEmail(),
                 user.getLoginId(),
                 formatTimestamp(user.getCreatedAt())

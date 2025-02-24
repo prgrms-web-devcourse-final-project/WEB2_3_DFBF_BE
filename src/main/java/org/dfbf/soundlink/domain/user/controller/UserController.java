@@ -34,8 +34,8 @@ public class UserController {
 
     @GetMapping("/checkLoginId")
     @Operation(summary = "LoginId 중복 확인", description = "LoginId가 이미 사용중인지 확인.")
-    public ResponseResult checkLoginiId(@RequestParam String loginiId){
-        return userService.checkLoginiId(loginiId);
+    public ResponseResult checkLoginiId(@RequestParam String loginId){
+        return userService.checkLoginiId(loginId);
     }
 
     @GetMapping

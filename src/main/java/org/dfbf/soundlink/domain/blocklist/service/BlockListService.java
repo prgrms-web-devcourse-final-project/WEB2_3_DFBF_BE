@@ -98,6 +98,7 @@ public class BlockListService {
                         .map(block -> new BlockRes(
                                 block.getUser().getUserId(),
                                 block.getBlockedUser().getUserId(),
+                                "@" + block.getBlockedUser().getNickname(),
                                 block.getCreatedAt(),
                                 block.getUpdatedAt()
                         )).collect(Collectors.toList())

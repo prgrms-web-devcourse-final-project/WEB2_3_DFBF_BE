@@ -24,7 +24,7 @@ public class BlockListController {
             @AuthenticationPrincipal Long userId,
             @RequestBody String tag
     ) {
-        return blockListService.blockUser(1L, tag);
+        return blockListService.blockUser(userId, tag);
     }
 
     @DeleteMapping
@@ -36,7 +36,7 @@ public class BlockListController {
             @AuthenticationPrincipal Long userId,
             @RequestBody Long blocklistId
     ) {
-        return blockListService.unblockUser(1L, blocklistId);
+        return blockListService.unblockUser(userId, blocklistId);
     }
 
     @GetMapping("/mypage/blackListSearch")
@@ -45,6 +45,6 @@ public class BlockListController {
             description = "해당 유저의 차단 목록을 가져옵니다."
     )
     public ResponseResult getBlockList(@AuthenticationPrincipal Long userId) {
-        return blockListService.getBlockListByUserId(1L);
+        return blockListService.getBlockListByUserId(userId);
     }
 }

@@ -54,7 +54,7 @@ public class UserServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
         when(userUpdateDto.spotifyId()).thenReturn(123L);
         when(spotifyMusicRepository.findById(123L)).thenReturn(Optional.empty()); // Will be created
-        when(profileMusicRepository.findByUserId(userId)).thenReturn(Optional.empty()); // Will be created
+        // when(profileMusicRepository.findByUserId(userId)).thenReturn(Optional.empty()); // Will be created
 
         ResponseResult result = userService.updateUser(userId, userUpdateDto);
 

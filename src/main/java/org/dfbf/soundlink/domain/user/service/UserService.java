@@ -80,7 +80,6 @@ public class UserService {
     public ResponseResult updateUser(Long userId, UserUpdateDto userUpdateDto) {
         try {
             User user = userRepository.findById(userId).orElseThrow(NoUserDataException::new);
-            user.update(userUpdateDto, passwordEncoder);
 
             // SpotifyMusic 객체 찾기 (없으면 새로 생성 & 저장)
             SpotifyMusic spotifyMusic = spotifyMusicRepository.findById(userUpdateDto.spotifyId())
@@ -90,13 +89,15 @@ public class UserService {
                         return sm;
                     });
 
-            // ProfileMusic 객체 찾기 (없으면 새로 생성 & 저장)
-            ProfileMusic profileMusic = profileMusicRepository.findByUserId(userId)
-                    .map(pm -> {
-                        pm.update(spotifyMusic);
-                        return pm;
-                    })
-                    .orElseGet(() -> profileMusicRepository.save(new ProfileMusic(user, spotifyMusic)));
+            user.update(userUpdateDto, passwordEncoder, spotifyMusic);
+
+//            // ProfileMusic 객체 찾기 (없으면 새로 생성 & 저장)
+//            ProfileMusic profileMusic = profileMusicRepository.findByUserId(userId)
+//                    .map(pm -> {
+//                        pm.update(spotifyMusic);
+//                        return pm;
+//                    })
+//                    .orElseGet(() -> profileMusicRepository.save(new ProfileMusic(spotifyMusic)));
 
             /**
              * orElse -> 일단 함수는 실행, 그러나 값이 null이면 orElse의 값으로 대체 (함수O, 람다x)
@@ -115,7 +116,6 @@ public class UserService {
         try {
             User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
 
-            profileMusicRepository.deleteByUser(user);  // 유저 프로필 음악 삭제
             emotionRecordRepository.deleteByUser(user); // 유저 감정 기록 삭제
             userRepository.deleteById(userId);          // 유저 삭제
 
@@ -196,7 +196,6 @@ public class UserService {
                 .path("/")
                 .httpOnly(true)
                 .secure(false)
-                .sameSite("None")
                 .maxAge(1800000) // 만료시간 설정
                 .build();
     }
@@ -243,7 +242,6 @@ public class UserService {
                     .path("/")
                     .httpOnly(true)
                     .secure(false)
-                    .sameSite("None")
                     .maxAge(0)
                     .build();
             response.setHeader("Set-Cookie", refreshCookie.toString());//쿠키 삭제 요청
@@ -291,6 +289,8 @@ public class UserService {
     public ResponseResult reissueToken(HttpServletRequest request, HttpServletResponse response) {
         String accessToken = jwtProvider.resolveAccessToken(request);
         String refreshToken = jwtProvider.resolveRefreshToken(request);
+        System.out.println("AccessToken: " + accessToken);
+        System.out.println("RefreshToken from Cookie: " + refreshToken);
 
 //        System.out.println("AccessToken: " + accessToken);
 //        System.out.println("RefreshToken from Cookie: " + refreshToken);

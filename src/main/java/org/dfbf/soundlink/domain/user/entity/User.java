@@ -2,8 +2,7 @@ package org.dfbf.soundlink.domain.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.dfbf.soundlink.domain.blocklist.entity.Blocklist;
-import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
+import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.user.dto.request.UserUpdateDto;
 import org.dfbf.soundlink.global.comm.enums.SocialType;
 import org.hibernate.annotations.CreationTimestamp;
@@ -11,7 +10,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.sql.Timestamp;
-import java.util.List;
 
 @Entity
 @Getter
@@ -21,6 +19,10 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Long userId;
+
+    @OneToOne (cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "profile_music_id")
+    private ProfileMusic profileMusic;
 
     @Column(name = "nickname", unique = true)
     private String nickname;
@@ -57,13 +59,15 @@ public class User {
         this.loginId = loginId;
         this.password = password;
         this.email = email;
+        this.profileMusic = new ProfileMusic(null);
     }
 
-    public void update(UserUpdateDto userUpdateDto, BCryptPasswordEncoder passwordEncoder) {
+    public void update(UserUpdateDto userUpdateDto, BCryptPasswordEncoder passwordEncoder, SpotifyMusic spotifyMusic) {
         this.nickname = userUpdateDto.nickName();
         this.loginId = userUpdateDto.loginId();
         this.password = passwordEncoder.encode(userUpdateDto.password());
         this.email = userUpdateDto.email();
+        this.profileMusic.update(spotifyMusic);
     }
 }
 

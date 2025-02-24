@@ -18,28 +18,28 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findById(Long id);
 
     // JPQL에서는 Inner Class에 직접 값을 넣을 수 있도록 하는 기능은 지원하지 않는다.
-    @Query(
-            "SELECT new org.dfbf.soundlink.domain.user.dto.response.UserMyPageDto(" +
-                    "u.loginId, u.nickname," +
-                    "new org.dfbf.soundlink.domain.user.dto.response.ProfileMusic(" +
-                    "pm.spotifyMusic.spotifyId, pm.spotifyMusic.title, pm.spotifyMusic.artist, pm.spotifyMusic.albumImage)) " +
-                    "FROM User u " +
-                    "JOIN FETCH ProfileMusic pm ON pm.user = u " +
-                    "WHERE u = :user"
-    )
-    UserMyPageDto findMyPageDtoByUserId(@Param("user") User user);
+//    @Query(
+//            "SELECT new org.dfbf.soundlink.domain.user.dto.response.UserMyPageDto(" +
+//                    "u.loginId, u.nickname," +
+//                    "new org.dfbf.soundlink.domain.user.dto.response.ProfileMusic(" +
+//                    "pm.spotifyMusic.spotifyId, pm.spotifyMusic.title, pm.spotifyMusic.artist, pm.spotifyMusic.albumImage)) " +
+//                    "FROM User u " +
+//                    "JOIN FETCH ProfileMusic pm ON pm.user = u " +
+//                    "WHERE u = :user"
+//    )
+//    UserMyPageDto findMyPageDtoByUserId(@Param("user") User user);
 
     // JPQL에서는 Inner Class에 직접 값을 넣을 수 있도록 하는 기능은 지원하지 않는다.
-    @Query(
-            "SELECT new org.dfbf.soundlink.domain.user.dto.response.UserMyPageDto(" +
-                    "u.loginId, u.nickname," +
-                    "new org.dfbf.soundlink.domain.user.dto.response.ProfileMusic(" +
-                    "pm.spotifyMusic.spotifyId, pm.spotifyMusic.title, pm.spotifyMusic.artist, pm.spotifyMusic.albumImage)) " +
-                    "FROM User u " +
-                    "JOIN FETCH ProfileMusic pm ON pm.user = u " +
-                    "WHERE u.loginId = :loginId"
-    )
-    Optional<UserMyPageDto> findMyPageDtoByLoginId(@Param("loginId") String loginId);
+//    @Query(
+//            "SELECT new org.dfbf.soundlink.domain.user.dto.response.UserMyPageDto(" +
+//                    "u.loginId, u.nickname," +
+//                    "new org.dfbf.soundlink.domain.user.dto.response.ProfileMusic(" +
+//                    "pm.spotifyMusic.spotifyId, pm.spotifyMusic.title, pm.spotifyMusic.artist, pm.spotifyMusic.albumImage)) " +
+//                    "FROM User u " +
+//                    "JOIN FETCH ProfileMusic pm ON pm.user = u " +
+//                    "WHERE u.loginId = :loginId"
+//    )
+//    Optional<UserMyPageDto> findMyPageDtoByLoginId(@Param("loginId") String loginId);
 
     // 로그인관련
     Optional<User> findByLoginId(String loginId);

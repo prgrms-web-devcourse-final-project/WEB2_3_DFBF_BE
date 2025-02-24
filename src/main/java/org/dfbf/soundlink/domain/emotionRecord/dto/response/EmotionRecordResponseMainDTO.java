@@ -19,7 +19,7 @@ public record EmotionRecordResponseMainDTO(
     public static EmotionRecordResponseMainDTO fromEntity(EmotionRecord record) {
         return new EmotionRecordResponseMainDTO(
                 record.getRecordId(),
-                record.getUser().getNickName(),
+                record.getUser().getNickname(),
                 record.getEmotion().name(),
                 record.getSpotifyMusic() != null ? SpotifyMusicResponseDTO.fromEntity(record.getSpotifyMusic()) : null,
                 record.getComment(),

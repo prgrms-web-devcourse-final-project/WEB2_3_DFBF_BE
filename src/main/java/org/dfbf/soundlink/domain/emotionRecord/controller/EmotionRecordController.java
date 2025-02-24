@@ -24,6 +24,7 @@ public class EmotionRecordController {
             summary = "감정 기록 작성/저장 API",
             description = "작성한 감정 기록을 저장합니다."
     )
+
     public ResponseResult saveEmotionWithMusic(
             @AuthenticationPrincipal Long userId,
             @Valid @RequestBody EmotionRecordRequestDTO request) {

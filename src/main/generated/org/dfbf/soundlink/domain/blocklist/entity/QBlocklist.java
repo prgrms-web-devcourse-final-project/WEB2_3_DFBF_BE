@@ -50,8 +50,8 @@ public class QBlocklist extends EntityPathBase<Blocklist> {
 
     public QBlocklist(Class<? extends Blocklist> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.blockedUser = inits.isInitialized("blockedUser") ? new org.dfbf.soundlink.domain.user.entity.QUser(forProperty("blockedUser")) : null;
-        this.user = inits.isInitialized("user") ? new org.dfbf.soundlink.domain.user.entity.QUser(forProperty("user")) : null;
+        this.blockedUser = inits.isInitialized("blockedUser") ? new org.dfbf.soundlink.domain.user.entity.QUser(forProperty("blockedUser"), inits.get("blockedUser")) : null;
+        this.user = inits.isInitialized("user") ? new org.dfbf.soundlink.domain.user.entity.QUser(forProperty("user"), inits.get("user")) : null;
     }
 
 }

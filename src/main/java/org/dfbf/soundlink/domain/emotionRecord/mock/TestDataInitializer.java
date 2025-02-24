@@ -1,9 +1,7 @@
 package org.dfbf.soundlink.domain.emotionRecord.mock;
 
 import lombok.RequiredArgsConstructor;
-import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
-import org.dfbf.soundlink.global.comm.enums.SocialType;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 

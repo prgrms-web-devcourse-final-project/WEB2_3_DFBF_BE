@@ -12,11 +12,17 @@ public class UserMyPageDto {
     private final String nickname;
     private final ProfileMusic profileMusic;
 
-    public UserMyPageDto(String loginId, String nickname, ProfileMusic profileMusic) {
+    public UserMyPageDto(String loginId, String nickname, Long spotifyId, String title, String artist, String album) {
         this.loginId = loginId;
         this.nickname = nickname;
-        this.profileMusic = profileMusic;
+        this.profileMusic = new ProfileMusic(spotifyId, title, artist, album);
     }
+
+//    public UserMyPageDto(String loginId, String nickname, Long profileMusicId) {
+//        this.loginId = loginId;
+//        this.nickname = nickname;
+//        this.profileMusicId = profileMusicId;
+//    }
 }
 
 // Inner 레코드

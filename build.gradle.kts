@@ -1,5 +1,5 @@
 plugins {
-    java
+    id("java")
     id("org.springframework.boot") version "3.4.2"
     id("io.spring.dependency-management") version "1.1.7"
 }
@@ -76,7 +76,7 @@ dependencies {
     // validation
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
-    // Feign
+    // Feign -> NETFLIX API 통신 라이브러리
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
 
     // Mail

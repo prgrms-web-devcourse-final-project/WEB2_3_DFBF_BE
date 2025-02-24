@@ -196,7 +196,6 @@ public class UserService {
                 .path("/")
                 .httpOnly(true)
                 .secure(false)
-                .sameSite("None")
                 .maxAge(1800000) // 만료시간 설정
                 .build();
     }
@@ -243,7 +242,6 @@ public class UserService {
                     .path("/")
                     .httpOnly(true)
                     .secure(false)
-                    .sameSite("None")
                     .maxAge(0)
                     .build();
             response.setHeader("Set-Cookie", refreshCookie.toString());//쿠키 삭제 요청

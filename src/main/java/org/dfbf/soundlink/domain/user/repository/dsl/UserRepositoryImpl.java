@@ -17,8 +17,6 @@ import java.util.Optional;
 public class UserRepositoryImpl implements UserRepositoryCustom {
     private final JPAQueryFactory jpaQueryFactory;
 
-    QUser user = QUser.user;
-    QProfileMusic profileMusic = QProfileMusic.profileMusic;
 
     @Override
     public UserMyPageDto findUserMyPageDtoByUserId(Long userId) {
@@ -56,5 +54,14 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
                     .leftJoin(QProfileMusic.profileMusic.spotifyMusic, QSpotifyMusic.spotifyMusic)
                 .where(QUser.user.loginId.eq(loginId))
                 .fetchOne());
+    }
+
+    @Override
+    public String findPasswordByLoginId(String loginId) {
+        return jpaQueryFactory
+                .select(QUser.user.password)
+                .from(QUser.user)
+                .where(QUser.user.loginId.eq(loginId))
+                .fetchOne();
     }
 }

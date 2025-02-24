@@ -86,7 +86,6 @@ public class UserService {
 
         try {
             User user = userRepository.findById(userId).orElseThrow(NoUserDataException::new);
-            user.update(userUpdateDto, passwordEncoder);
 
             // SpotifyMusic 객체 찾기 (없으면 새로 생성 & 저장)
             SpotifyMusic spotifyMusic = spotifyMusicRepository.findById(userUpdateDto.spotifyId())
@@ -110,7 +109,6 @@ public class UserService {
         try {
             User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
 
-            profileMusicRepository.deleteByUser(user);  // 유저 프로필 음악 삭제
             emotionRecordRepository.deleteByUser(user); // 유저 감정 기록 삭제
             userRepository.deleteById(userId);          // 유저 삭제
 

@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import jakarta.persistence.Id;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -13,7 +12,6 @@ import java.sql.Timestamp;
 
 @Entity
 @Getter
-@NoArgsConstructor
 public class ProfileMusic {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

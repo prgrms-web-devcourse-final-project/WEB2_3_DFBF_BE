@@ -14,6 +14,7 @@ import org.dfbf.soundlink.domain.user.dto.request.UserSignUpDto;
 import org.dfbf.soundlink.domain.user.dto.request.UserUpdateDto;
 import org.dfbf.soundlink.domain.user.dto.response.UserGetDto;
 import org.dfbf.soundlink.domain.user.dto.response.UserMyPageDto;
+import org.dfbf.soundlink.domain.user.entity.ProfileMusic;
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.exception.NoUserDataException;
 import org.dfbf.soundlink.domain.user.repository.ProfileMusicRepository;
@@ -85,6 +86,7 @@ public class UserService {
 
         try {
             User user = userRepository.findById(userId).orElseThrow(NoUserDataException::new);
+            user.update(userUpdateDto, passwordEncoder);
 
             // SpotifyMusic 객체 찾기 (없으면 새로 생성 & 저장)
             SpotifyMusic spotifyMusic = spotifyMusicRepository.findById(userUpdateDto.spotifyId())
@@ -108,6 +110,7 @@ public class UserService {
         try {
             User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
 
+            profileMusicRepository.deleteByUser(user);  // 유저 프로필 음악 삭제
             emotionRecordRepository.deleteByUser(user); // 유저 감정 기록 삭제
             userRepository.deleteById(userId);          // 유저 삭제
 
@@ -283,8 +286,6 @@ public class UserService {
     public ResponseResult reissueToken(HttpServletRequest request, HttpServletResponse response) {
         String accessToken = jwtProvider.resolveAccessToken(request);
         String refreshToken = jwtProvider.resolveRefreshToken(request);
-        System.out.println("AccessToken: " + accessToken);
-        System.out.println("RefreshToken from Cookie: " + refreshToken);
 
 //        System.out.println("AccessToken: " + accessToken);
 //        System.out.println("RefreshToken from Cookie: " + refreshToken);

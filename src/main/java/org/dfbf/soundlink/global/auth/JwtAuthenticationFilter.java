@@ -1,10 +1,15 @@
 package org.dfbf.soundlink.global.auth;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.dfbf.soundlink.global.exception.ErrorCode;
+import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -14,16 +19,27 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtProvider jwtProvider;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
     String accessToken = jwtProvider.resolveAccessToken(request);       //1.Access Token 추출
 
-    if(accessToken !=null && jwtProvider.validateToken(accessToken)) {  //2.유효성 검사
-        this.setAuthentication(accessToken);                            //3.유저정보 저장
+        try {
+            if(accessToken !=null && jwtProvider.validateToken(accessToken)) {  //2.유효성 검사
+                this.setAuthentication(accessToken);                            //3.유저정보 저장
+                }
+            filterChain.doFilter(request, response); //필터 체인 진행(전달)
+        } catch (ExpiredJwtException e) {
+            handleException(response, ErrorCode.TOKEN_EXPIRED);
+        } catch (JwtException e) {
+            handleException(response, ErrorCode.TOKEN_INVALID);
+        }catch (Exception e) {
+            handleException(response, ErrorCode.INTERNAL_SERVER_ERROR);
         }
-    filterChain.doFilter(request, response); //필터 체인 진행(전달)
     }
+
 
     //유저정보 저장
     public void setAuthentication(String token) {
@@ -41,6 +57,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 인증정보 설정
         SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    // 예외 발생 시 JSON 응답을 반환하는 메서드
+    private void handleException(HttpServletResponse response, ErrorCode errorCode) throws IOException {
+        ResponseResult responseResult = new ResponseResult(errorCode);
+
+        response.setStatus(errorCode.getStatus().value());
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(objectMapper.writeValueAsString(responseResult));
     }
 
 }

@@ -71,9 +71,12 @@ public class JwtProvider {
                     .build()
                     .parseClaimsJws(token);     //토큰 유효한지 확인.
             return true;
+        }catch (ExpiredJwtException e) {
+            throw e; // 만료된 토큰 예외 그대로 던짐
+        } catch (JwtException e) {
+            throw e; // 기타 JWT 관련 예외도 그대로 던짐
         } catch (Exception e) {
-            System.out.println("[ERROR] Token validation failed: " + e.getMessage());
-            return false;
+            throw new RuntimeException("서버 내부 오류 발생", e);
         }
     }
 

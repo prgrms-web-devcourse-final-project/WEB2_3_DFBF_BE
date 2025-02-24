@@ -29,7 +29,7 @@ public interface EmotionRecordRepository extends JpaRepository<EmotionRecord, Lo
             "JOIN FETCH er.user u " +
             "JOIN FETCH er.spotifyMusic sm " +
             "WHERE u.loginId = :loginId")
-    Page<EmotionRecord> findEmotionRecordsByLoginId(@Param("loginId") String loginId, Pageable pageable);
+    Page<EmotionRecord> findByLoginId(@Param("loginId") String loginId, Pageable pageable);
 
     @Query("SELECT er FROM EmotionRecord er " +
             "JOIN FETCH er.user u " +
@@ -37,15 +37,9 @@ public interface EmotionRecordRepository extends JpaRepository<EmotionRecord, Lo
             "WHERE u.userId <> :userId ")
     Page<EmotionRecord> findByWithoutUserId(@Param("userId") Long userId, Pageable pageable);
 
-    @Query( "SELECT er FROM EmotionRecord er " +
-            "JOIN FETCH er.user u " +
-            "LEFT JOIN FETCH er.spotifyMusic sm " +
-            "WHERE er.recordId = :recordId")
     Optional<EmotionRecord> findByRecordId(@Param("recordId") Long recordId);
 
     @Modifying
-    @Query( "DELETE FROM EmotionRecord er " +
-            "WHERE er.recordId = :recordId")
     int deleteByRecordId(@Param("recordId") Long recordId);
 }
 

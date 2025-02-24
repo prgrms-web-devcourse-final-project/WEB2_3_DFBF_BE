@@ -73,7 +73,7 @@ public class EmotionRecordService {
     public ResponseResult getEmotionRecordsByLoginId(String userTag, int page, int size) {
         try {
             Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-            Page<EmotionRecord> recordsPage = emotionRecordRepository.findEmotionRecordsByLoginId(userTag, pageable);
+            Page<EmotionRecord> recordsPage = emotionRecordRepository.findByLoginId(userTag, pageable);
 
             List<EmotionRecordResponseWithoutNicknameDTO> dtoList = recordsPage.getContent()
                     .stream()
@@ -107,16 +107,6 @@ public class EmotionRecordService {
         }
     }
 
-    /*@Transactional(readOnly = true)
-    public ResponseResult getEmotionRecordsExcludingUserId(Long userId, int page, int size) {
-        return getEmotionRecords(userId, page, size, EmotionRecordResponseMainDTO::fromEntity, true);
-    }
-
-    @Transactional(readOnly = true)
-    public ResponseResult getEmotionRecordsByUserId(String loginId, int page, int size) {
-        return getEmotionRecords(loginId, page, size, EmotionRecordResponseWithoutNicknameDTO::fromEntity, false);
-    }
-*/
     @Transactional(readOnly = true)
     public ResponseResult getEmotionRecord(Long userId, Long recordId) {
 

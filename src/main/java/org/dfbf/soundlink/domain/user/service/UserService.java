@@ -23,6 +23,7 @@ import org.dfbf.soundlink.global.auth.JwtProvider;
 import org.dfbf.soundlink.global.auth.TokenProperties;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -179,6 +180,8 @@ public class UserService {
         if(exists) { return new ResponseResult(ErrorCode.DUPLICATE_NICKNAME); }
         return new ResponseResult(ErrorCode.NOT_DUPLICATE_NICKNAME);
     }
+    @Value("${REFRESH_TOKEN_EXPIRATION_TIME}")
+    private int REFRESH_TOKEN_EXPIRATION_TIME;
 
     // RefreshToken을 쿠키로 설정
     private ResponseCookie getRefreshToken(String refreshToken) {
@@ -188,7 +191,8 @@ public class UserService {
                 .path("/")
                 .httpOnly(true)
                 .secure(false)
-                .maxAge(1800000) // 만료시간 설정
+                .sameSite("None")
+                .maxAge(REFRESH_TOKEN_EXPIRATION_TIME/1000) // 만료시간 설정(밀리초 -> 초로 변경)
                 .build();
     }
   
@@ -229,8 +233,8 @@ public class UserService {
         try {
             //클라이언트 - 토큰 삭제
             ResponseCookie refreshCookie = ResponseCookie
-                    .from("REFRESHTOKEN", "localhost")
-                    .domain(domain)
+                    .from("REFRESHTOKEN", "") //쿠키 삭제시 빈문자열
+                    .domain("")
                     .path("/")
                     .httpOnly(true)
                     .secure(false)
@@ -319,8 +323,13 @@ public class UserService {
             // Redis에서 리프레시 토큰을 확인하고, 일치하면 새 액세스 토큰 발급
             if (redisRefreshToken != null && redisRefreshToken.equals(refreshToken)) {
                 String newAccessToken = jwtProvider.createAccessToken(userId);
+                String newRefreshToken = jwtProvider.createRefreshToken(userId);
 
-//                System.out.println("New AccessToken: " + newAccessToken);
+                System.out.println("New AccessToken: " + newAccessToken);
+                System.out.println("New RefreshToken: " + newRefreshToken);
+
+                //레디스에 새로운 리프레시 토큰 업데이트!
+                tokenService.updateRefreshToken(userId, newRefreshToken);
 
                 Map<String, String> responseBody = new HashMap<>();
                 responseBody.put("accessToken", newAccessToken);

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ProfileMusicRepository extends JpaRepository<ProfileMusic, Long>, ProfileMusicCustomRepository {
+
 }
 
 /**

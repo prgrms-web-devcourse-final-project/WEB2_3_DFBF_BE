@@ -24,8 +24,11 @@ public class EmotionRecordController {
             summary = "감정 기록 작성/저장 API",
             description = "작성한 감정 기록을 저장합니다."
     )
-    public ResponseResult saveEmotionWithMusic(@Valid @RequestBody EmotionRecordRequestDTO request) {
-        return emotionRecordService.saveEmotionRecordWithMusic(request);
+
+    public ResponseResult saveEmotionWithMusic(
+            @AuthenticationPrincipal Long userId,
+            @Valid @RequestBody EmotionRecordRequestDTO request) {
+        return emotionRecordService.saveEmotionRecordWithMusic(userId, request);
     }
 
     @GetMapping
@@ -34,10 +37,9 @@ public class EmotionRecordController {
             description = "유저들이 작성한 감정 기록 전체를 조회합니다.(자신의 아이디에 해당하는 감정 기록은 조회되지 않습니다.)"
     )
     public ResponseResult getEmotionRecordsWithoutMine(
-            /*@AuthenticationPrincipal*/ Long userId,
+            @AuthenticationPrincipal Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-
         return emotionRecordService.getEmotionRecordsExcludingUserId(userId, page, size);
     }
 
@@ -60,7 +62,7 @@ public class EmotionRecordController {
     )
     public ResponseResult getEmotionRecord(
             @PathVariable Long recordId,
-            /*@AuthenticationPrincipal*/ Long userId) {
+            @AuthenticationPrincipal Long userId) {
         return emotionRecordService.getEmotionRecord(userId, recordId);
     }
 

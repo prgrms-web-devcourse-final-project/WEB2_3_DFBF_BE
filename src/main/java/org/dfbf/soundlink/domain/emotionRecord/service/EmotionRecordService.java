@@ -35,15 +35,15 @@ public class EmotionRecordService {
     private final UserRepository userRepository;
 
     @Transactional
-    public ResponseResult saveEmotionRecordWithMusic(EmotionRecordRequestDTO request) {
-        // 임시 유저 생성 (시큐리티 적용 이후 수정 필요)
-        User testUser = userRepository.findById(1L)
+    public ResponseResult saveEmotionRecordWithMusic(Long userId, EmotionRecordRequestDTO request) {
+
+        User loggedInUser = userRepository.findById(userId)
                 .orElseThrow(UserNotFoundException::new);
 
         try {
             // 감정 기록 저장
             EmotionRecord emotionRecord = EmotionRecord.builder()
-                    .user(testUser)
+                    .user(loggedInUser)
                     .emotion(request.emotion())
                     .comment(request.comment())
                     .build();

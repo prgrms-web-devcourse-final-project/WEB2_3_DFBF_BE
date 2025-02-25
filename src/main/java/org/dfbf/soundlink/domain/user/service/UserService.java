@@ -78,10 +78,15 @@ public class UserService {
     }
 
     // 회원정보 수정
+    @Transactional
     public ResponseResult updateUser(Long userId, UserUpdateDto userUpdateDto) {
+        /**
+         * orElse -> 일단 함수는 실행, 그러나 값이 null이면 orElse의 값으로 대체 (함수O, 람다x)
+         * orElseGet -> null일때만 실행 (함수O, 람다O)
+         */
+
         try {
             User user = userRepository.findById(userId).orElseThrow(NoUserDataException::new);
-            user.update(userUpdateDto, passwordEncoder);
 
             // SpotifyMusic 객체 찾기 (없으면 새로 생성 & 저장)
             SpotifyMusic spotifyMusic = spotifyMusicRepository.findById(userUpdateDto.spotifyId())
@@ -91,18 +96,7 @@ public class UserService {
                         return sm;
                     });
 
-            // ProfileMusic 객체 찾기 (없으면 새로 생성 & 저장)
-            ProfileMusic profileMusic = profileMusicRepository.findByUserId(userId)
-                    .map(pm -> {
-                        pm.update(spotifyMusic);
-                        return pm;
-                    })
-                    .orElseGet(() -> profileMusicRepository.save(new ProfileMusic(user, spotifyMusic)));
-
-            /**
-             * orElse -> 일단 함수는 실행, 그러나 값이 null이면 orElse의 값으로 대체 (함수O, 람다x)
-             * orElseGet -> null일때만 실행 (함수O, 람다O)
-             */
+            user.update(userUpdateDto, passwordEncoder, spotifyMusic);
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (NoUserDataException e) {
@@ -116,7 +110,6 @@ public class UserService {
         try {
             User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
 
-            profileMusicRepository.deleteByUser(user);  // 유저 프로필 음악 삭제
             emotionRecordRepository.deleteByUser(user); // 유저 감정 기록 삭제
             userRepository.deleteById(userId);          // 유저 삭제
 
@@ -134,10 +127,9 @@ public class UserService {
         try {
             User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
 
-//            UserMyPageDto result = userRepository.findUserMyPageDtoByUserId(user.getUserId())
-//                    .orElseThrow(() -> new NoUserDataException());
+            UserMyPageDto result = userRepository.findUserMyPageDtoByUserId(user.getUserId());
 
-            return new ResponseResult(ErrorCode.SUCCESS, 3);
+            return new ResponseResult(ErrorCode.SUCCESS, result);
         } catch (NoUserDataException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
         } catch (Exception e) {
@@ -246,7 +238,6 @@ public class UserService {
                     .path("/")
                     .httpOnly(true)
                     .secure(false)
-                    .sameSite("None")
                     .maxAge(0)
                     .build();
             response.setHeader("Set-Cookie", refreshCookie.toString());//쿠키 삭제 요청
@@ -279,10 +270,13 @@ public class UserService {
     // 타 유저 프로필
     public ResponseResult getProfile(String tag) {
         try {
-//            UserMyPageDto result = userRepository.findUserMyPageDtoByLoginId(tag)
-//                    .orElseThrow(() -> new NoUserDataException());
+            User user = userRepository.findByLoginId(tag)
+                    .orElseThrow(() -> new NoUserDataException());
+
+            UserMyPageDto result = userRepository.findUserMyPageDtoByLoginId(user.getLoginId())
+                    .orElseThrow(() -> new NoUserDataException());
           
-            return new ResponseResult(ErrorCode.SUCCESS, 3);
+            return new ResponseResult(ErrorCode.SUCCESS, result);
         } catch (NoUserDataException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
         } catch (Exception e) {

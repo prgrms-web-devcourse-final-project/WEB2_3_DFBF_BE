@@ -5,6 +5,9 @@ import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import org.dfbf.soundlink.domain.user.exception.ExpiredTokenException;
+import org.dfbf.soundlink.global.exception.ErrorCode;
+import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -71,14 +74,13 @@ public class JwtProvider {
                     .build()
                     .parseClaimsJws(token);     //토큰 유효한지 확인.
             return true;
-        }catch (ExpiredJwtException e) {
-            throw e; // 만료된 토큰 예외 그대로 던짐
-        } catch (JwtException e) {
-            throw e; // 기타 JWT 관련 예외도 그대로 던짐
         } catch (Exception e) {
-            throw new RuntimeException("서버 내부 오류 발생", e);
+            System.out.println("[ERROR] Token validation failed: ");
+            return false;
         }
     }
+
+
 
     //액세스토큰 추출
     public String resolveAccessToken(HttpServletRequest request) {

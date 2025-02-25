@@ -242,7 +242,7 @@ public class UserService {
             //클라이언트 - 토큰 삭제
             ResponseCookie refreshCookie = ResponseCookie
                     .from("REFRESHTOKEN", "") //쿠키 삭제시 빈문자열
-                    .domain("localhost")  //(도메인 주소 설정 필요)
+                    .domain("")
                     .path("/")
                     .httpOnly(true)
                     .secure(false)

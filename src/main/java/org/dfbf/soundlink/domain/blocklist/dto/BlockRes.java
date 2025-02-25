@@ -6,6 +6,7 @@ public record BlockRes(
         Long userId,
         Long blockedUserId,
         String nickname,
+        String tag,
         Timestamp createdAt,
         Timestamp updatedAt
 ) {

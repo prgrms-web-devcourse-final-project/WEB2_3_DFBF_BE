@@ -13,25 +13,37 @@ import java.util.Optional;
 @Repository
 @RequiredArgsConstructor
 public class ProfileMusicRepositoryImpl implements ProfileMusicCustomRepository {
-    private final JPAQueryFactory jpaQueryFactory;
-    private final QProfileMusic qProfileMusic = QProfileMusic.profileMusic;
-    private final QUser qUser = QUser.user;
+    private final JPAQueryFactory queryFactory;
 
     @Override
     public Optional<ProfileMusic> findByUserId(Long userId) {
-        ProfileMusic result = jpaQueryFactory
-                .selectFrom(qProfileMusic)
-                .join(qProfileMusic.user, qUser)
-                .where(qUser.userId.eq(userId))
-                .fetchOne();
-        return Optional.ofNullable(result);
+        return Optional.ofNullable(
+                queryFactory
+                        .selectFrom(QProfileMusic.profileMusic)
+                        .where(QProfileMusic.profileMusic.profileMusicId.eq(
+                                queryFactory
+                                        .select(QUser.user.profileMusic.profileMusicId) // User의 profileMusicId 사용
+                                        .from(QUser.user)
+                                        .where(QUser.user.userId.eq(userId)) // User의 userId로 찾기
+                                        .fetchOne()
+                        ))
+                        .fetchOne()
+        );
     }
 
+
     @Override
-    public void deleteByUser(User user) {
-        jpaQueryFactory
-                .delete(qProfileMusic)
-                .where(qProfileMusic.user.eq(user))
+    public void deleteByUser(Long userId) {
+        queryFactory
+                .delete(QProfileMusic.profileMusic)
+                .where(QProfileMusic.profileMusic.profileMusicId.eq(
+                        queryFactory
+                                .select(QUser.user.profileMusic.profileMusicId)
+                                .from(QUser.user)
+                                .where(QUser.user.userId.eq(userId))
+                                .fetchOne()
+                )) // User의 userId로 ProfileMusic의 profileMusicId를 삭제
                 .execute();
     }
+
 }

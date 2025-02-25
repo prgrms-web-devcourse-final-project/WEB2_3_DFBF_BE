@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface ProfileMusicCustomRepository {
     Optional<ProfileMusic> findByUserId(Long userId);
-    void deleteByUser(User user);
+    void deleteByUser(Long userId);
 }

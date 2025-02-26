@@ -44,11 +44,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response); // 필터 체인 진행(전달)
 
         } catch (ExpiredJwtException ex) {
-            System.out.println("[ERROR] Expired Token: " + accessToken); // 만료된 토큰 로그 출력
             handleException(response, ErrorCode.TOKEN_EXPIRED);
 
         } catch (JwtException ex) {
-            System.out.println("[ERROR] Invalid Token: " + accessToken); // 유효하지 않은 토큰 로그 출력
             handleException(response, ErrorCode.TOKEN_INVALID);
 
         } catch (Exception ex) {

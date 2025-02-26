@@ -22,10 +22,6 @@ import java.util.Optional;
 public class EmotionRecordRepositoryImpl implements EmotionRecordRepositoryCustom {
 
     private final JPAQueryFactory jpaQueryFactory;
-    private final QEmotionRecord emotionRecord = QEmotionRecord.emotionRecord;
-    private final QUser user = QUser.user;
-    private final QSpotifyMusic spotifyMusic = QSpotifyMusic.spotifyMusic;
-
 
     @Override
     public List<EmotionRecordDto> findByUser(User user) {
@@ -49,11 +45,11 @@ public class EmotionRecordRepositoryImpl implements EmotionRecordRepositoryCusto
     // loginId를 기준으로 JOIN FETCH (user, spotifyMusic) 후 페이징 처리
     @Override
     public Page<EmotionRecord> findByLoginId(String loginId, Pageable pageable) {
-        List<EmotionRecord> content = jpaQueryFactory
-                .selectFrom(emotionRecord)
-                .join(emotionRecord.user, user).fetchJoin()
-                .join(emotionRecord.spotifyMusic, spotifyMusic).fetchJoin()
-                .where(user.loginId.eq(loginId))
+        List<EmotionRecord> emotionRecords = jpaQueryFactory
+                .selectFrom(QEmotionRecord.emotionRecord)
+                .join(QEmotionRecord.emotionRecord.user, QUser.user).fetchJoin()
+                .join(QEmotionRecord.emotionRecord.spotifyMusic, QSpotifyMusic.spotifyMusic).fetchJoin()
+                .where(QUser.user.loginId.eq(loginId))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -63,24 +59,24 @@ public class EmotionRecordRepositoryImpl implements EmotionRecordRepositoryCusto
         // QueryDSL을 사용할 경우에 위와 달리 데이터 수 계산 쿼리를 별도로 실행해 줘야함 (Querydsl 5 이상 권장 방식)
         long total = Optional.ofNullable(
                 jpaQueryFactory
-                .select(emotionRecord.count())
-                .from(emotionRecord)
-                .join(emotionRecord.user, user)
-                .where(user.loginId.eq(loginId))
+                .select(QEmotionRecord.emotionRecord.count())
+                .from(QEmotionRecord.emotionRecord)
+                .join(QEmotionRecord.emotionRecord.user, QUser.user)
+                .where(QUser.user.loginId.eq(loginId))
                 .fetchOne()
         ).orElse(0L);
 
-        return new PageImpl<>(content, pageable, total);
+        return new PageImpl<>(emotionRecords, pageable, total);
     }
 
     // 로그인 된 userId를 제외한 EmotionRecord 조회 (LEFT JOIN으로 spotifyMusic 포함) 후 페이징처리
     @Override
     public Page<EmotionRecord> findByWithoutUserId(Long userId, Pageable pageable) {
-        List<EmotionRecord> content = jpaQueryFactory
-                .selectFrom(emotionRecord)
-                .join(emotionRecord.user, user).fetchJoin()
-                .leftJoin(emotionRecord.spotifyMusic, spotifyMusic).fetchJoin()
-                .where(user.userId.ne(userId))
+        List<EmotionRecord> emotionRecords = jpaQueryFactory
+                .selectFrom(QEmotionRecord.emotionRecord)
+                .join(QEmotionRecord.emotionRecord.user, QUser.user).fetchJoin()
+                .leftJoin(QEmotionRecord.emotionRecord.spotifyMusic, QSpotifyMusic.spotifyMusic).fetchJoin()
+                .where(QUser.user.userId.ne(userId))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -88,32 +84,32 @@ public class EmotionRecordRepositoryImpl implements EmotionRecordRepositoryCusto
         // 위의 findByLoginId 메서드 설명 참고
         long total = Optional.ofNullable(
                 jpaQueryFactory
-                .select(emotionRecord.count())
-                .from(emotionRecord)
-                .join(emotionRecord.user, user)
-                .where(user.userId.ne(userId))
+                .select(QEmotionRecord.emotionRecord.count())
+                .from(QEmotionRecord.emotionRecord)
+                .join(QEmotionRecord.emotionRecord.user, QUser.user)
+                .where(QUser.user.userId.ne(userId))
                 .fetchOne()
         ).orElse(0L);
 
-        return new PageImpl<>(content, pageable, total);
+        return new PageImpl<>(emotionRecords, pageable, total);
     }
 
     // recordId에 해당하는 EmotionRecord 조회
     @Override
     public Optional<EmotionRecord> findByRecordId(Long recordId) {
-        EmotionRecord record = jpaQueryFactory
-                .selectFrom(emotionRecord)
-                .where(emotionRecord.recordId.eq(recordId))
+        EmotionRecord emotionRecord = jpaQueryFactory
+                .selectFrom(QEmotionRecord.emotionRecord)
+                .where(QEmotionRecord.emotionRecord.recordId.eq(recordId))
                 .fetchOne();
-        return Optional.ofNullable(record);
+        return Optional.ofNullable(emotionRecord);
     }
 
     // recordId에 해당하는 EmotionRecord 삭제
     @Override
     public int deleteByRecordId(Long recordId) {
         return (int)jpaQueryFactory
-                .delete(emotionRecord)
-                .where(emotionRecord.recordId.eq(recordId))
+                .delete(QEmotionRecord.emotionRecord)
+                .where(QEmotionRecord.emotionRecord.recordId.eq(recordId))
                 .execute();
     }
 }

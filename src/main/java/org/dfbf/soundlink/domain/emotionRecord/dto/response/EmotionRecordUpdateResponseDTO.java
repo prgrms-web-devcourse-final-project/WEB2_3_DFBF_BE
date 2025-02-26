@@ -4,7 +4,7 @@ import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
 
 public record EmotionRecordUpdateResponseDTO(
         Long recordId,
-        Long spotifyId,
+        String spotifyId,
         String title,
         String artist,
         String albumImage,

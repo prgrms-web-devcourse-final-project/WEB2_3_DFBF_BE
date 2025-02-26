@@ -43,7 +43,7 @@ public class EmotionRecordService {
         try {
             // 음악 저장
             SpotifyMusic spotifyMusic = SpotifyMusic.builder()
-                    .spotifyId(Long.valueOf(request.spotifyId()))
+                    .spotifyId(request.spotifyId())
                     .title(request.title())
                     .artist(request.artist())
                     .albumImage(request.albumImage())
@@ -137,7 +137,7 @@ public class EmotionRecordService {
             SpotifyMusic spotifyMusic = spotifyMusicRepository.findById(Long.valueOf(updateDTO.spotifyId()))
                     .orElseGet(() -> {
                         SpotifyMusic newMusic = new SpotifyMusic(
-                                Long.valueOf(updateDTO.spotifyId()),
+                                updateDTO.spotifyId(),
                                 updateDTO.title(),
                                 updateDTO.artist(),
                                 updateDTO.albumImage()

@@ -87,7 +87,7 @@ public class UserService {
             User user = userRepository.findById(userId).orElseThrow(NoUserDataException::new);
 
             // SpotifyMusic 객체 찾기 (없으면 새로 생성 & 저장)
-            SpotifyMusic spotifyMusic = spotifyMusicRepository.findById(userUpdateDto.spotifyId())
+            SpotifyMusic spotifyMusic = spotifyMusicRepository.findBySpotifyId(userUpdateDto.spotifyId())
                     .orElseGet(() -> {
                         SpotifyMusic sm = new SpotifyMusic(userUpdateDto);
                         spotifyMusicRepository.save(sm);

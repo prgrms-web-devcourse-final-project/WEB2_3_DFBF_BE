@@ -8,7 +8,7 @@ public record UserUpdateDto(
         String loginId,
         String nickName,
         String password,
-        Long spotifyId,
+        String spotifyId,
         String title,
         String artist,
         String albumImage

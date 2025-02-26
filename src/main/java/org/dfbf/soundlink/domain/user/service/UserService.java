@@ -47,9 +47,7 @@ public class UserService {
     private final RedisService redisService;
 
     private final JwtProvider jwtProvider;
-    private final TokenProperties tokenProperties;
 
-    private RedisTemplate<String, String> redisTemplate;
     private final TokenService tokenService;
   
     private final String domain = "";
@@ -222,7 +220,6 @@ public class UserService {
 
             return new ResponseResult(responseBody);
         } catch (Exception e) {
-            System.out.println("[ERROR] " + e.getMessage());
             return new ResponseResult(ErrorCode. INTERNAL_SERVER_ERROR);
         }
     }
@@ -283,13 +280,10 @@ public class UserService {
         }
     }
 
-    // 토큰 재발급
+    // 토큰 재발급(AT O, RT O => AT,RT 재발급)
     public ResponseResult reissueToken(HttpServletRequest request, HttpServletResponse response) {
         String accessToken = jwtProvider.resolveAccessToken(request);
         String refreshToken = jwtProvider.resolveRefreshToken(request);
-
-//        System.out.println("AccessToken: " + accessToken);
-//        System.out.println("RefreshToken from Cookie: " + refreshToken);
 
         // AccessToken과 RefreshToken이 모두 없는 경우
         if (accessToken == null && refreshToken == null) {
@@ -307,11 +301,6 @@ public class UserService {
             return new ResponseResult(ErrorCode.TOKEN_INVALID, "RT가 존재하지 않거나 만료되었습니다.");
         }
 
-        // AccessToken 유효성 확인
-        if (jwtProvider.validateToken(accessToken)) {
-            return new ResponseResult(ErrorCode.TOKEN_NOT_EXPIRED); // 유효한 액세스 토큰: 재발급 x
-        }
-
         // RefreshToken 유효성 확인
         if (jwtProvider.validateToken(refreshToken)) {
             Long userId = jwtProvider.getUserId(refreshToken);
@@ -323,9 +312,6 @@ public class UserService {
             if (redisRefreshToken != null && redisRefreshToken.equals(refreshToken)) {
                 String newAccessToken = jwtProvider.createAccessToken(userId);
                 String newRefreshToken = jwtProvider.createRefreshToken(userId);
-
-                System.out.println("New AccessToken: " + newAccessToken);
-                System.out.println("New RefreshToken: " + newRefreshToken);
 
                 //레디스에 새로운 리프레시 토큰 업데이트!
                 tokenService.updateRefreshToken(userId, newRefreshToken);

@@ -4,7 +4,7 @@ import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
 
 public record EmotionRecordUpdateResponseDTO(
         Long recordId,
-        Long spotifyId,
+        String spotifyId,
         String title,
         String artist,
         String albumImage,
@@ -14,7 +14,7 @@ public record EmotionRecordUpdateResponseDTO(
     public static EmotionRecordUpdateResponseDTO fromEntity(EmotionRecord record) {
         return new EmotionRecordUpdateResponseDTO(
                 record.getRecordId(),
-                record.getSpotifyMusic().getSpotifyId(),
+                String.valueOf(record.getSpotifyMusic().getSpotifyId()),
                 record.getSpotifyMusic().getTitle(),
                 record.getSpotifyMusic().getArtist(),
                 record.getSpotifyMusic().getAlbumImage(),

@@ -28,7 +28,7 @@ public class EmotionRecord {
     private Emotions emotion;
 
     @ManyToOne
-    @JoinColumn(name = "spotify_music_id")
+    @JoinColumn(name = "spotify_id")
     private SpotifyMusic spotifyMusic;
 
     @Column(name = "comment")

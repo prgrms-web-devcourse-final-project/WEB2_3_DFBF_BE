@@ -191,7 +191,6 @@ public class UserService {
                 .path("/")
                 .httpOnly(true)
                 .secure(false)
-                .sameSite("None")
                 .maxAge(REFRESH_TOKEN_EXPIRATION_TIME/1000) // 만료시간 설정(밀리초 -> 초로 변경)
                 .build();
     }

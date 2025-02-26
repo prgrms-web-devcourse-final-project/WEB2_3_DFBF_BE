@@ -8,6 +8,7 @@ import org.dfbf.soundlink.domain.user.dto.response.UserMyPageDto;
 import org.dfbf.soundlink.domain.user.entity.QProfileMusic;
 import org.dfbf.soundlink.domain.user.entity.QUser;
 import org.dfbf.soundlink.domain.user.entity.User;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -62,6 +63,15 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
                 .select(QUser.user.password)
                 .from(QUser.user)
                 .where(QUser.user.loginId.eq(loginId))
+                .fetchOne();
+    }
+
+    @Override
+    @Cacheable(value = "user", key = "#userId", unless = "#result == null")
+    public User findByUserIdWithCache(Long userId) {
+        return jpaQueryFactory
+                .selectFrom(QUser.user)
+                .where(QUser.user.userId.eq(userId))
                 .fetchOne();
     }
 }

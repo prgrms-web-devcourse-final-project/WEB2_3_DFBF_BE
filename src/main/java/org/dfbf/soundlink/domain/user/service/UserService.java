@@ -14,7 +14,6 @@ import org.dfbf.soundlink.domain.user.dto.request.UserSignUpDto;
 import org.dfbf.soundlink.domain.user.dto.request.UserUpdateDto;
 import org.dfbf.soundlink.domain.user.dto.response.UserGetDto;
 import org.dfbf.soundlink.domain.user.dto.response.UserMyPageDto;
-import org.dfbf.soundlink.domain.user.entity.ProfileMusic;
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.exception.NoUserDataException;
 import org.dfbf.soundlink.domain.user.repository.ProfileMusicRepository;
@@ -24,6 +23,7 @@ import org.dfbf.soundlink.global.auth.TokenProperties;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import javax.naming.AuthenticationException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -51,9 +52,9 @@ public class UserService {
 
     private RedisTemplate<String, String> redisTemplate;
     private final TokenService tokenService;
-  
-    private final String domain = "";
-  
+
+    private static final String domain = "";
+
     // 회원가입
     public ResponseResult signUp(UserSignUpDto userSignUpDto) {
         try {
@@ -68,7 +69,7 @@ public class UserService {
     @Transactional
     public ResponseResult getUser(Long userId) {
         try {
-            User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
+            User user = userRepository.findByUserIdWithCache(userId);
             UserGetDto result = new UserGetDto(user);
 
             return new ResponseResult(ErrorCode.SUCCESS, result);
@@ -86,7 +87,7 @@ public class UserService {
          */
 
         try {
-            User user = userRepository.findById(userId).orElseThrow(NoUserDataException::new);
+            User user = userRepository.findByUserIdWithCache(userId);
 
             // SpotifyMusic 객체 찾기 (없으면 새로 생성 & 저장)
             SpotifyMusic spotifyMusic = spotifyMusicRepository.findById(userUpdateDto.spotifyId())
@@ -108,7 +109,7 @@ public class UserService {
     @Transactional
     public ResponseResult deleteUser(Long userId) {
         try {
-            User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
+            User user = userRepository.findByUserIdWithCache(userId);
 
             emotionRecordRepository.deleteByUser(user); // 유저 감정 기록 삭제
             userRepository.deleteById(userId);          // 유저 삭제
@@ -125,7 +126,7 @@ public class UserService {
     @Transactional
     public ResponseResult getMyPage(Long userId) {
         try {
-            User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
+            User user = userRepository.findByUserIdWithCache(userId);
 
             UserMyPageDto result = userRepository.findUserMyPageDtoByUserId(user.getUserId());
 
@@ -233,7 +234,7 @@ public class UserService {
             //클라이언트 - 토큰 삭제
             ResponseCookie refreshCookie = ResponseCookie
                     .from("REFRESHTOKEN", "") //쿠키 삭제시 빈문자열
-                    .domain("")
+                    .domain(domain)
                     .path("/")
                     .httpOnly(true)
                     .secure(false)

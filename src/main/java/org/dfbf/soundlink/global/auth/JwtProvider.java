@@ -1,13 +1,8 @@
 package org.dfbf.soundlink.global.auth;
 
-import ch.qos.logback.core.subst.Token;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import org.dfbf.soundlink.domain.user.exception.ExpiredTokenException;
-import org.dfbf.soundlink.global.exception.ErrorCode;
-import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -28,7 +23,7 @@ public class JwtProvider {
     @Value("${REFRESH_TOKEN_EXPIRATION_TIME}")
     private long REFRESH_EXPIRATION_TIME;
 
-    //시크릿 키 자동 생성
+    //시크릿 키
     private final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
 
     @Autowired
@@ -80,6 +75,19 @@ public class JwtProvider {
         }
     }
 
+    public boolean isTokenExpired(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(SECRET_KEY)
+                    .build()
+                    .parseClaimsJws(token); // 만료된 토큰을 처리하려면 ExpiredJwtException이 발생함
+            return false; // 만료되지 않으면 false
+        } catch (ExpiredJwtException ex) {
+            return true; // 만료된 경우 true
+        } catch (Exception ex) {
+            return false; // 다른 예외는 false
+        }
+    }
 
 
     //액세스토큰 추출

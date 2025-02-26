@@ -1,7 +1,7 @@
 package org.dfbf.soundlink.domain.emotionRecord.dto.request;
 
 public record EmotionRecordUpdateRequestDTO(
-        Long spotifyId,
+        String spotifyId,
         String title,
         String artist,
         String albumImage,

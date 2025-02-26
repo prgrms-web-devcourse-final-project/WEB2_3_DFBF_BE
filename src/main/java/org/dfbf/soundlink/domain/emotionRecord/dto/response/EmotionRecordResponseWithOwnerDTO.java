@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 public record EmotionRecordResponseWithOwnerDTO(
         Long recordId,
         String nickName,
+        String loginId,
         String emotion,
         SpotifyMusicResponseDTO spotifyMusic,
         String comment,
@@ -18,6 +19,7 @@ public record EmotionRecordResponseWithOwnerDTO(
         return new EmotionRecordResponseWithOwnerDTO(
                 record.getRecordId(),
                 record.getUser().getNickname(),
+                record.getUser().getLoginId(),
                 record.getEmotion().name(),
                 record.getSpotifyMusic() != null ? SpotifyMusicResponseDTO.fromEntity(record.getSpotifyMusic()) : null,
                 record.getComment(),

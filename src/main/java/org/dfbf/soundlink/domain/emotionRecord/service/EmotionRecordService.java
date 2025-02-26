@@ -41,22 +41,23 @@ public class EmotionRecordService {
                 .orElseThrow(UserNotFoundException::new);
 
         try {
-            // 감정 기록 저장
-            EmotionRecord emotionRecord = EmotionRecord.builder()
-                    .user(loggedInUser)
-                    .emotion(request.emotion())
-                    .comment(request.comment())
-                    .build();
-            emotionRecordRepository.save(emotionRecord);
-
             // 음악 저장
             SpotifyMusic spotifyMusic = SpotifyMusic.builder()
-                    .spotifyId(request.spotifyId())
+                    .spotifyId(Long.valueOf(request.spotifyId()))
                     .title(request.title())
                     .artist(request.artist())
                     .albumImage(request.albumImage())
                     .build();
             spotifyMusicRepository.save(spotifyMusic);
+
+            // 감정 기록 저장
+            EmotionRecord emotionRecord = EmotionRecord.builder()
+                    .user(loggedInUser)
+                    .emotion(request.emotion())
+                    .comment(request.comment())
+                    .spotifyMusic(spotifyMusic)
+                    .build();
+            emotionRecordRepository.save(emotionRecord);
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (UserNotFoundException e) {
@@ -133,10 +134,10 @@ public class EmotionRecordService {
             // SpotifyMusic이 DB에 있는지 먼저 확인
             // SpotifyMusic 엔티티가 저장되지 않은 상태에서 EmotionRecord 저장 시 영속성 컨텍스트 미저장 오류 발생
             // EmotionRecord를 업데이트하기 전에 SpotifyMusic이 없다면 생성 후 먼저 저장해줘야 함
-            SpotifyMusic spotifyMusic = spotifyMusicRepository.findById(updateDTO.spotifyId())
+            SpotifyMusic spotifyMusic = spotifyMusicRepository.findById(Long.valueOf(updateDTO.spotifyId()))
                     .orElseGet(() -> {
                         SpotifyMusic newMusic = new SpotifyMusic(
-                                updateDTO.spotifyId(),
+                                Long.valueOf(updateDTO.spotifyId()),
                                 updateDTO.title(),
                                 updateDTO.artist(),
                                 updateDTO.albumImage()

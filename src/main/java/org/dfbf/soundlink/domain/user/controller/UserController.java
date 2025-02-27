@@ -42,7 +42,7 @@ public class UserController {
     @Operation(summary = "유저 조회", description = "유저 조회 API")
     public ResponseResult getUser(@AuthenticationPrincipal Long id) { return userService.getUser(id); }
 
-    @PutMapping
+    @PatchMapping
     @Operation(summary = "유저 수정", description = "유저 수정 API")
     public ResponseResult updateUser(@AuthenticationPrincipal Long id,@RequestBody UserUpdateDto userUpdateDto) {
         return userService.updateUser(id, userUpdateDto);

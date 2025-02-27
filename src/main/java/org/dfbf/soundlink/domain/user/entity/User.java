@@ -63,11 +63,18 @@ public class User {
     }
 
     public void update(UserUpdateDto userUpdateDto, BCryptPasswordEncoder passwordEncoder, SpotifyMusic spotifyMusic) {
-        this.nickname = userUpdateDto.nickName();
-        this.loginId = userUpdateDto.loginId();
-        this.password = passwordEncoder.encode(userUpdateDto.password());
-        this.email = userUpdateDto.email();
+        this.nickname = userUpdateDto.nickName().orElseGet(() -> this.nickname);
+        this.loginId = userUpdateDto.loginId().orElseGet(() -> this.loginId);
+        this.password = userUpdateDto.password().isPresent() ? passwordEncoder.encode(userUpdateDto.password().get()) : this.password;
+        this.email = userUpdateDto.email().orElseGet(() -> this.email);
         this.profileMusic.update(spotifyMusic);
+    }
+
+    public void update(UserUpdateDto userUpdateDto, BCryptPasswordEncoder passwordEncoder) {
+        this.nickname = userUpdateDto.nickName().orElseGet(() -> this.nickname);
+        this.loginId = userUpdateDto.loginId().orElseGet(() -> this.loginId);
+        this.password = userUpdateDto.password().isPresent() ? passwordEncoder.encode(userUpdateDto.password().get()) : this.password;
+        this.email = userUpdateDto.email().orElseGet(() -> this.email);
     }
 }
 

@@ -86,18 +86,26 @@ public class UserService {
          * orElseGet -> null일때만 실행 (함수O, 람다O)
          */
 
+        userUpdateDto.toString2();
+
         try {
             User user = userRepository.findByUserIdWithCache(userId);
+            String spotifyId = userUpdateDto.spotifyId().orElse(null);
 
-            // SpotifyMusic 객체 찾기 (없으면 새로 생성 & 저장)
-            SpotifyMusic spotifyMusic = spotifyMusicRepository.findById(userUpdateDto.spotifyId())
-                    .orElseGet(() -> {
-                        SpotifyMusic sm = new SpotifyMusic(userUpdateDto);
-                        spotifyMusicRepository.save(sm);
-                        return sm;
-                    });
+            if (spotifyId != null) {
+                // SpotifyMusic 객체 찾기 (없으면 새로 생성 & 저장)
+                SpotifyMusic spotifyMusic = spotifyMusicRepository.findBySpotifyId(spotifyId)
+                        .orElseGet(() -> {
+                            SpotifyMusic sm = new SpotifyMusic(userUpdateDto);
+                            spotifyMusicRepository.save(sm);
+                            return sm;
+                        });
+                user.update(userUpdateDto, passwordEncoder, spotifyMusic);
+            } else {
+                user.update(userUpdateDto, passwordEncoder);
+            }
 
-            user.update(userUpdateDto, passwordEncoder, spotifyMusic);
+            userRepository.save(user);
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (NoUserDataException e) {

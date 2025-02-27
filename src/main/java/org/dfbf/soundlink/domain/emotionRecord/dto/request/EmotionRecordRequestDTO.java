@@ -10,7 +10,7 @@ import java.sql.Timestamp;
 public record EmotionRecordRequestDTO(
 
         @NotNull(message = "spotifyId 필요")
-        Long spotifyId,
+        String spotifyId,
 
         @NotBlank(message = "title 필요")
         String title,

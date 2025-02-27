@@ -25,7 +25,9 @@ public class QSpotifyMusic extends EntityPathBase<SpotifyMusic> {
 
     public final DateTimePath<java.sql.Timestamp> createdAt = createDateTime("createdAt", java.sql.Timestamp.class);
 
-    public final NumberPath<Long> spotifyId = createNumber("spotifyId", Long.class);
+    public final NumberPath<Long> id = createNumber("id", Long.class);
+
+    public final StringPath spotifyId = createString("spotifyId");
 
     public final StringPath title = createString("title");
 

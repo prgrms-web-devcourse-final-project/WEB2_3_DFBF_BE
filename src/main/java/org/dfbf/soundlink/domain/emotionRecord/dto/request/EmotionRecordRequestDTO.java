@@ -27,6 +27,6 @@ public record EmotionRecordRequestDTO(
         @Size(max = 200, message = "comment는 200자 이내여야 합니다.")
         String comment,
 
-        Timestamp createAt
+        Timestamp createdAt
 ) {
 }

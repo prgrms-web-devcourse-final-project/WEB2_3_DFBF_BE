@@ -13,7 +13,7 @@ public record EmotionRecordResponseMainDTO(
         String emotion,
         SpotifyMusicResponseDTO spotifyMusic,
         String comment,
-        String createAt
+        String createdAt
         ) {
 
     public static EmotionRecordResponseMainDTO fromEntity(EmotionRecord record) {

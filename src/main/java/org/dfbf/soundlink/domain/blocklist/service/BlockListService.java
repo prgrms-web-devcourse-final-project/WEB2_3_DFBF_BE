@@ -2,6 +2,7 @@ package org.dfbf.soundlink.domain.blocklist.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.dfbf.soundlink.domain.blocklist.dto.BlockReq;
 import org.dfbf.soundlink.domain.blocklist.dto.BlockRes;
 import org.dfbf.soundlink.domain.blocklist.entity.Blocklist;
 import org.dfbf.soundlink.domain.blocklist.exception.AlreadyBlockedUser;
@@ -26,18 +27,18 @@ public class BlockListService {
     private final BlockListRepository blockListRepository;
 
     @Transactional
-    public ResponseResult blockUser(Long userId, String tag) {
+    public ResponseResult blockUser(Long userId, BlockReq req) {
         try {
             User user = userRepository.findById(userId)
                     .orElseThrow(
                             BlockedUserNotFound::new
                     );
-            User blockedUser = userRepository.findByLoginId(tag)
+            User blockedUser = userRepository.findByLoginId(req.tag())
                     .orElseThrow(
                             BlockingUserNotFound::new
                     );
             blockListQueryRepository.findByUser_UserIdAndBlockedUser_LoginId(
-                    userId, tag
+                    userId, req.tag()
             ).ifPresent(block -> {
                 throw new AlreadyBlockedUser();
             });

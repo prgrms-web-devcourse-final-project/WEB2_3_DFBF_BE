@@ -15,5 +15,5 @@ public interface UserRepositoryCustom {
 
     String findPasswordByLoginId(String loginId);
 
-    User findByUserIdWithCache(Long userId);
+    Optional<User> findByUserIdWithCache(Long userId);
 }

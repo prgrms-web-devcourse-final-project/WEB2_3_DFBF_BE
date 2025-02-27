@@ -68,10 +68,11 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 
     @Override
     @Cacheable(value = "user", key = "#userId", unless = "#result == null")
-    public User findByUserIdWithCache(Long userId) {
-        return jpaQueryFactory
+    public Optional<User> findByUserIdWithCache(Long userId) {
+        return Optional.ofNullable(
+                jpaQueryFactory
                 .selectFrom(QUser.user)
                 .where(QUser.user.userId.eq(userId))
-                .fetchOne();
+                .fetchOne());
     }
 }

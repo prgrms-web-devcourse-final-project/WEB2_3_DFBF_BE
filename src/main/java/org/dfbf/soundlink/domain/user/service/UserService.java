@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepository;
 import org.dfbf.soundlink.domain.emotionRecord.repository.SpotifyMusicRepository;
+import org.dfbf.soundlink.domain.user.dto.request.CheckPasswordDto;
 import org.dfbf.soundlink.domain.user.dto.request.LoginReqDto;
 import org.dfbf.soundlink.domain.user.dto.request.UserSignUpDto;
 import org.dfbf.soundlink.domain.user.dto.request.UserUpdateDto;
@@ -69,7 +70,8 @@ public class UserService {
     @Transactional
     public ResponseResult getUser(Long userId) {
         try {
-            User user = userRepository.findByUserIdWithCache(userId);
+            User user = userRepository.findByUserIdWithCache(userId)
+                    .orElseThrow(NoUserDataException::new);
             UserGetDto result = new UserGetDto(user);
 
             return new ResponseResult(ErrorCode.SUCCESS, result);
@@ -89,7 +91,8 @@ public class UserService {
         userUpdateDto.toString2();
 
         try {
-            User user = userRepository.findByUserIdWithCache(userId);
+            User user = userRepository.findByUserIdWithCache(userId)
+                    .orElseThrow(NoUserDataException::new);
             String spotifyId = userUpdateDto.spotifyId().orElse(null);
 
             if (spotifyId != null) {
@@ -117,7 +120,8 @@ public class UserService {
     @Transactional
     public ResponseResult deleteUser(Long userId) {
         try {
-            User user = userRepository.findByUserIdWithCache(userId);
+            User user = userRepository.findByUserIdWithCache(userId)
+                    .orElseThrow(NoUserDataException::new);
 
             emotionRecordRepository.deleteByUser(user); // 유저 감정 기록 삭제
             userRepository.deleteById(userId);          // 유저 삭제
@@ -130,11 +134,30 @@ public class UserService {
         }
     }
 
+    @Transactional
+    public ResponseResult passwordCheck(Long userId, CheckPasswordDto dto) {
+        try {
+            User user = userRepository.findByUserIdWithCache(userId)
+                    .orElseThrow(NoUserDataException::new);
+
+            if (passwordEncoder.matches(dto.password(), user.getPassword())) {
+                return new ResponseResult(ErrorCode.SUCCESS);
+            } else {
+                return new ResponseResult(ErrorCode.NOT_EQUALS_PASSWORD);
+            }
+        } catch (NoUserDataException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.DB_ERROR);
+        }
+    }
+
     // 마이페이지 (MyPage)
     @Transactional
     public ResponseResult getMyPage(Long userId) {
         try {
-            User user = userRepository.findByUserIdWithCache(userId);
+            User user = userRepository.findByUserIdWithCache(userId)
+                    .orElseThrow(NoUserDataException::new);
 
             UserMyPageDto result = userRepository.findUserMyPageDtoByUserId(user.getUserId());
 
@@ -279,10 +302,10 @@ public class UserService {
     public ResponseResult getProfile(String tag) {
         try {
             User user = userRepository.findByLoginId(tag)
-                    .orElseThrow(() -> new NoUserDataException());
+                    .orElseThrow(NoUserDataException::new);
 
             UserMyPageDto result = userRepository.findUserMyPageDtoByLoginId(user.getLoginId())
-                    .orElseThrow(() -> new NoUserDataException());
+                    .orElseThrow(NoUserDataException::new);
           
             return new ResponseResult(ErrorCode.SUCCESS, result);
         } catch (NoUserDataException e) {

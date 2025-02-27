@@ -3,6 +3,8 @@ package org.dfbf.soundlink.global.auth;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.dfbf.soundlink.domain.user.exception.CustomJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -13,6 +15,7 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Component
 public class JwtProvider {
 
@@ -71,15 +74,14 @@ public class JwtProvider {
 
             // 토큰이 유효한 경우
             return true;
-        } catch (ExpiredJwtException e) {
-            System.out.println("[ERROR] Token is expired.");
-            throw e;  // 만료된 토큰에 대해 예외를 던짐
+        }catch (ExpiredJwtException e) {
+            log.warn("[ERROR] Token is expired.");
+            throw new CustomJwtException("토큰이 만료.", e);
         } catch (JwtException e) {
-            System.out.println("[ERROR] Token validation failed: " + e.getMessage());
-            throw e;  // JWT 예외는 다시 던짐
+            log.warn("[ERROR] Token validation failed: {}", e.getMessage());
+            throw new CustomJwtException("토큰 검증 실패", e);
         } catch (Exception e) {
-            System.out.println("[ERROR] Unexpected error: " + e.getMessage());
-            throw new RuntimeException("Unexpected error", e);
+            throw new CustomJwtException("예기치 않은 오류 발생", e);
         }
     }
 

@@ -49,9 +49,9 @@ public class SpotifyMusic {
     }
 
     public SpotifyMusic (UserUpdateDto userUpdateDto) {
-        this.spotifyId = userUpdateDto.spotifyId();
-        this.title = userUpdateDto.title();
-        this.artist = userUpdateDto.artist();
-        this.albumImage = userUpdateDto.albumImage();
+        this.spotifyId = userUpdateDto.spotifyId().get();
+        this.title = userUpdateDto.title().get();
+        this.artist = userUpdateDto.artist().get();
+        this.albumImage = userUpdateDto.albumImage().get();
     }
 }

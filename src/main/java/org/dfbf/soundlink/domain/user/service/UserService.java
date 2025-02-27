@@ -318,8 +318,8 @@ public class UserService {
         String accessToken = jwtProvider.resolveAccessToken(request);
         String refreshToken = jwtProvider.resolveRefreshToken(request);
 
-//        System.out.println("AccessToken: " + accessToken);
-//        System.out.println("RefreshToken from Cookie: " + refreshToken);
+        log.info("Old AccessToken: " + accessToken);
+        log.info("Old RefreshToken: " + refreshToken);
 
         // AccessToken과 RefreshToken이 모두 없는 경우
         if (accessToken == null && refreshToken == null) {

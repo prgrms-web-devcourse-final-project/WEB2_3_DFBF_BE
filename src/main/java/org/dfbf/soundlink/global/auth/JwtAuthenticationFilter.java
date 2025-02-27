@@ -33,12 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     throw new JwtException("Invalid token");
                 }
 
-                // 3. 만료 여부 검사
-                if (jwtProvider.isTokenExpired(accessToken)) {
-                    throw new ExpiredJwtException(null, null, "Token expired");
-                }
-
-                // 4. 유저정보 저장
+                // 3. 유저정보 저장
                 this.setAuthentication(accessToken);
             }
             filterChain.doFilter(request, response); // 필터 체인 진행(전달)

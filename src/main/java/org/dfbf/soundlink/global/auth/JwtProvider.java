@@ -3,6 +3,8 @@ package org.dfbf.soundlink.global.auth;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.dfbf.soundlink.domain.user.exception.CustomJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -13,6 +15,7 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Component
 public class JwtProvider {
 
@@ -62,33 +65,25 @@ public class JwtProvider {
     }
 
     //토큰 검증(변조, 만료, 올바른 형식)
-    public boolean validateToken(String token){
+    public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
-                    .setSigningKey(SECRET_KEY)  //서명 검증
+                    .setSigningKey(SECRET_KEY)  // 서명 검증
                     .build()
-                    .parseClaimsJws(token);     //토큰 유효한지 확인.
+                    .parseClaimsJws(token);     // 토큰 유효한지 확인 (여기서 만료 시간도 체크)
+
+            // 토큰이 유효한 경우
             return true;
+        }catch (ExpiredJwtException e) {
+            log.warn("[ERROR] Token is expired.");
+            throw new CustomJwtException("토큰이 만료.", e);
+        } catch (JwtException e) {
+            log.warn("[ERROR] Token validation failed: {}", e.getMessage());
+            throw new CustomJwtException("토큰 검증 실패", e);
         } catch (Exception e) {
-            System.out.println("[ERROR] Token validation failed: ");
-            return false;
+            throw new CustomJwtException("예기치 않은 오류 발생", e);
         }
     }
-
-    public boolean isTokenExpired(String token) {
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(SECRET_KEY)
-                    .build()
-                    .parseClaimsJws(token); // 만료된 토큰을 처리하려면 ExpiredJwtException이 발생함
-            return false; // 만료되지 않으면 false
-        } catch (ExpiredJwtException ex) {
-            return true; // 만료된 경우 true
-        } catch (Exception ex) {
-            return false; // 다른 예외는 false
-        }
-    }
-
 
     //액세스토큰 추출
     public String resolveAccessToken(HttpServletRequest request) {

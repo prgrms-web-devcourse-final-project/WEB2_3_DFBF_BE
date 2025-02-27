@@ -1,15 +1,15 @@
 package org.dfbf.soundlink.domain.user.dto.request;
 
-import org.dfbf.soundlink.domain.user.entity.User;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import java.util.Optional;
 
 public record UserUpdateDto(
-        String email,
-        String loginId,
-        String nickName,
-        String password,
-        String spotifyId,
-        String title,
-        String artist,
-        String albumImage
-) { }
+        Optional<String> email,
+        Optional<String> loginId,
+        Optional<String> nickName,
+        Optional<String> password,
+        Optional<String> spotifyId,
+        Optional<String> title,
+        Optional<String> artist,
+        Optional<String> albumImage
+) {
+}

@@ -8,6 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface SpotifyMusicRepository extends JpaRepository<SpotifyMusic, Long> {
-
     Optional<SpotifyMusic> findBySpotifyId(String spotifyId);
 }

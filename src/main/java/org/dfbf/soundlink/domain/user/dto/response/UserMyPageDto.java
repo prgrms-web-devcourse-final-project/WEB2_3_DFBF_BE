@@ -14,12 +14,6 @@ public class UserMyPageDto {
         this.nickname = nickname;
         this.profileMusic = new ProfileMusic(spotifyId, title, artist, album);
     }
-
-//    public UserMyPageDto(String loginId, String nickname, Long profileMusicId) {
-//        this.loginId = loginId;
-//        this.nickname = nickname;
-//        this.profileMusicId = profileMusicId;
-//    }
 }
 
 // Inner 레코드

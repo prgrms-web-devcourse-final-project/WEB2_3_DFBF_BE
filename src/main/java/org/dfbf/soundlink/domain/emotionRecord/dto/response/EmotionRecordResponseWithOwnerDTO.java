@@ -12,7 +12,7 @@ public record EmotionRecordResponseWithOwnerDTO(
         String emotion,
         SpotifyMusicResponseDTO spotifyMusic,
         String comment,
-        String createAt,
+        String createdAt,
         boolean disable // 유저 본인이면 사용 불가
 ) {
     public static EmotionRecordResponseWithOwnerDTO fromEntity(EmotionRecord record, Long requestUserId) {

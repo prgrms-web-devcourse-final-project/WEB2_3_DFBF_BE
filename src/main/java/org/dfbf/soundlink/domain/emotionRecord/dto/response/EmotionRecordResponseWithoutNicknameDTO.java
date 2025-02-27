@@ -4,15 +4,13 @@ import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
 
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public record EmotionRecordResponseWithoutNicknameDTO(
         Long recordId,
         String emotion,
         SpotifyMusicResponseDTO spotifyMusic,
         String comment,
-        String createAt
+        String createdAt
 ) {
     public static EmotionRecordResponseWithoutNicknameDTO fromEntity(EmotionRecord record) {
         return new EmotionRecordResponseWithoutNicknameDTO(

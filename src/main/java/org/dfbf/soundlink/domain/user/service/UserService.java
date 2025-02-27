@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepository;
 import org.dfbf.soundlink.domain.emotionRecord.repository.SpotifyMusicRepository;
+import org.dfbf.soundlink.domain.user.dto.request.CheckPasswordDto;
 import org.dfbf.soundlink.domain.user.dto.request.LoginReqDto;
 import org.dfbf.soundlink.domain.user.dto.request.UserSignUpDto;
 import org.dfbf.soundlink.domain.user.dto.request.UserUpdateDto;
@@ -19,9 +20,11 @@ import org.dfbf.soundlink.domain.user.exception.NoUserDataException;
 import org.dfbf.soundlink.domain.user.repository.ProfileMusicRepository;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
 import org.dfbf.soundlink.global.auth.JwtProvider;
+import org.dfbf.soundlink.global.auth.TokenProperties;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,6 +32,7 @@ import org.springframework.stereotype.Service;
 import javax.naming.AuthenticationException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -44,11 +48,13 @@ public class UserService {
     private final RedisService redisService;
 
     private final JwtProvider jwtProvider;
+    private final TokenProperties tokenProperties;
 
+    private RedisTemplate<String, String> redisTemplate;
     private final TokenService tokenService;
-  
-    private final String domain = "";
-  
+
+    private static final String domain = "";
+
     // 회원가입
     public ResponseResult signUp(UserSignUpDto userSignUpDto) {
         try {
@@ -63,7 +69,8 @@ public class UserService {
     @Transactional
     public ResponseResult getUser(Long userId) {
         try {
-            User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
+            User user = userRepository.findByUserIdWithCache(userId)
+                    .orElseThrow(NoUserDataException::new);
             UserGetDto result = new UserGetDto(user);
 
             return new ResponseResult(ErrorCode.SUCCESS, result);
@@ -81,17 +88,24 @@ public class UserService {
          */
 
         try {
-            User user = userRepository.findById(userId).orElseThrow(NoUserDataException::new);
+            User user = userRepository.findByUserIdWithCache(userId)
+                    .orElseThrow(NoUserDataException::new);
+            String spotifyId = userUpdateDto.spotifyId().orElse(null);
 
-            // SpotifyMusic 객체 찾기 (없으면 새로 생성 & 저장)
-            SpotifyMusic spotifyMusic = spotifyMusicRepository.findBySpotifyId(userUpdateDto.spotifyId())
-                    .orElseGet(() -> {
-                        SpotifyMusic sm = new SpotifyMusic(userUpdateDto);
-                        spotifyMusicRepository.save(sm);
-                        return sm;
-                    });
+            if (spotifyId != null) {
+                // SpotifyMusic 객체 찾기 (없으면 새로 생성 & 저장)
+                SpotifyMusic spotifyMusic = spotifyMusicRepository.findBySpotifyId(spotifyId)
+                        .orElseGet(() -> {
+                            SpotifyMusic sm = new SpotifyMusic(userUpdateDto);
+                            spotifyMusicRepository.save(sm);
+                            return sm;
+                        });
+                user.update(userUpdateDto, passwordEncoder, spotifyMusic);
+            } else {
+                user.update(userUpdateDto, passwordEncoder);
+            }
 
-            user.update(userUpdateDto, passwordEncoder, spotifyMusic);
+            userRepository.save(user);
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (NoUserDataException e) {
@@ -103,7 +117,8 @@ public class UserService {
     @Transactional
     public ResponseResult deleteUser(Long userId) {
         try {
-            User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
+            User user = userRepository.findByUserIdWithCache(userId)
+                    .orElseThrow(NoUserDataException::new);
 
             emotionRecordRepository.deleteByUser(user); // 유저 감정 기록 삭제
             userRepository.deleteById(userId);          // 유저 삭제
@@ -116,11 +131,30 @@ public class UserService {
         }
     }
 
+    @Transactional
+    public ResponseResult passwordCheck(Long userId, CheckPasswordDto dto) {
+        try {
+            User user = userRepository.findByUserIdWithCache(userId)
+                    .orElseThrow(NoUserDataException::new);
+
+            if (passwordEncoder.matches(dto.password(), user.getPassword())) {
+                return new ResponseResult(ErrorCode.SUCCESS);
+            } else {
+                return new ResponseResult(ErrorCode.NOT_EQUALS_PASSWORD);
+            }
+        } catch (NoUserDataException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.DB_ERROR);
+        }
+    }
+
     // 마이페이지 (MyPage)
     @Transactional
     public ResponseResult getMyPage(Long userId) {
         try {
-            User user = userRepository.findById(userId).orElseThrow(() -> new NoUserDataException());
+            User user = userRepository.findByUserIdWithCache(userId)
+                    .orElseThrow(NoUserDataException::new);
 
             UserMyPageDto result = userRepository.findUserMyPageDtoByUserId(user.getUserId());
 
@@ -217,6 +251,7 @@ public class UserService {
 
             return new ResponseResult(responseBody);
         } catch (Exception e) {
+            log.info("[ERROR] " + e.getMessage());
             return new ResponseResult(ErrorCode. INTERNAL_SERVER_ERROR);
         }
     }
@@ -227,7 +262,7 @@ public class UserService {
             //클라이언트 - 토큰 삭제
             ResponseCookie refreshCookie = ResponseCookie
                     .from("REFRESHTOKEN", "") //쿠키 삭제시 빈문자열
-                    .domain("")
+                    .domain(domain)
                     .path("/")
                     .httpOnly(true)
                     .secure(false)
@@ -264,10 +299,10 @@ public class UserService {
     public ResponseResult getProfile(String tag) {
         try {
             User user = userRepository.findByLoginId(tag)
-                    .orElseThrow(() -> new NoUserDataException());
+                    .orElseThrow(NoUserDataException::new);
 
             UserMyPageDto result = userRepository.findUserMyPageDtoByLoginId(user.getLoginId())
-                    .orElseThrow(() -> new NoUserDataException());
+                    .orElseThrow(NoUserDataException::new);
           
             return new ResponseResult(ErrorCode.SUCCESS, result);
         } catch (NoUserDataException e) {
@@ -277,10 +312,13 @@ public class UserService {
         }
     }
 
-    // 토큰 재발급(AT O, RT O => AT,RT 재발급)
+    // 토큰 재발급
     public ResponseResult reissueToken(HttpServletRequest request, HttpServletResponse response) {
         String accessToken = jwtProvider.resolveAccessToken(request);
         String refreshToken = jwtProvider.resolveRefreshToken(request);
+
+        log.info("Old AccessToken: " + accessToken);
+        log.info("Old RefreshToken: " + refreshToken);
 
         // AccessToken과 RefreshToken이 모두 없는 경우
         if (accessToken == null && refreshToken == null) {
@@ -298,6 +336,11 @@ public class UserService {
             return new ResponseResult(ErrorCode.TOKEN_INVALID, "RT가 존재하지 않거나 만료되었습니다.");
         }
 
+        // AccessToken 유효성 확인
+        if (jwtProvider.validateToken(accessToken)) {
+            return new ResponseResult(ErrorCode.TOKEN_NOT_EXPIRED); // 유효한 액세스 토큰: 재발급 x
+        }
+
         // RefreshToken 유효성 확인
         if (jwtProvider.validateToken(refreshToken)) {
             Long userId = jwtProvider.getUserId(refreshToken);
@@ -309,6 +352,9 @@ public class UserService {
             if (redisRefreshToken != null && redisRefreshToken.equals(refreshToken)) {
                 String newAccessToken = jwtProvider.createAccessToken(userId);
                 String newRefreshToken = jwtProvider.createRefreshToken(userId);
+
+                log.info("New AccessToken: " + newAccessToken);
+                log.info("New RefreshToken: " + newRefreshToken);
 
                 //레디스에 새로운 리프레시 토큰 업데이트!
                 tokenService.updateRefreshToken(userId, newRefreshToken);

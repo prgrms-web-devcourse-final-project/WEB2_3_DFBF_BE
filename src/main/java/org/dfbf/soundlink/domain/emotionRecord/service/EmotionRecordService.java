@@ -134,7 +134,7 @@ public class EmotionRecordService {
             // SpotifyMusic이 DB에 있는지 먼저 확인
             // SpotifyMusic 엔티티가 저장되지 않은 상태에서 EmotionRecord 저장 시 영속성 컨텍스트 미저장 오류 발생
             // EmotionRecord를 업데이트하기 전에 SpotifyMusic이 없다면 생성 후 먼저 저장해줘야 함
-            SpotifyMusic spotifyMusic = spotifyMusicRepository.findById(Long.valueOf(updateDTO.spotifyId()))
+            SpotifyMusic spotifyMusic = spotifyMusicRepository.findBySpotifyId(updateDTO.spotifyId())
                     .orElseGet(() -> {
                         SpotifyMusic newMusic = new SpotifyMusic(
                                 updateDTO.spotifyId(),

@@ -13,4 +13,6 @@ public interface UserRepositoryCustom {
     Optional<UserMyPageDto> findUserMyPageDtoByLoginId(@Param("loginId") String loginId);
 
     String findPasswordByLoginId(String loginId);
+
+    Optional<User> findByUserIdWithCache(Long userId);
 }

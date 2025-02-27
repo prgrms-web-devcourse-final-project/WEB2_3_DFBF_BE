@@ -5,12 +5,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
+import org.dfbf.soundlink.domain.user.dto.request.CheckPasswordDto;
 import org.dfbf.soundlink.domain.user.dto.request.LoginReqDto;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.domain.user.dto.request.UserSignUpDto;
 import org.dfbf.soundlink.domain.user.dto.request.UserUpdateDto;
 import org.dfbf.soundlink.domain.user.service.UserService;
 import org.dfbf.soundlink.global.exception.ResponseResult;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,13 +40,19 @@ public class UserController {
         return userService.checkLoginiId(loginId);
     }
 
+    @PostMapping("/checkPassword")
+    @Operation(summary = "비밀번호 똑같은지 확인", description = "비밀번호 변경 전, 맞는지 확인.")
+    public ResponseResult checkPassword( @AuthenticationPrincipal Long id, @RequestBody CheckPasswordDto request) {
+        return userService.passwordCheck(id, request);
+    }
+
     @GetMapping
     @Operation(summary = "유저 조회", description = "유저 조회 API")
     public ResponseResult getUser(@AuthenticationPrincipal Long id) { return userService.getUser(id); }
 
-    @PutMapping
+    @PatchMapping
     @Operation(summary = "유저 수정", description = "유저 수정 API")
-    public ResponseResult updateUser(@AuthenticationPrincipal Long id,@RequestBody UserUpdateDto userUpdateDto) {
+    public ResponseResult updateUser(@AuthenticationPrincipal Long id, @RequestBody UserUpdateDto userUpdateDto) {
         return userService.updateUser(id, userUpdateDto);
     }
 

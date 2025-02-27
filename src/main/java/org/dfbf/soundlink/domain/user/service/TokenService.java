@@ -12,6 +12,9 @@ public class TokenService {
     @Autowired
     private StringRedisTemplate redisTemplate;
 
+    @Value("${REFRESH_TOKEN_EXPIRATION_TIME}")
+    private int REFRESH_EXPIRATION_TIME;
+
     //가져오기
     public String getRefreshToken(Long userId) {
         String tokenKey = "refreshToken:" + userId;
@@ -23,8 +26,7 @@ public class TokenService {
         String tokenKey = "refreshToken:" + userId;
         redisTemplate.delete(tokenKey);
     }
-    @Value("${REFRESH_TOKEN_EXPIRATION_TIME}")
-    private int REFRESH_EXPIRATION_TIME;
+
     //업데이트하기
     public void updateRefreshToken(Long userId, String refreshToken){
         String tokenKey = "refreshToken:" + userId;

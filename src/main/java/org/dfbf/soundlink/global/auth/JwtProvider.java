@@ -83,22 +83,6 @@ public class JwtProvider {
         }
     }
 
-    public boolean isTokenExpired(String token) {
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(SECRET_KEY)
-                    .build()
-                    .parseClaimsJws(token); // 만료된 토큰을 처리하려면 ExpiredJwtException이 발생함
-            return false; // 만료되지 않으면 false
-        } catch (ExpiredJwtException ex) {
-            System.out.println("[Error]:Token is expired");
-            return true; // 만료된 경우 true
-        } catch (Exception ex) {
-            return false; // 다른 예외는 false
-        }
-    }
-
-
     //액세스토큰 추출
     public String resolveAccessToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization"); //토큰을 헤더에 포함했는지

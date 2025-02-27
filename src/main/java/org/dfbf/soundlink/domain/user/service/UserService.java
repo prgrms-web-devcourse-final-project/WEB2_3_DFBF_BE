@@ -312,34 +312,15 @@ public class UserService {
         }
     }
 
-    // 토큰 재발급
+    // 토큰 재발급(리프레시토큰만 가지고 재발급)
     public ResponseResult reissueToken(HttpServletRequest request, HttpServletResponse response) {
-        String accessToken = jwtProvider.resolveAccessToken(request);
+
         String refreshToken = jwtProvider.resolveRefreshToken(request);
-
-        log.info("Old AccessToken: " + accessToken);
-        log.info("Old RefreshToken: " + refreshToken);
-
-        // AccessToken과 RefreshToken이 모두 없는 경우
-        if (accessToken == null && refreshToken == null) {
-            logout(response,request);
-            return new ResponseResult(ErrorCode.TOKEN_INVALID, "토큰이 존재하지 않거나 만료되었습니다.");
-        }
-
-        if (accessToken == null) {
-            logout(response,request);
-            return new ResponseResult(ErrorCode.TOKEN_INVALID, "AT가 존재하지 않거나 만료되었습니다.");
-        }
 
         if (refreshToken == null) {
             logout(response,request);
             return new ResponseResult(ErrorCode.TOKEN_INVALID, "RT가 존재하지 않거나 만료되었습니다.");
         }
-
-//        // AccessToken 유효성 확인
-//        if (jwtProvider.validateToken(accessToken)) {
-//            return new ResponseResult(ErrorCode.TOKEN_NOT_EXPIRED); // 유효한 액세스 토큰: 재발급 x
-//        }
 
         // RefreshToken 유효성 확인
         if (jwtProvider.validateToken(refreshToken)) {
@@ -353,9 +334,6 @@ public class UserService {
                 String newAccessToken = jwtProvider.createAccessToken(userId);
                 String newRefreshToken = jwtProvider.createRefreshToken(userId);
 
-                log.info("New AccessToken: " + newAccessToken);
-                log.info("New RefreshToken: " + newRefreshToken);
-
                 //레디스에 새로운 리프레시 토큰 업데이트!
                 tokenService.updateRefreshToken(userId, newRefreshToken);
 
@@ -364,7 +342,7 @@ public class UserService {
 
                 Map<String, String> responseBody = new HashMap<>();
                 responseBody.put("accessToken", newAccessToken);
-//                response.setHeader("Set-Cookie", newRefreshToken);
+
 
                 return new ResponseResult(ErrorCode.SUCCESS, responseBody);
             } else {

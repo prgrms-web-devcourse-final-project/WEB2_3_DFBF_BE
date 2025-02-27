@@ -39,3 +39,6 @@ out/
 ### yml & properties ###
 *.yml
 *.properties
+
+### 폴더 추가
+src/main/generated/

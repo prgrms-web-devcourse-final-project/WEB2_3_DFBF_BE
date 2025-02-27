@@ -88,8 +88,6 @@ public class UserService {
          * orElseGet -> null일때만 실행 (함수O, 람다O)
          */
 
-        userUpdateDto.toString2();
-
         try {
             User user = userRepository.findByUserIdWithCache(userId)
                     .orElseThrow(NoUserDataException::new);
@@ -254,7 +252,7 @@ public class UserService {
 
             return new ResponseResult(responseBody);
         } catch (Exception e) {
-            System.out.println("[ERROR] " + e.getMessage());
+            log.info("[ERROR] " + e.getMessage());
             return new ResponseResult(ErrorCode. INTERNAL_SERVER_ERROR);
         }
     }
@@ -356,8 +354,8 @@ public class UserService {
                 String newAccessToken = jwtProvider.createAccessToken(userId);
                 String newRefreshToken = jwtProvider.createRefreshToken(userId);
 
-                System.out.println("New AccessToken: " + newAccessToken);
-                System.out.println("New RefreshToken: " + newRefreshToken);
+                log.info("New AccessToken: " + newAccessToken);
+                log.info("New RefreshToken: " + newRefreshToken);
 
                 //레디스에 새로운 리프레시 토큰 업데이트!
                 tokenService.updateRefreshToken(userId, newRefreshToken);

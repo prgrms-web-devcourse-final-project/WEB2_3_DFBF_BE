@@ -1,7 +1,5 @@
 package org.dfbf.soundlink.domain.user.dto.request;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-
 import java.util.Optional;
 
 public record UserUpdateDto(
@@ -14,7 +12,4 @@ public record UserUpdateDto(
         Optional<String> artist,
         Optional<String> albumImage
 ) {
-    public void toString2() {
-        System.out.println("UserUpdateDto(email=" + email + ", loginId=" + loginId + ", nickName=" + nickName + ", password=" + password + ", spotifyId=" + spotifyId);
-    }
 }

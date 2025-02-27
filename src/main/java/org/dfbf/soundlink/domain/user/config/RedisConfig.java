@@ -33,9 +33,7 @@ public class RedisConfig {
     public RedisTemplate<String,Object> redisTemplate(){
         RedisTemplate<String,Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory());
-        //key,value를 email,authCode로 구현. String으로 직렬화
-        redisTemplate.setKeySerializer(new StringRedisSerializer());
-        //redisTemplate.setValueSerializer(new StringRedisSerializer());
+        redisTemplate.setKeySerializer(new StringRedisSerializer()); //key,value를 email,authCode로 구현. String으로 직렬화
         redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
 
         return redisTemplate;

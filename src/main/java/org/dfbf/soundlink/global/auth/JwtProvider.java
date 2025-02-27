@@ -62,16 +62,24 @@ public class JwtProvider {
     }
 
     //토큰 검증(변조, 만료, 올바른 형식)
-    public boolean validateToken(String token){
+    public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
-                    .setSigningKey(SECRET_KEY)  //서명 검증
+                    .setSigningKey(SECRET_KEY)  // 서명 검증
                     .build()
-                    .parseClaimsJws(token);     //토큰 유효한지 확인.
+                    .parseClaimsJws(token);     // 토큰 유효한지 확인 (여기서 만료 시간도 체크)
+
+            // 토큰이 유효한 경우
             return true;
+        } catch (ExpiredJwtException e) {
+            System.out.println("[ERROR] Token is expired.");
+            throw e;  // 만료된 토큰에 대해 예외를 던짐
+        } catch (JwtException e) {
+            System.out.println("[ERROR] Token validation failed: " + e.getMessage());
+            throw e;  // JWT 예외는 다시 던짐
         } catch (Exception e) {
-            System.out.println("[ERROR] Token validation failed: ");
-            return false;
+            System.out.println("[ERROR] Unexpected error: " + e.getMessage());
+            throw new RuntimeException("Unexpected error", e);
         }
     }
 
@@ -83,6 +91,7 @@ public class JwtProvider {
                     .parseClaimsJws(token); // 만료된 토큰을 처리하려면 ExpiredJwtException이 발생함
             return false; // 만료되지 않으면 false
         } catch (ExpiredJwtException ex) {
+            System.out.println("[Error]:Token is expired");
             return true; // 만료된 경우 true
         } catch (Exception ex) {
             return false; // 다른 예외는 false

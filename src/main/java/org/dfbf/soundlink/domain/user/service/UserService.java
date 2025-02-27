@@ -336,10 +336,10 @@ public class UserService {
             return new ResponseResult(ErrorCode.TOKEN_INVALID, "RT가 존재하지 않거나 만료되었습니다.");
         }
 
-        // AccessToken 유효성 확인
-        if (jwtProvider.validateToken(accessToken)) {
-            return new ResponseResult(ErrorCode.TOKEN_NOT_EXPIRED); // 유효한 액세스 토큰: 재발급 x
-        }
+//        // AccessToken 유효성 확인
+//        if (jwtProvider.validateToken(accessToken)) {
+//            return new ResponseResult(ErrorCode.TOKEN_NOT_EXPIRED); // 유효한 액세스 토큰: 재발급 x
+//        }
 
         // RefreshToken 유효성 확인
         if (jwtProvider.validateToken(refreshToken)) {
@@ -359,9 +359,12 @@ public class UserService {
                 //레디스에 새로운 리프레시 토큰 업데이트!
                 tokenService.updateRefreshToken(userId, newRefreshToken);
 
+                ResponseCookie refreshCookie = getRefreshToken(newRefreshToken);
+                response.setHeader("Set-Cookie", refreshCookie.toString());
+
                 Map<String, String> responseBody = new HashMap<>();
                 responseBody.put("accessToken", newAccessToken);
-                response.setHeader("Set-Cookie", refreshToken);
+//                response.setHeader("Set-Cookie", newRefreshToken);
 
                 return new ResponseResult(ErrorCode.SUCCESS, responseBody);
             } else {

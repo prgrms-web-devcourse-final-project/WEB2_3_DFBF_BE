@@ -82,6 +82,7 @@ public class EmotionRecordRepositoryImpl implements EmotionRecordRepositoryCusto
                         filterByEmotions(emotions),
                         filterBySpotifyId(spotifyId)
                 )
+                .orderBy(QEmotionRecord.emotionRecord.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();

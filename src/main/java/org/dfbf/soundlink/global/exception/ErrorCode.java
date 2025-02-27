@@ -44,6 +44,7 @@ public enum ErrorCode {
     // EmotionRecord
     FAIL_TO_FIND_EMOTION_RECORD(HttpStatus.NOT_FOUND, "해당 감정 기록을 찾을 수 없습니다."),
     FAIL_TO_FIND_EMOTION(HttpStatus.NOT_FOUND, "해당 감정을 찾을 수 없습니다."),
+    INVALID_PAGE_REQUEST(HttpStatus.BAD_REQUEST, "페이지 요청 값이 잘못되었습니다."),
 
     // Auth
     TOKEN_NOT_EXPIRED(HttpStatus.OK, "토큰 정상"),

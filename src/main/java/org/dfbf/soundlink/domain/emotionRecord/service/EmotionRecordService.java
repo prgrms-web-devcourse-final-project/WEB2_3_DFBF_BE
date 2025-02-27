@@ -73,8 +73,14 @@ public class EmotionRecordService {
 
     @Transactional(readOnly = true)
     public ResponseResult getEmotionRecordsByLoginId(String userTag, int page, int size) {
+        Pageable pageable;
+
         try {
-            Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+            pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        } catch (IllegalArgumentException e) {
+            return new ResponseResult(ErrorCode.INVALID_PAGE_REQUEST, "페이지 요청 값이 잘못되었습니다.");
+        }
+        try {
             Page<EmotionRecord> recordsPage = emotionRecordRepository.findByLoginId(userTag, pageable);
 
             List<EmotionRecordResponseWithoutNicknameDTO> dtoList = recordsPage.getContent()
@@ -91,21 +97,27 @@ public class EmotionRecordService {
     }
 
     public ResponseResult getEmotionRecordsExcludingUserIdByFilters(Long userId, List<String> emotionList, String spotifyId, int page, int size) {
+        Pageable pageable;
+        List<Emotions> emotionEnums = null;
+
         try {
-            Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+            pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        } catch (IllegalArgumentException e) {
+            return new ResponseResult(ErrorCode.INVALID_PAGE_REQUEST, "페이지 요청 값이 잘못되었습니다.");
+        }
 
-            List<Emotions> emotionEnums = null;
-            if (emotionList != null && !emotionList.isEmpty()) {
-                try {
-                    emotionEnums = emotionList.stream()
-                            .map(e -> Emotions.valueOf(e.toUpperCase()))
-                            .toList();
-                } catch (IllegalArgumentException e) {
-                    return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION, "잘못된 감정 값이 포함되어 있습니다.");
-                }
+        if (emotionList != null && !emotionList.isEmpty()) {
+            try {
+                emotionEnums = emotionList.stream()
+                        .map(e -> Emotions.valueOf(e.toUpperCase()))
+                        .toList();
+            } catch (IllegalArgumentException e) {
+                return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION, "잘못된 감정 값이 포함되어 있습니다.");
             }
-            Page<EmotionRecord> recordsPage = emotionRecordRepository.findByFilters(userId, emotionEnums, spotifyId, pageable);
+        }
 
+        try {
+            Page<EmotionRecord> recordsPage = emotionRecordRepository.findByFilters(userId, emotionEnums, spotifyId, pageable);
             List<EmotionRecordResponseMainDTO> dtoList = recordsPage.getContent()
                     .stream()
                     .map(EmotionRecordResponseMainDTO::fromEntity)

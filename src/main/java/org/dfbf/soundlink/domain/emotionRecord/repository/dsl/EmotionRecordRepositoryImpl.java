@@ -12,12 +12,13 @@ import org.dfbf.soundlink.domain.user.entity.QUser;
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.global.comm.enums.Emotions;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+
 @Repository
 @RequiredArgsConstructor
 public class EmotionRecordRepositoryImpl implements EmotionRecordRepositoryCustom {
@@ -58,16 +59,16 @@ public class EmotionRecordRepositoryImpl implements EmotionRecordRepositoryCusto
         // Spring Data JPA에서 페이징 처리를 위한 메서드 사용 시,
         // 내부적으로 데이터(페이징된 결과)를 가져오는 쿼리와 전체 데이터 수를 계산하는 쿼리가 둘 다 실행됨
         // QueryDSL을 사용할 경우에 위와 달리 데이터 수 계산 쿼리를 별도로 실행해 줘야함 (Querydsl 5 이상 권장 방식)
-        long total = Optional.ofNullable(
-                jpaQueryFactory
-                .select(QEmotionRecord.emotionRecord.count())
-                .from(QEmotionRecord.emotionRecord)
-                .join(QEmotionRecord.emotionRecord.user, QUser.user)
-                .where(QUser.user.loginId.eq(loginId))
-                .fetchOne()
-        ).orElse(0L);
-
-        return new PageImpl<>(emotionRecords, pageable, total);
+        return PageableExecutionUtils.getPage(emotionRecords, pageable, () ->
+                Optional.ofNullable(
+                        jpaQueryFactory
+                                .select(QEmotionRecord.emotionRecord.count())
+                                .from(QEmotionRecord.emotionRecord)
+                                .join(QEmotionRecord.emotionRecord.user, QUser.user)
+                                .where(QUser.user.loginId.eq(loginId))
+                                .fetchOne()
+                ).orElse(0L)
+        );
     }
 
     // 동적으로 필터링 후 EmotionRecords를 가져오는 쿼리
@@ -86,20 +87,19 @@ public class EmotionRecordRepositoryImpl implements EmotionRecordRepositoryCusto
                 .fetch();
 
         // 위의 findByLoginId 메서드 설명 참고
-        long total = Optional.ofNullable(
-                jpaQueryFactory
-                .select(QEmotionRecord.emotionRecord.count())
-                .from(QEmotionRecord.emotionRecord)
-                .join(QEmotionRecord.emotionRecord.user, QUser.user)
-                .where(
-                        excludeUserId(userId),          // 로그인 된 userId를 제외한 EmotionRecord 조회
-                        filterByEmotions(emotions),     // 감정이 있을 경우
-                        filterBySpotifyId(spotifyId)    // spotifyId 있을 경우
-                )
-                .fetchOne()
-        ).orElse(0L);
-
-        return new PageImpl<>(emotionRecords, pageable, total);
+        return PageableExecutionUtils.getPage(emotionRecords, pageable, () ->
+                Optional.ofNullable(
+                        jpaQueryFactory
+                                .select(QEmotionRecord.emotionRecord.count())
+                                .from(QEmotionRecord.emotionRecord)
+                                .join(QEmotionRecord.emotionRecord.user, QUser.user)
+                                .where(
+                                        excludeUserId(userId),          // 로그인 된 userId를 제외한 EmotionRecord 조회
+                                        filterByEmotions(emotions),     // 감정이 있을 경우
+                                        filterBySpotifyId(spotifyId)    // spotifyId 있을 경우
+                                )
+                                .fetchOne()
+                ).orElse(0L));
     }
 
     // recordId에 해당하는 EmotionRecord 조회
@@ -115,7 +115,7 @@ public class EmotionRecordRepositoryImpl implements EmotionRecordRepositoryCusto
     // recordId에 해당하는 EmotionRecord 삭제
     @Override
     public int deleteByRecordId(Long recordId) {
-        return (int)jpaQueryFactory
+        return (int) jpaQueryFactory
                 .delete(QEmotionRecord.emotionRecord)
                 .where(QEmotionRecord.emotionRecord.recordId.eq(recordId))
                 .execute();

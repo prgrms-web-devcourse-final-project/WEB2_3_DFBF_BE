@@ -1,6 +1,7 @@
 package org.dfbf.soundlink.global.auth;
 
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Component;
 import io.jsonwebtoken.*;
 
 import javax.crypto.SecretKey;
+import java.util.Base64;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -24,7 +26,17 @@ public class JwtProvider {
     private long REFRESH_EXPIRATION_TIME;
 
     //시크릿 키
-    private final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    @Value("${jwt.secret}")
+    private String secretKey;
+    private SecretKey SECRET_KEY;
+
+    @PostConstruct
+    public void init(){
+        byte[] keyBytes = Base64.getDecoder().decode(secretKey); //인코딩된 문자열 ->바이트 배열로 변환
+        this.SECRET_KEY = Keys.hmacShaKeyFor(keyBytes); //안전한 HMAC 키로 변환
+        System.out.println("Decoded secretKey: " + secretKey);  // 디버깅용
+        System.out.println("Generated SECRET_KEY: " + SECRET_KEY);  // 디버깅용
+    }
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
@@ -38,6 +50,7 @@ public class JwtProvider {
                 .setClaims(claims)
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime()+ACCESS_EXPIRATION_TIME))
+                .setHeaderParam("typ", "JWT")
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -50,6 +63,7 @@ public class JwtProvider {
                 .setClaims(claims)
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime()+REFRESH_EXPIRATION_TIME))
+                .setHeaderParam("typ", "JWT")
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
         try {

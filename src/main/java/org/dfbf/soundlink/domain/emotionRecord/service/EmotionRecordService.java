@@ -112,9 +112,15 @@ public class EmotionRecordService {
     public ResponseResult getEmotionRecord(Long userId, Long recordId) {
 
         try {
+            User loggedInUser = userRepository.findById(userId)
+                    .orElseThrow(UserNotFoundException::new);
+
             EmotionRecord records = emotionRecordRepository.findByRecordId(recordId)
                     .orElseThrow(EmotionRecordNotFoundException::new);
-            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordResponseWithOwnerDTO.fromEntity(records, userId));
+
+            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordResponseWithOwnerDTO.fromEntity(records, userId, loggedInUser.getLoginId()));
+        } catch (UserNotFoundException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
         } catch (EmotionRecordNotFoundException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
         } catch (DataAccessException e) {
@@ -134,7 +140,7 @@ public class EmotionRecordService {
             // SpotifyMusic이 DB에 있는지 먼저 확인
             // SpotifyMusic 엔티티가 저장되지 않은 상태에서 EmotionRecord 저장 시 영속성 컨텍스트 미저장 오류 발생
             // EmotionRecord를 업데이트하기 전에 SpotifyMusic이 없다면 생성 후 먼저 저장해줘야 함
-            SpotifyMusic spotifyMusic = spotifyMusicRepository.findById(Long.valueOf(updateDTO.spotifyId()))
+            SpotifyMusic spotifyMusic = spotifyMusicRepository.findBySpotifyId(updateDTO.spotifyId())
                     .orElseGet(() -> {
                         SpotifyMusic newMusic = new SpotifyMusic(
                                 updateDTO.spotifyId(),

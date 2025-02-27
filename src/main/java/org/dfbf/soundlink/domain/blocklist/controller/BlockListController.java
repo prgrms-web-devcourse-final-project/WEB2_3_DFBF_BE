@@ -3,6 +3,7 @@ package org.dfbf.soundlink.domain.blocklist.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.dfbf.soundlink.domain.blocklist.dto.BlockReq;
 import org.dfbf.soundlink.domain.blocklist.service.BlockListService;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,7 +23,7 @@ public class BlockListController {
     )
     public ResponseResult blockUser(
             @AuthenticationPrincipal Long userId,
-            @RequestBody String tag
+            @RequestBody BlockReq tag
     ) {
         return blockListService.blockUser(userId, tag);
     }

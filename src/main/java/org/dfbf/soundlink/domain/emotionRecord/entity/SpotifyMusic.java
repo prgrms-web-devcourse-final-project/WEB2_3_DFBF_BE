@@ -16,8 +16,8 @@ import java.sql.Timestamp;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SpotifyMusic {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "spotify_id")
@@ -49,9 +49,9 @@ public class SpotifyMusic {
     }
 
     public SpotifyMusic (UserUpdateDto userUpdateDto) {
-        this.spotifyId = userUpdateDto.spotifyId().get();
-        this.title = userUpdateDto.title().get();
-        this.artist = userUpdateDto.artist().get();
-        this.albumImage = userUpdateDto.albumImage().get();
+        this.spotifyId = userUpdateDto.spotifyId();
+        this.title = userUpdateDto.title();
+        this.artist = userUpdateDto.artist();
+        this.albumImage = userUpdateDto.albumImage();
     }
 }

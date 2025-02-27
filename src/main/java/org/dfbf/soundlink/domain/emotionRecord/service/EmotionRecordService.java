@@ -41,14 +41,6 @@ public class EmotionRecordService {
                 .orElseThrow(UserNotFoundException::new);
 
         try {
-            // 감정 기록 저장
-            EmotionRecord emotionRecord = EmotionRecord.builder()
-                    .user(loggedInUser)
-                    .emotion(request.emotion())
-                    .comment(request.comment())
-                    .build();
-            emotionRecordRepository.save(emotionRecord);
-
             // 음악 저장
             SpotifyMusic spotifyMusic = SpotifyMusic.builder()
                     .spotifyId(request.spotifyId())
@@ -57,6 +49,15 @@ public class EmotionRecordService {
                     .albumImage(request.albumImage())
                     .build();
             spotifyMusicRepository.save(spotifyMusic);
+
+            // 감정 기록 저장
+            EmotionRecord emotionRecord = EmotionRecord.builder()
+                    .user(loggedInUser)
+                    .emotion(request.emotion())
+                    .comment(request.comment())
+                    .spotifyMusic(spotifyMusic)
+                    .build();
+            emotionRecordRepository.save(emotionRecord);
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (UserNotFoundException e) {

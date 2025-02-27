@@ -10,11 +10,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -22,16 +19,42 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtProvider jwtProvider;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String accessToken = jwtProvider.resolveAccessToken(request);       //1.Access Token 추출
+        String accessToken = null;
+        try {
+            accessToken = jwtProvider.resolveAccessToken(request); // 1. Access Token 추출
 
-        if(accessToken !=null && jwtProvider.validateToken(accessToken)) {  //2.유효성 검사
-            this.setAuthentication(accessToken);                            //3.유저정보 저장
+            if (accessToken != null) {
+                // 2. 유효성 검사
+                if (!jwtProvider.validateToken(accessToken)) {
+                    throw new JwtException("Invalid token");
+                }
+
+                // 3. 만료 여부 검사
+                if (jwtProvider.isTokenExpired(accessToken)) {
+                    throw new ExpiredJwtException(null, null, "Token expired");
+                }
+
+                // 4. 유저정보 저장
+                this.setAuthentication(accessToken);
+            }
+            filterChain.doFilter(request, response); // 필터 체인 진행(전달)
+
+        } catch (ExpiredJwtException ex) {
+            handleException(response, ErrorCode.TOKEN_EXPIRED);
+
+        } catch (JwtException ex) {
+            handleException(response, ErrorCode.TOKEN_INVALID);
+
+        } catch (Exception ex) {
+            handleException(response, ErrorCode.INTERNAL_SERVER_ERROR);
         }
-        filterChain.doFilter(request, response); //필터 체인 진행(전달)
     }
+
+
 
     //유저정보 저장
     public void setAuthentication(String token) {
@@ -49,6 +72,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 인증정보 설정
         SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+    // 예외 발생 시 JSON 응답을 반환하는 메서드
+    private void handleException(HttpServletResponse response, ErrorCode errorCode) throws IOException {
+        ResponseResult responseResult = new ResponseResult(errorCode);
+
+        response.setStatus(errorCode.getStatus().value());
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(objectMapper.writeValueAsString(responseResult));
     }
 
 }

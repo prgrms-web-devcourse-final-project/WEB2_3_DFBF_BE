@@ -5,8 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.dfbf.soundlink.global.comm.enums.Emotions;
 
-import java.sql.Timestamp;
-
 public record EmotionRecordRequestDTO(
 
         @NotNull(message = "spotifyId 필요")
@@ -25,8 +23,6 @@ public record EmotionRecordRequestDTO(
 
         @NotBlank(message = "comment 필요")
         @Size(max = 200, message = "comment는 200자 이내여야 합니다.")
-        String comment,
-
-        Timestamp createdAt
+        String comment
 ) {
 }

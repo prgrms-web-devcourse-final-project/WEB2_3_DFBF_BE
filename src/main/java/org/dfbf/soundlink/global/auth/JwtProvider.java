@@ -1,13 +1,8 @@
 package org.dfbf.soundlink.global.auth;
 
-import ch.qos.logback.core.subst.Token;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import org.dfbf.soundlink.domain.user.exception.ExpiredTokenException;
-import org.dfbf.soundlink.global.exception.ErrorCode;
-import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -28,22 +23,21 @@ public class JwtProvider {
     @Value("${REFRESH_TOKEN_EXPIRATION_TIME}")
     private long REFRESH_EXPIRATION_TIME;
 
-    //시크릿 키 자동 생성
-    private final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    //시크릿 키
+    SecretKey SECRET_KEY = Keys.hmacShaKeyFor("ee7d4dcf88086125155386d999b3a2258d5c55671a390e608f49a2db31efc6e0".getBytes());
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
-
     //Access 토큰
     public String createAccessToken(long userId) {
         Claims claims = Jwts.claims().setSubject(String.valueOf(userId));
         Date now = new Date();
-
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime()+ACCESS_EXPIRATION_TIME))
-                .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
+                .setHeaderParam("typ", "JWT")
+                .signWith(SECRET_KEY,SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -55,6 +49,7 @@ public class JwtProvider {
                 .setClaims(claims)
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime()+REFRESH_EXPIRATION_TIME))
+                .setHeaderParam("typ", "JWT")
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
         try {
@@ -80,6 +75,19 @@ public class JwtProvider {
         }
     }
 
+    public boolean isTokenExpired(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(SECRET_KEY)
+                    .build()
+                    .parseClaimsJws(token); // 만료된 토큰을 처리하려면 ExpiredJwtException이 발생함
+            return false; // 만료되지 않으면 false
+        } catch (ExpiredJwtException ex) {
+            return true; // 만료된 경우 true
+        } catch (Exception ex) {
+            return false; // 다른 예외는 false
+        }
+    }
 
 
     //액세스토큰 추출
@@ -112,5 +120,4 @@ public class JwtProvider {
                 .getBody()
                 .getSubject());
     }
-
 }

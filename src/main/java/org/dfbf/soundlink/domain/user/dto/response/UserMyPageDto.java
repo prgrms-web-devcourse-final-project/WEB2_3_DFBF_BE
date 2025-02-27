@@ -3,6 +3,7 @@ package org.dfbf.soundlink.domain.user.dto.response;
 import lombok.*;
 
 @Getter
+@AllArgsConstructor
 public class UserMyPageDto {
     private final String loginId;
     private final String nickname;

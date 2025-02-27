@@ -1,6 +1,7 @@
 package org.dfbf.soundlink.domain.emotionRecord.repository.dsl;
 
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
@@ -9,6 +10,7 @@ import org.dfbf.soundlink.domain.emotionRecord.entity.QSpotifyMusic;
 import org.dfbf.soundlink.domain.user.dto.response.EmotionRecordDto;
 import org.dfbf.soundlink.domain.user.entity.QUser;
 import org.dfbf.soundlink.domain.user.entity.User;
+import org.dfbf.soundlink.global.comm.enums.Emotions;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +18,6 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
-
 @Repository
 @RequiredArgsConstructor
 public class EmotionRecordRepositoryImpl implements EmotionRecordRepositoryCustom {
@@ -69,14 +70,17 @@ public class EmotionRecordRepositoryImpl implements EmotionRecordRepositoryCusto
         return new PageImpl<>(emotionRecords, pageable, total);
     }
 
-    // 로그인 된 userId를 제외한 EmotionRecord 조회 (LEFT JOIN으로 spotifyMusic 포함) 후 페이징처리
-    @Override
-    public Page<EmotionRecord> findByWithoutUserId(Long userId, Pageable pageable) {
+    // 동적으로 필터링 후 EmotionRecords를 가져오는 쿼리
+    public Page<EmotionRecord> findByFilters(Long userId, List<Emotions> emotions, String spotifyId, Pageable pageable) {
         List<EmotionRecord> emotionRecords = jpaQueryFactory
                 .selectFrom(QEmotionRecord.emotionRecord)
                 .join(QEmotionRecord.emotionRecord.user, QUser.user).fetchJoin()
                 .leftJoin(QEmotionRecord.emotionRecord.spotifyMusic, QSpotifyMusic.spotifyMusic).fetchJoin()
-                .where(QUser.user.userId.ne(userId))
+                .where(
+                        excludeUserId(userId),
+                        filterByEmotions(emotions),
+                        filterBySpotifyId(spotifyId)
+                )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -87,7 +91,11 @@ public class EmotionRecordRepositoryImpl implements EmotionRecordRepositoryCusto
                 .select(QEmotionRecord.emotionRecord.count())
                 .from(QEmotionRecord.emotionRecord)
                 .join(QEmotionRecord.emotionRecord.user, QUser.user)
-                .where(QUser.user.userId.ne(userId))
+                .where(
+                        excludeUserId(userId),          // 로그인 된 userId를 제외한 EmotionRecord 조회
+                        filterByEmotions(emotions),     // 감정이 있을 경우
+                        filterBySpotifyId(spotifyId)    // spotifyId 있을 경우
+                )
                 .fetchOne()
         ).orElse(0L);
 
@@ -111,5 +119,17 @@ public class EmotionRecordRepositoryImpl implements EmotionRecordRepositoryCusto
                 .delete(QEmotionRecord.emotionRecord)
                 .where(QEmotionRecord.emotionRecord.recordId.eq(recordId))
                 .execute();
+    }
+
+    private BooleanExpression excludeUserId(Long userId) {
+        return userId != null ? QUser.user.userId.ne(userId) : null;
+    }
+
+    private BooleanExpression filterByEmotions(List<Emotions> emotions) {
+        return (emotions != null && !emotions.isEmpty()) ? QEmotionRecord.emotionRecord.emotion.in(emotions) : null;
+    }
+
+    private BooleanExpression filterBySpotifyId(String spotifyId) {
+        return (spotifyId != null && !spotifyId.isBlank()) ? QSpotifyMusic.spotifyMusic.spotifyId.eq(spotifyId) : null;
     }
 }

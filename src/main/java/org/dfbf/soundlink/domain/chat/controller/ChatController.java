@@ -24,4 +24,10 @@ public class ChatController {
     public ResponseResult create(HttpServletRequest request, @RequestParam Long recordId) {
         return chatRoomService.createChatRoom(request,recordId);
     }
+
+    @PostMapping("/close")
+    @Operation(summary = "채팅방 닫기" , description="닫을 시 상태값 'close'변경, 레디스에서 삭제")
+    public ResponseResult close(Long chatRoomId) {
+        return chatRoomService.closeChatRoom(chatRoomId);
+    }
 }

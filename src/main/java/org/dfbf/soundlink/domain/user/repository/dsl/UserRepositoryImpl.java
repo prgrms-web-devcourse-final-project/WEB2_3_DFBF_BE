@@ -28,8 +28,8 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
                         QUser.user.loginId,
                         QUser.user.nickname,
                         QSpotifyMusic.spotifyMusic.spotifyId,
-                        QSpotifyMusic.spotifyMusic.artist,
                         QSpotifyMusic.spotifyMusic.title,
+                        QSpotifyMusic.spotifyMusic.artist,
                         QSpotifyMusic.spotifyMusic.albumImage
                 ))
                 .from(QUser.user)

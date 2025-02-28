@@ -13,7 +13,7 @@ public record EmotionRecordPageResponseDTO<T>(
     public static <T> EmotionRecordPageResponseDTO<T> fromPage(Page<?> recordsPage, List<T> dtoList) {
         return new EmotionRecordPageResponseDTO<>(
                 dtoList,
-                recordsPage.getNumber(),
+                recordsPage.getNumber() + 1,  // 현재 페이지 번호를 1부터 시작하도록 변경
                 recordsPage.getTotalPages(),
                 recordsPage.getTotalElements()
         );

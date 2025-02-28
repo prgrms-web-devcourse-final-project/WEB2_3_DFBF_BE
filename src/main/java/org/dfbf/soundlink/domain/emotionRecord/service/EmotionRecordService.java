@@ -73,13 +73,13 @@ public class EmotionRecordService {
 
     @Transactional(readOnly = true)
     public ResponseResult getEmotionRecordsByLoginId(String userTag, int page, int size) {
-        Pageable pageable;
-
-        try {
-            pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        } catch (IllegalArgumentException e) {
-            return new ResponseResult(ErrorCode.INVALID_PAGE_REQUEST, "페이지 요청 값이 잘못되었습니다.");
+        ResponseResult pageValidationResult = validateAndCreatePageable(page, size);
+        if (pageValidationResult.getCode() != 200 /*SUCCESS*/) {
+            return pageValidationResult;
         }
+
+        Pageable pageable = (Pageable) pageValidationResult.getData();
+
         try {
             Page<EmotionRecord> recordsPage = emotionRecordRepository.findByLoginId(userTag, pageable);
 
@@ -97,14 +97,13 @@ public class EmotionRecordService {
     }
 
     public ResponseResult getEmotionRecordsExcludingUserIdByFilters(Long userId, List<String> emotionList, String spotifyId, int page, int size) {
-        Pageable pageable;
         List<Emotions> emotionEnums = null;
-
-        try {
-            pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        } catch (IllegalArgumentException e) {
-            return new ResponseResult(ErrorCode.INVALID_PAGE_REQUEST, "페이지 요청 값이 잘못되었습니다.");
+        ResponseResult pageValidationResult = validateAndCreatePageable(page, size);
+        if (pageValidationResult.getCode() != 200 /*SUCCESS*/) {
+            return pageValidationResult;
         }
+
+        Pageable pageable = (Pageable) pageValidationResult.getData();
 
         if (emotionList != null && !emotionList.isEmpty()) {
             try {
@@ -202,4 +201,18 @@ public class EmotionRecordService {
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
+
+    // 페이지네이션 처리 및 관련 예외처리
+    private ResponseResult validateAndCreatePageable(int page, int size) {
+        if (page < 1) {
+            return new ResponseResult(ErrorCode.INVALID_PAGE_REQUEST, "페이지 번호는 1 이상이어야 합니다.");
+        }
+        try {
+            Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
+            return new ResponseResult(ErrorCode.SUCCESS, pageable);
+        } catch (IllegalArgumentException e) {
+            return new ResponseResult(ErrorCode.INVALID_PAGE_REQUEST, "페이지 요청 값이 잘못되었습니다.");
+        }
+    }
+
 }

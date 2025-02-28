@@ -1,6 +1,7 @@
 package org.dfbf.soundlink.domain.emotionRecord.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,8 @@ import org.dfbf.soundlink.domain.emotionRecord.service.EmotionRecordService;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/emotion")
@@ -34,13 +37,17 @@ public class EmotionRecordController {
     @GetMapping
     @Operation(
             summary = "감정 기록 전체 조회 메인 API",
-            description = "유저들이 작성한 감정 기록 전체를 조회합니다.(자신의 아이디에 해당하는 감정 기록은 조회되지 않습니다.)"
+            description = "유저들이 작성한 감정 기록 전체를 조회합니다. 자신의 아이디에 해당하는 감정 기록은 조회되지 않으며," +
+                    " 주어진 spotifyId와 emotion을 가진 감정 기록을 검색 할 수 있습니다. 검색 조건이 없으면 전체 조회합니다."
     )
     public ResponseResult getEmotionRecordsWithoutMine(
             @AuthenticationPrincipal Long userId,
+            @RequestParam(required = false) String spotifyId,
+            @Parameter(description = "감정 필터(추가 가능)")
+            @RequestParam(required = false) List<String> emotions,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return emotionRecordService.getEmotionRecordsExcludingUserId(userId, page, size);
+        return emotionRecordService.getEmotionRecordsExcludingUserIdByFilters(userId, emotions, spotifyId, page, size);
     }
 
     @GetMapping("/user")

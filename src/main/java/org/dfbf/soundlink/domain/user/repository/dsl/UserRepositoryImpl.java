@@ -8,6 +8,7 @@ import org.dfbf.soundlink.domain.user.dto.response.UserMyPageDto;
 import org.dfbf.soundlink.domain.user.entity.QProfileMusic;
 import org.dfbf.soundlink.domain.user.entity.QUser;
 import org.dfbf.soundlink.domain.user.entity.User;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
 
@@ -16,8 +17,8 @@ import java.util.Optional;
 @Repository
 @RequiredArgsConstructor
 public class UserRepositoryImpl implements UserRepositoryCustom {
-    private final JPAQueryFactory jpaQueryFactory;
 
+    private final JPAQueryFactory jpaQueryFactory;
 
     @Override
     public UserMyPageDto findUserMyPageDtoByUserId(Long userId) {
@@ -46,8 +47,8 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
                         QUser.user.loginId,
                         QUser.user.nickname,
                         QSpotifyMusic.spotifyMusic.spotifyId,
-                        QSpotifyMusic.spotifyMusic.artist,
                         QSpotifyMusic.spotifyMusic.title,
+                        QSpotifyMusic.spotifyMusic.artist,
                         QSpotifyMusic.spotifyMusic.albumImage
                 ))
                 .from(QUser.user)
@@ -74,5 +75,22 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
                 .selectFrom(QUser.user)
                 .where(QUser.user.userId.eq(userId))
                 .fetchOne());
+    }
+
+    @Override
+    @CachePut(value = "user", key = "#user.userId")
+    public User saveWithCache(User user) {
+        jpaQueryFactory
+                .update(QUser.user)
+                .set(QUser.user.nickname, user.getNickname())
+                .set(QUser.user.socialType, user.getSocialType())
+                .set(QUser.user.socialId, user.getSocialId())
+                .set(QUser.user.loginId, user.getLoginId())
+                .set(QUser.user.password, user.getPassword())
+                .set(QUser.user.email, user.getEmail())
+                .where(QUser.user.userId.eq(user.getUserId()))
+                .execute();
+
+        return user; // 저장 후 바로 캐싱
     }
 }

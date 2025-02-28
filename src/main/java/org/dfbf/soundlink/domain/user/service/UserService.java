@@ -105,6 +105,7 @@ public class UserService {
                 user.update(userUpdateDto, passwordEncoder);
             }
 
+            profileMusicRepository.save(user.getProfileMusic());
             userRepository.save(user);
 
             return new ResponseResult(ErrorCode.SUCCESS);

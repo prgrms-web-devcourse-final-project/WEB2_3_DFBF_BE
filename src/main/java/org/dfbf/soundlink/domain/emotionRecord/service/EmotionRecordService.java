@@ -135,15 +135,10 @@ public class EmotionRecordService {
     public ResponseResult getEmotionRecord(Long userId, Long recordId) {
 
         try {
-            User loggedInUser = userRepository.findById(userId)
-                    .orElseThrow(UserNotFoundException::new);
-
             EmotionRecord records = emotionRecordRepository.findByRecordId(recordId)
                     .orElseThrow(EmotionRecordNotFoundException::new);
 
-            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordResponseWithOwnerDTO.fromEntity(records, userId, loggedInUser.getLoginId()));
-        } catch (UserNotFoundException e) {
-            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
+            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordResponseWithOwnerDTO.fromEntity(records, userId));
         } catch (EmotionRecordNotFoundException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
         } catch (DataAccessException e) {

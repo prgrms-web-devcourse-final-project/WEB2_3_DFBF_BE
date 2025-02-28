@@ -15,11 +15,11 @@ public record EmotionRecordResponseWithOwnerDTO(
         String createAt,
         boolean disable // 유저 본인이면 사용 불가
 ) {
-    public static EmotionRecordResponseWithOwnerDTO fromEntity(EmotionRecord record, Long requestUserId, String loggedInId) {
+    public static EmotionRecordResponseWithOwnerDTO fromEntity(EmotionRecord record, Long requestUserId) {
         return new EmotionRecordResponseWithOwnerDTO(
                 record.getRecordId(),
                 record.getUser().getNickname(),
-                loggedInId,
+                record.getUser().getLoginId(),
                 record.getEmotion().name(),
                 record.getSpotifyMusic() != null ? SpotifyMusicResponseDTO.fromEntity(record.getSpotifyMusic()) : null,
                 record.getComment(),

@@ -45,7 +45,7 @@ public class EmotionRecordController {
             @RequestParam(required = false) String spotifyId,
             @Parameter(description = "감정 필터(추가 가능)")
             @RequestParam(required = false) List<String> emotions,
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         return emotionRecordService.getEmotionRecordsExcludingUserIdByFilters(userId, emotions, spotifyId, page, size);
     }
@@ -57,7 +57,7 @@ public class EmotionRecordController {
     )
     public ResponseResult getAllEmotionRecords(
             @RequestParam("tag") String loginId,
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         return emotionRecordService.getEmotionRecordsByLoginId(loginId, page, size);
     }

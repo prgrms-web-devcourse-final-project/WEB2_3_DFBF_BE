@@ -52,6 +52,7 @@ public class EmotionRecordRepositoryImpl implements EmotionRecordRepositoryCusto
                 .join(QEmotionRecord.emotionRecord.user, QUser.user).fetchJoin()
                 .join(QEmotionRecord.emotionRecord.spotifyMusic, QSpotifyMusic.spotifyMusic).fetchJoin()
                 .where(QUser.user.loginId.eq(loginId))
+                .orderBy(QEmotionRecord.emotionRecord.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();

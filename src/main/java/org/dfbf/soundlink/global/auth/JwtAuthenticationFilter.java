@@ -45,6 +45,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             handleException(response, ErrorCode.TOKEN_INVALID);
 
         } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
             handleException(response, ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }

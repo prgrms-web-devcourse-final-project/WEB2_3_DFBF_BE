@@ -70,6 +70,7 @@ public class UserService {
     @Transactional
     public ResponseResult getUser(Long userId) {
         try {
+            log.info("getUser" + "userId: " + userId);
             User user = userRepository.findByUserIdWithCache(userId)
                     .orElseThrow(NoUserDataException::new);
             UserGetDto result = new UserGetDto(user);
@@ -318,6 +319,7 @@ public class UserService {
     public ResponseResult reissueToken(HttpServletRequest request, HttpServletResponse response) {
 
         String refreshToken = jwtProvider.resolveRefreshToken(request);
+        log.info("[REFRESH_TOKEN] " + refreshToken);
 
         if (refreshToken == null) {
             logout(response,request);

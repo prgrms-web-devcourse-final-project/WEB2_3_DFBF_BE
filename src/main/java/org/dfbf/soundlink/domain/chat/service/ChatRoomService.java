@@ -53,4 +53,31 @@ public class ChatRoomService {
         }
     }
 
+    // 요청을 삭제
+    public ResponseResult deleteRequestFromRedis(Long requestUserId, Long EmotionRecordId) {
+        try {
+            // 응답자의 ID를 EmotionRecord에서 가져옴
+            Long responseUserId = emotionRecordRepository.findById(EmotionRecordId)
+                    .orElseThrow(EmotionRecordNotFoundException::new)
+                    .getUser()
+                    .getUserId();
+
+            // Key 생성
+            String key = "chatRequest" + requestUserId + "to" + EmotionRecordId;
+
+            // Redis에 Key가 존재하는 경우 삭제 (KEY가 없는 경우 400)
+            if (redisTemplate.hasKey(key)) {
+                redisTemplate.delete(key);
+                return new ResponseResult(ErrorCode.SUCCESS);
+            } else {
+                return new ResponseResult(400, "ChatRequest not found or expired.");
+            }
+
+        } catch (EmotionRecordNotFoundException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD);
+        } catch (Exception e) {
+            return new ResponseResult(400, "Chat request failed.");
+        }
+    }
+
 }

@@ -17,7 +17,7 @@ public class ChatRoomService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final EmotionRecordRepository emotionRecordRepository;
 
-    private final static String CHAT_REQUEST_KEY = "chatRequest";
+    private static final String CHAT_REQUEST_KEY = "chatRequest";
 
     // 요청을 Redis에 저장 (TTL: 60초)
     public ResponseResult saveRequestToRedis(Long requestUserId, Long emotionRecordId) {

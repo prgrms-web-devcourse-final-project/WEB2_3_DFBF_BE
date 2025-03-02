@@ -76,12 +76,12 @@ public class JwtProvider {
             return true;
         }catch (ExpiredJwtException e) {
             log.warn("[ERROR] Token is expired.");
-            throw new CustomJwtException("토큰이 만료.", e);
+            throw e;
         } catch (JwtException e) {
             log.warn("[ERROR] Token validation failed: {}", e.getMessage());
-            throw new CustomJwtException("토큰 검증 실패", e);
+            throw e;
         } catch (Exception e) {
-            throw new CustomJwtException("예기치 않은 오류 발생", e);
+            throw e;
         }
     }
 

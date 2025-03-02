@@ -68,7 +68,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
     }
 
     @Override
-    @Cacheable(value = "user", key = "#userId", unless = "#result == null")
+    @Cacheable(value = "user", key = "#p0")
     public Optional<User> findByUserIdWithCache(Long userId) {
         return Optional.ofNullable(
                 jpaQueryFactory
@@ -78,7 +78,7 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
     }
 
     @Override
-    @CachePut(value = "user", key = "#user.userId")
+    @CachePut(value = "user", key = "#p0.userId")
     public User saveWithCache(User user) {
         jpaQueryFactory
                 .update(QUser.user)

@@ -61,6 +61,9 @@ public class ChatRoom {
     //채팅방 상태 업데이트
     public void updateChatRoomStatus(RoomStatus status){
         this.status = status;
+        if(status == RoomStatus.CLOSED){
+            this.endTime = new Timestamp(System.currentTimeMillis());
+        }
     }
 
 }

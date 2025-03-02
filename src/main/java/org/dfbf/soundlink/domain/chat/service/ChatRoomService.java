@@ -19,6 +19,7 @@ import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 
@@ -32,6 +33,7 @@ public class ChatRoomService {
     private final RedisTemplate<String, String> redisTemplate;
     private final JwtProvider jwtProvider;
 
+    @Transactional
     public ResponseResult createChatRoom(HttpServletRequest request, Long recordId){
         try {
             String accessToken = jwtProvider.resolveAccessToken(request); //AT 추출
@@ -63,15 +65,16 @@ public class ChatRoomService {
             redisTemplate.opsForValue().set("Room::"+chatRoom.getChatRoomId(), String.valueOf(chatReqDto));
 
             return new ResponseResult(ErrorCode.SUCCESS, chatRoom);
-        } catch (DataIntegrityViolationException e) {
-            return new ResponseResult(ErrorCode.CHAT_FAILED, e.getMessage()); //recordId값 중복시 에러 발생
+        }catch (DataIntegrityViolationException e) {
+            return new ResponseResult(ErrorCode.CHAT_FAILED, "채팅방 생성 실패: 이미 존재하는 데이터입니다."); // recordId 값 중복 시
         } catch (Exception e) {
-            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR);
+            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
 
     }
 
     //채팅방 닫기
+    @Transactional
     public ResponseResult closeChatRoom(Long chatRoomId) {
         try {
             ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)

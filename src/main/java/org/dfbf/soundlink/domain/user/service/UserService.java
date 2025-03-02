@@ -360,9 +360,7 @@ public class UserService {
                 responseBody.put("accessToken", newAccessToken);
 
                 // Redis에서 user::userID TTL을 30분으로 다시 갱신
-                redisTemplate.expire("user::" + userId, 30 * 60, TimeUnit.SECONDS);
-
-
+                redisTemplate.expire("user::" + userId, 30L * 60, TimeUnit.SECONDS);
 
                 return new ResponseResult(ErrorCode.SUCCESS, responseBody);
             } else {

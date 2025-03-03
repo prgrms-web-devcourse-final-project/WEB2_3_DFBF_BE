@@ -1,10 +1,10 @@
 package org.dfbf.soundlink.domain.chat.service;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.dfbf.soundlink.domain.chat.dto.ChatReqDto;
 import org.dfbf.soundlink.domain.chat.entity.ChatRoom;
 import org.dfbf.soundlink.domain.chat.exception.ChatRoomNotFoundException;
+import org.dfbf.soundlink.domain.chat.exception.UnauthorizedAccessException;
 import org.dfbf.soundlink.domain.chat.repository.ChatRoomRepository;
 import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
 import org.dfbf.soundlink.domain.emotionRecord.exception.EmotionRecordNotFoundException;
@@ -18,6 +18,7 @@ import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,14 +32,11 @@ public class ChatRoomService {
     private final UserRepository userRepository;
     private final EmotionRecordRepository emotionRecordRepository;
     private final RedisTemplate<String, String> redisTemplate;
-    private final JwtProvider jwtProvider;
+
 
     @Transactional
-    public ResponseResult createChatRoom(HttpServletRequest request, Long recordId){
+    public ResponseResult createChatRoom(@AuthenticationPrincipal Long userId, Long recordId){
         try {
-            String accessToken = jwtProvider.resolveAccessToken(request); //AT 추출
-            Long userId = jwtProvider.getUserId(accessToken);
-
             //요청 보내는사람
             User requestUserId = userRepository.findById(userId)
                     .orElseThrow(UserNotFoundException::new);
@@ -65,7 +63,8 @@ public class ChatRoomService {
             redisTemplate.opsForValue().set("Room::"+chatRoom.getChatRoomId(), String.valueOf(chatReqDto));
 
             return new ResponseResult(ErrorCode.SUCCESS, chatRoom);
-        }catch (DataIntegrityViolationException e) {
+        }
+        catch (DataIntegrityViolationException e) {
             return new ResponseResult(ErrorCode.CHAT_FAILED, "채팅방 생성 실패: 이미 존재하는 데이터입니다."); // recordId 값 중복 시
         } catch (Exception e) {
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
@@ -75,10 +74,17 @@ public class ChatRoomService {
 
     //채팅방 닫기
     @Transactional
-    public ResponseResult closeChatRoom(Long chatRoomId) {
+    public ResponseResult closeChatRoom(@AuthenticationPrincipal Long userId, Long chatRoomId) {
         try {
             ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                     .orElseThrow(ChatRoomNotFoundException::new);
+
+            //요청자 또는 응답자가 아니면 예외 처리
+            if(!chatRoom.getRequestUserId().getUserId().equals(userId) &&
+                    !chatRoom.getRecordId().getUser().getUserId().equals(userId)) {
+                throw new UnauthorizedAccessException();//권한이 없을 경우 예외 발생
+            }
+
             chatRoom.updateChatRoomStatus(RoomStatus.CLOSED); //삳태 '닫기'로 변경
             chatRoomRepository.save(chatRoom);//DB에 저장
 

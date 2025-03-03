@@ -59,6 +59,7 @@ public enum ErrorCode {
     KAKAOPAY_APPROVE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오페이 결제 승인 에러"),
 
     //채팅방 관련 에러
+    CHAT_UNAUTHORIZED(HttpStatus.FORBIDDEN,"권한이 없습니다"),
     CHATROOM_NOT_FOUND(HttpStatus.NOT_FOUND,"채팅방을 찾을 수 없습니다."),
     CHAT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR,"서버 내부 에러. 중복된 레코드가 존재합니다.");
 

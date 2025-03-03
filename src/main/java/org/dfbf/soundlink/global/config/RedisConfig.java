@@ -1,4 +1,4 @@
-package org.dfbf.soundlink.domain.user.config;
+package org.dfbf.soundlink.global.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;

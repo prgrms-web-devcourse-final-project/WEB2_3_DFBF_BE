@@ -28,4 +28,16 @@ public class ChatController {
     public ResponseResult cancelChatRequest(@AuthenticationPrincipal Long id, @RequestBody Long emotionRecordId) {
         return chatRoomService.deleteRequestFromRedis(id, emotionRecordId);
     }
+
+    @PostMapping("/create")
+    @Operation(summary = "채팅요청 시 채팅방 생성", description = "requestId, responseId 값 확인")
+    public ResponseResult create(@AuthenticationPrincipal Long userId, @RequestParam Long recordId) {
+        return chatRoomService.createChatRoom(userId, recordId);
+    }
+
+    @PostMapping("/close")
+    @Operation(summary = "채팅방 닫기" , description="닫을 시 상태값 'close'변경, 레디스에서 삭제")
+    public ResponseResult close(@AuthenticationPrincipal Long userId, Long chatRoomId) {
+        return chatRoomService.closeChatRoom(userId, chatRoomId);
+    }
 }

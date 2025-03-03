@@ -43,6 +43,10 @@ public class ChatRoomService {
             //감정기록 조회
             EmotionRecord emotionRecord = emotionRecordRepository.findById(recordId)
                     .orElseThrow(EmotionRecordNotFoundException::new);
+            //이미 존재하는 채팅방인지 확인
+            if(chatRoomRepository.existsByRequestUserIdAndRecordId(requestUserId,emotionRecord)){
+                return new ResponseResult(ErrorCode.CHAT_FAILED, "이미 존재하는 채팅방입니다.");
+            }
 
             Long responseUserId = emotionRecord.getUser().getUserId();
 
@@ -62,9 +66,6 @@ public class ChatRoomService {
             redisTemplate.opsForValue().set("Room::"+chatRoom.getChatRoomId(), String.valueOf(chatReqDto));
 
             return new ResponseResult(ErrorCode.SUCCESS, chatRoom);
-        }
-        catch (DataIntegrityViolationException e) {
-            return new ResponseResult(ErrorCode.CHAT_FAILED, "채팅방 생성 실패: 이미 존재하는 데이터입니다."); // recordId 값 중복 시
         } catch (Exception e) {
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }

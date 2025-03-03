@@ -32,7 +32,7 @@ public class ChatRoom {
     @JoinColumn (name = "request_user_id")
     private User requestUserId;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "record_id")
     private EmotionRecord recordId;
 

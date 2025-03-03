@@ -12,7 +12,6 @@ import org.dfbf.soundlink.domain.emotionRecord.exception.UserNotFoundException;
 import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepository;
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
-import org.dfbf.soundlink.global.auth.JwtProvider;
 import org.dfbf.soundlink.global.comm.enums.RoomStatus;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;

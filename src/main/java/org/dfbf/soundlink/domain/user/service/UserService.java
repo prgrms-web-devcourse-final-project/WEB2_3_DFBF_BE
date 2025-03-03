@@ -34,6 +34,7 @@ import javax.naming.AuthenticationException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -51,7 +52,7 @@ public class UserService {
     private final JwtProvider jwtProvider;
     private final TokenProperties tokenProperties;
 
-    private RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
     private final TokenService tokenService;
 
     private static final String domain = "";
@@ -70,6 +71,7 @@ public class UserService {
     @Transactional
     public ResponseResult getUser(Long userId) {
         try {
+            log.info("getUser" + "userId: " + userId);
             User user = userRepository.findByUserIdWithCache(userId)
                     .orElseThrow(NoUserDataException::new);
             UserGetDto result = new UserGetDto(user);
@@ -240,6 +242,9 @@ public class UserService {
             User user = userRepository.findByLoginId(loginReqDto.loginId())
                     .orElseThrow(NoUserDataException::new);
 
+            // 로그인하면 Redis에 유저데이터 캐싱
+            userRepository.findByUserIdWithCache(user.getUserId());
+
             String accessToken = jwtProvider.createAccessToken(user.getUserId());
             String refreshToken = jwtProvider.createRefreshToken(user.getUserId());
 
@@ -256,6 +261,12 @@ public class UserService {
             log.info("[ERROR] " + e.getMessage());
             return new ResponseResult(ErrorCode. INTERNAL_SERVER_ERROR);
         }
+    }
+
+    // Redis에서 유저 캐시 삭제
+    private void evictUserCache(Long userId) {
+        String key = "user::" + userId;
+        redisTemplate.delete(key);  // 직접 삭제
     }
 
     // 로그아웃
@@ -276,10 +287,12 @@ public class UserService {
             Long userId = jwtProvider.getUserId(accessToken); // 액세스 토큰을 넘겨서 userId 추출
 
             tokenService.deleteRefreshToken(userId);
+            this.evictUserCache(userId);
 
             return new ResponseResult(ErrorCode.SUCCESS,"로그아웃 되었습니다.");
 
         } catch (Exception e) {
+            log.info("[ERROR] " + e.getMessage());
             return new ResponseResult(ErrorCode. INTERNAL_SERVER_ERROR,"로그아웃 중 오류가 발생했습니다.");
         }
     }
@@ -318,6 +331,7 @@ public class UserService {
     public ResponseResult reissueToken(HttpServletRequest request, HttpServletResponse response) {
 
         String refreshToken = jwtProvider.resolveRefreshToken(request);
+        log.info("[REFRESH_TOKEN] " + refreshToken);
 
         if (refreshToken == null) {
             logout(response,request);
@@ -345,6 +359,8 @@ public class UserService {
                 Map<String, String> responseBody = new HashMap<>();
                 responseBody.put("accessToken", newAccessToken);
 
+                // Redis에서 user::userID TTL을 30분으로 다시 갱신
+                redisTemplate.expire("user::" + userId, 30L * 60, TimeUnit.SECONDS);
 
                 return new ResponseResult(ErrorCode.SUCCESS, responseBody);
             } else {

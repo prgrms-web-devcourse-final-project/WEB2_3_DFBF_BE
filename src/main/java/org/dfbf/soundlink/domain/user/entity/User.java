@@ -1,5 +1,6 @@
 package org.dfbf.soundlink.domain.user.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
@@ -20,6 +21,7 @@ public class User {
     @Column(name = "user_id")
     private Long userId;
 
+    @JsonIgnore
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "profile_music_id")
     private ProfileMusic profileMusic;

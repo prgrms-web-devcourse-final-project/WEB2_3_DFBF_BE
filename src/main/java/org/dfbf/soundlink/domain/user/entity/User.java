@@ -20,7 +20,7 @@ public class User {
     @Column(name = "user_id")
     private Long userId;
 
-    @OneToOne (cascade = CascadeType.PERSIST)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "profile_music_id")
     private ProfileMusic profileMusic;
 

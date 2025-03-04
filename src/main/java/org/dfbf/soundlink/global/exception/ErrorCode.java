@@ -23,6 +23,12 @@ public enum ErrorCode {
     // 서버 관련 오류
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "내부 서버 에러"),
 
+    // Feign 관련 오류
+    KAKAO_API_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "카카오 API 인증 실패 (401)"),
+    KAKAO_API_FORBIDDEN(HttpStatus.FORBIDDEN, "카카오 API 접근 권한 없음 (403)"),
+    KAKAO_API_BAD_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 요청 (400)"),
+    KAKAO_API_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 서버 오류 (500)"),
+
     // User
     FAIL_TO_FIND_USER(HttpStatus.NOT_FOUND, "존재하지 않는 회원입니다"),
     NOT_EQUALS_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),

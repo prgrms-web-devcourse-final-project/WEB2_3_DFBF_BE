@@ -18,7 +18,6 @@ import org.springframework.util.MultiValueMap;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +35,9 @@ public class KakaoAuthService {
 
     @Value("${kakao.redirect-uri}")
     private String redirectUri;
+
+    @Value("${kakao.password}")
+    private String kakaoPassword;
 
     /**
      *  카카오 로그인 및 JWT 발급
@@ -95,14 +97,12 @@ public class KakaoAuthService {
      * 새로운 카카오 사용자 회원가입
      */
     private User registerNewKakaoUser(KakaoUserDTO kakaoUser, String nickname) {
-        String randomPassword =UUID.randomUUID().toString().replace("-", ""); // 비밀번호는 임의 값 (32자)
-
         User newUser = User.builder()
                 .nickName(nickname)
                 .socialId(Long.valueOf(kakaoUser.id()))
                 .socialType(SocialType.KAKAO)
                 .loginId("kakao_" + kakaoUser.id()) // 카카오 ID 기반 로그인 ID 생성
-                .password(passwordEncoder.encode(randomPassword))
+                .password(passwordEncoder.encode(kakaoPassword))
                 .email(kakaoUser.kakao_account().email())
                 .build();
         return userRepository.save(newUser);

@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 
 import java.util.Optional;
@@ -35,6 +36,7 @@ public class EmotionRecordServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    //감정기록 작성 : 성공
     @Test
     void saveEmotionRecordWithMusic_SUCCESS() {
         // given
@@ -59,6 +61,34 @@ public class EmotionRecordServiceTest {
         verify(spotifyMusicRepository).save(any(SpotifyMusic.class)); // 음악이 저장되었는지 검증
         verify(emotionRecordRepository).save(any(EmotionRecord.class)); // 감정 기록이 저장되었는지 검증
     }
-    
+
+    //감정기록 삭제 : 성공
+    @Test
+    void deleteEmotionRecord_SUCCESS() {
+        //given
+        Long recordId = 1L;
+        when(emotionRecordRepository.deleteByRecordId(recordId)).thenReturn(1);//삭제된 레코드 수 1개
+        //when
+        ResponseResult result = emotionRecordService.deleteEmotionRecord(recordId);
+        //then
+        assertEquals(200,result.getCode());
+        verify(emotionRecordRepository).deleteByRecordId(recordId);
+    }
+
+    //감정기록 삭제 : 실패(DB 오류)
+    @Test
+    void deleteEmotionRecord_DataAccessException() {
+        // given
+        Long recordId = 1L;
+        when(emotionRecordRepository.deleteByRecordId(recordId)).thenThrow(new DataAccessException("Database error") {});
+
+        // when
+        ResponseResult result = emotionRecordService.deleteEmotionRecord(recordId);
+
+        // then
+        assertEquals(ErrorCode.DB_ERROR, result.getCode());
+        assertEquals("Database error", result.getMessage());
+    }
+
 
 }

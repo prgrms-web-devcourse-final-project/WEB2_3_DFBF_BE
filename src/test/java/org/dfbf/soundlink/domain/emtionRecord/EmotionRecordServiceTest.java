@@ -9,8 +9,10 @@ import org.dfbf.soundlink.domain.emotionRecord.repository.SpotifyMusicRepository
 import org.dfbf.soundlink.domain.emotionRecord.service.EmotionRecordService;
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
+import org.dfbf.soundlink.global.comm.enums.Emotions;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -36,7 +38,8 @@ public class EmotionRecordServiceTest {
     @Mock
     private UserRepository userRepository;
 
-    //감정기록 작성 : 성공
+
+    @DisplayName("감정기록 작성(제목,가수,앨범,스포티파이아이디,감정,멘트):성공")
     @Test
     void saveEmotionRecordWithMusic_SUCCESS() {
         // given
@@ -63,6 +66,7 @@ public class EmotionRecordServiceTest {
     }
 
     //감정기록 삭제 : 성공
+    @DisplayName("감정기록 삭제:성공")
     @Test
     void deleteEmotionRecord_SUCCESS() {
         //given
@@ -75,7 +79,8 @@ public class EmotionRecordServiceTest {
         verify(emotionRecordRepository).deleteByRecordId(recordId);
     }
 
-    //감정기록 삭제 : 실패(DB 오류)
+
+    @DisplayName("감정기록 DB오류 : 실패")
     @Test
     void deleteEmotionRecord_DataAccessException() {
         // given
@@ -89,6 +94,36 @@ public class EmotionRecordServiceTest {
         assertEquals(ErrorCode.DB_ERROR, result.getCode());
         assertEquals("Database error", result.getMessage());
     }
+
+    @Test
+    @DisplayName("감정 기록 수정 성공 테스트")
+    void updateEmotionRecord_Success() {
+        // given
+        Long recordId = 1L;
+        EmotionRecordUpdateRequestDTO updateDTO = new EmotionRecordUpdateRequestDTO(
+                "spotify1233", "New Title", "New Artist", "New Image", "HAPPY", "Test comment"
+        );
+
+        // 기존 감정 기록 및 음악 정보
+        SpotifyMusic existingMusic = new SpotifyMusic("spotify123", "Old Title", "Old Artist", "Old Image");
+        EmotionRecord existingRecord = new EmotionRecord(
+                mock(User.class), Emotions.SAD, "Old Comment", existingMusic
+        );
+
+        // 기존 감정 기록 조회
+        when(emotionRecordRepository.findByRecordId(recordId)).thenReturn(Optional.of(existingRecord));
+        when(spotifyMusicRepository.findBySpotifyId(updateDTO.spotifyId())).thenReturn(Optional.of(existingMusic));
+
+        // when
+        ResponseResult result = emotionRecordService.updateEmotionRecord(recordId, updateDTO);
+
+        // then
+        assertEquals(200, result.getCode());
+        verify(emotionRecordRepository).findByRecordId(recordId);
+        verify(spotifyMusicRepository).findBySpotifyId(updateDTO.spotifyId());
+        verify(emotionRecordRepository, never()).save(any()); // update는 save 호출 안 함
+    }
+
 
 
 }

@@ -19,7 +19,7 @@ public class EmotionRecord {
     @Column(name = "record_id")
     private Long recordId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne/*(fetch = FetchType.LAZY)*/
     @JoinColumn(name = "user_id")
     private User user;
 
@@ -27,7 +27,7 @@ public class EmotionRecord {
     @Column(name = "emotion")
     private Emotions emotion;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne/*(fetch = FetchType.LAZY)*/
     @JoinColumn(name = "spotify_id")
     private SpotifyMusic spotifyMusic;
 

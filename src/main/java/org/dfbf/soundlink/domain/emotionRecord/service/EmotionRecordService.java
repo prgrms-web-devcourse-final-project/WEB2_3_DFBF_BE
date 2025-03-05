@@ -180,6 +180,7 @@ public class EmotionRecordService {
                     .orElseGet(() -> {
                         SpotifyMusic newMusic = new SpotifyMusic(
                                 updateDTO.spotifyId(),
+                                updateDTO.videoId(),
                                 updateDTO.title(),
                                 updateDTO.artist(),
                                 updateDTO.albumImage()

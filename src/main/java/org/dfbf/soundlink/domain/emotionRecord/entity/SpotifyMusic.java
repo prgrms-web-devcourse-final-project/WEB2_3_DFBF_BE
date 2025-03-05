@@ -44,8 +44,9 @@ public class SpotifyMusic {
     private Timestamp updatedAt;
 
     @Builder
-    public SpotifyMusic (String spotifyId, String title, String artist, String albumImage) {
+    public SpotifyMusic (String spotifyId, String videoId, String title, String artist, String albumImage) {
         this.spotifyId = spotifyId;
+        this.videoId = videoId;
         this.title = title;
         this.artist = artist;
         this.albumImage = albumImage;

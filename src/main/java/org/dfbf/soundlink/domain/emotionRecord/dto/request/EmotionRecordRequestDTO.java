@@ -10,6 +10,8 @@ public record EmotionRecordRequestDTO(
         @NotNull(message = "spotifyId 필요")
         String spotifyId,
 
+        String videoId,
+
         @NotBlank(message = "title 필요")
         String title,
 

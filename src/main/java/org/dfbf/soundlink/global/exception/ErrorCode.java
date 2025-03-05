@@ -52,6 +52,9 @@ public enum ErrorCode {
     FAIL_TO_FIND_EMOTION(HttpStatus.NOT_FOUND, "해당 감정을 찾을 수 없습니다."),
     INVALID_PAGE_REQUEST(HttpStatus.BAD_REQUEST, "페이지 요청 값이 잘못되었습니다."),
 
+    // SpotifyMusic
+    FAIL_TO_FIND_SPOTIFY_MUSIC(HttpStatus.NOT_FOUND, "해당 SpotifyId를 찾을 수 없습니다."),
+
     // Auth
     TOKEN_NOT_EXPIRED(HttpStatus.OK, "토큰 정상"),
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "토큰 만료됨"),

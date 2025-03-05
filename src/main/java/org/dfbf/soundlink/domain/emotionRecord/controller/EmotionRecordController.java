@@ -72,6 +72,16 @@ public class EmotionRecordController {
         return emotionRecordService.getEmotionRecord(userId, recordId);
     }
 
+    @GetMapping("/spotify-video")
+    @Operation(
+            summary = "SpotifyID에 해당하는 VideoID 조회 API",
+            description = "SpotifyID에 해당하는 VideoID를 조회합니다."
+    )
+    public ResponseResult getVideoIdBySpotifyId(
+            @RequestParam String spotifyId) {
+        return emotionRecordService.getVideoIdBySpotifyId(spotifyId);
+    }
+
     @PutMapping("/{recordId}")
     @Operation(
             summary = "감정 기록 수정 API",

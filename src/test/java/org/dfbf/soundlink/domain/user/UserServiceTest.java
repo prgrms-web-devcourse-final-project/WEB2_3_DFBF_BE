@@ -1,11 +1,15 @@
 package org.dfbf.soundlink.domain.user;
 
+import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepository;
 import org.dfbf.soundlink.domain.emotionRecord.repository.SpotifyMusicRepository;
 import org.dfbf.soundlink.domain.user.dto.request.UserSignUpDto;
+import org.dfbf.soundlink.domain.user.dto.request.UserUpdateDto;
 import org.dfbf.soundlink.domain.user.entity.User;
+import org.dfbf.soundlink.domain.user.repository.ProfileMusicRepository;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
 import org.dfbf.soundlink.domain.user.service.UserService;
+import org.dfbf.soundlink.global.comm.enums.SocialType;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.junit.jupiter.api.DisplayName;
@@ -28,44 +32,56 @@ public class UserServiceTest {
     @InjectMocks
     private UserService userService;
 
-    @Mock
+    @Mock(lenient = true)
     private UserRepository userRepository;
 
     @Mock
     private SpotifyMusicRepository spotifyMusicRepository;
 
-    @Mock
+    @Mock(lenient = true)
     private BCryptPasswordEncoder passwordEncoder;
 
     @Mock
     private EmotionRecordRepository emotionRecordRepository;
 
+    @Mock
+    private ProfileMusicRepository profileMusicRepository;
+
     // 회원 정보 수정
-//    @Test
-//    public void testUpdateUser() {
-//        // Given
-//        Long userId = 1L;
-//        UserUpdateDto userUpdateDto = mock(UserUpdateDto.class);
-//        User existingUser = mock(User.class);
-//        SpotifyMusic spotifyMusic = mock(SpotifyMusic.class);
-//
-//
-//        // When
-//        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
-//        when(userUpdateDto.spotifyId()).thenReturn(123L);
-//        when(spotifyMusicRepository.findById(123L)).thenReturn(Optional.of(spotifyMusic));
-//
-//        ResponseResult result = userService.updateUser(userId, userUpdateDto);
-//
-//
-//        // Then
-//        assertEquals(200, result.getCode());
-//        assertEquals("성공", result.getMessage());
-//
-//        verify(spotifyMusicRepository).save(any(SpotifyMusic.class));
-//
-//        verify(existingUser).update(eq(userUpdateDto), any(BCryptPasswordEncoder.class), eq(spotifyMusic));
-//    }
+    @Test
+    void updateUser_Success() {
+        // Given
+        Long userId = 1L;
+        User user = mock(User.class);
+
+        UserUpdateDto updateDto = new UserUpdateDto( //dto는 mock객체로 사용하지 않음.
+                Optional.of("newEmail@example.com"),
+                Optional.of("newLoginId"),
+                Optional.of("newNickName"),
+                Optional.of("newPassword"),
+                Optional.of("spotify123"), // Spotify ID 존재
+                Optional.of("New Title"),
+                Optional.of("New Artist"),
+                Optional.of("New Album Image")
+        );
+
+        SpotifyMusic spotifyMusic = new SpotifyMusic(updateDto);
+
+        // Mocking
+        when(userRepository.findByUserIdWithCache(userId)).thenReturn(Optional.of(user));
+        when(spotifyMusicRepository.findBySpotifyId("spotify123")).thenReturn(Optional.of(spotifyMusic));
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+
+        // When
+        ResponseResult result = userService.updateUser(userId, updateDto);
+
+        // Then
+        assertEquals(200, result.getCode());
+        verify(userRepository).saveWithCache(any(User.class)); //수정 저장 확인(유저,캐시)
+        verify(profileMusicRepository).save(any()); //스포티파이 저장 확인
+    }
+
+
 
     @Test
     @DisplayName("회원가입 테스트 성공 - 비밀번호 암호화 및 저장")

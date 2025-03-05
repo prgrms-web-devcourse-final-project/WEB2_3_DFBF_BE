@@ -42,3 +42,5 @@ out/
 
 ### 폴더 추가
 src/main/generated/
+
+.DS_Store

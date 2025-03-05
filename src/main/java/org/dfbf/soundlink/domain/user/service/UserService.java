@@ -20,9 +20,11 @@ import org.dfbf.soundlink.domain.user.exception.NoUserDataException;
 import org.dfbf.soundlink.domain.user.repository.ProfileMusicRepository;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
 import org.dfbf.soundlink.global.auth.JwtProvider;
+import org.dfbf.soundlink.global.auth.TokenProperties;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,7 +32,6 @@ import org.springframework.stereotype.Service;
 import javax.naming.AuthenticationException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j

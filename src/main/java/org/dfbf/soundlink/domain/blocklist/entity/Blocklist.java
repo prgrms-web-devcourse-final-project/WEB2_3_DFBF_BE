@@ -21,11 +21,11 @@ public class Blocklist {
     @Column(name = "blocklist_id")
     private Long blocklistId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "blocked_user_id")
     private User blockedUser;
 

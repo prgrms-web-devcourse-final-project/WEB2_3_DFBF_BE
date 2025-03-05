@@ -23,6 +23,9 @@ public class SpotifyMusic {
     @Column(name = "spotify_id")
     private String spotifyId;
 
+    @Column(name = "video_id")
+    private String videoId;
+
     @Column(name = "title")
     private String title;
 

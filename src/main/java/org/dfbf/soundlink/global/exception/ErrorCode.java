@@ -62,7 +62,13 @@ public enum ErrorCode {
     KAKAOPAY_READY_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오페이 결제 준비 에러"),
     KAKAOPAY_APPROVE_REDIS_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "TID가 REDIS 안에 없습니다."),
     KAKAOPAY_APPROVE_FEIGN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오페이 승인 API 통신 실패"),
-    KAKAOPAY_APPROVE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오페이 결제 승인 에러");
+    KAKAOPAY_APPROVE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오페이 결제 승인 에러"),
+
+    //채팅방 관련 에러
+    CHAT_UNAUTHORIZED(HttpStatus.FORBIDDEN,"권한이 없습니다"),
+    CHATROOM_NOT_FOUND(HttpStatus.NOT_FOUND,"채팅방을 찾을 수 없습니다."),
+    CHAT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR,"서버 내부 에러. 중복된 레코드가 존재합니다.");
+
 
     private final HttpStatus status;
     private final String message;

@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dfbf.soundlink.domain.blocklist.repository.BlockListRepository;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepository;
 import org.dfbf.soundlink.domain.emotionRecord.repository.SpotifyMusicRepository;
@@ -54,6 +55,7 @@ public class UserService {
     private final TokenService tokenService;
 
     private static final String domain = "";
+    private final BlockListRepository blockListRepository;
 
     // 회원가입
     public ResponseResult signUp(UserSignUpDto userSignUpDto) {
@@ -123,6 +125,7 @@ public class UserService {
                     .orElseThrow(NoUserDataException::new);
 
             emotionRecordRepository.deleteByUser(user); // 유저 감정 기록 삭제
+            blockListRepository.deleteAllByUser_UserId(user.getUserId());  // 유저 차단 목록 삭제
             userRepository.deleteById(userId);          // 유저 삭제
 
             return new ResponseResult(ErrorCode.SUCCESS);

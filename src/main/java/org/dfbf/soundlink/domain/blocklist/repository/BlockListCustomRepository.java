@@ -8,4 +8,7 @@ public interface BlockListCustomRepository {
     List<Blocklist> findAllByUser_UserId(Long userId);
     Optional<Blocklist> findByUser_UserIdAndBlockedUser_LoginId(Long userId, String loginId);
     Optional<Blocklist> findByUser_UserIdAndBlockedUser_UserId(Long userId, Long blockedUserId);
+
+    // 한 유저와 관련되어 있는 모든 차단 목록을 삭제
+    void deleteAllByUser_UserId(Long userId);
 }

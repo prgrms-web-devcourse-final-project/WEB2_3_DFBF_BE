@@ -90,10 +90,11 @@ public class ChatRoomService {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD);
         } catch (Exception e) {
             return new ResponseResult(400, "Chat request failed.");
+        }
     }
 
     @Transactional
-    public ResponseResult createChatRoom(@AuthenticationPrincipal Long userId, Long recordId){
+    public ResponseResult createChatRoom(@AuthenticationPrincipal Long userId, Long recordId) {
         try {
             // 요청 보내는사람
             User requestUserId = userRepository.findById(userId)

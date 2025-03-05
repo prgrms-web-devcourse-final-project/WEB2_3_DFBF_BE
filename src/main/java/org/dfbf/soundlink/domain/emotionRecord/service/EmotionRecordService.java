@@ -179,13 +179,13 @@ public class EmotionRecordService {
             // EmotionRecord를 업데이트하기 전에 SpotifyMusic이 없다면 생성 후 먼저 저장해줘야 함
             SpotifyMusic spotifyMusic = spotifyMusicRepository.findBySpotifyId(updateDTO.spotifyId())
                     .orElseGet(() -> {
-                        SpotifyMusic newMusic = new SpotifyMusic(
-                                updateDTO.spotifyId(),
-                                updateDTO.videoId(),
-                                updateDTO.title(),
-                                updateDTO.artist(),
-                                updateDTO.albumImage()
-                        );
+                        SpotifyMusic newMusic = SpotifyMusic.builder()
+                                .spotifyId(updateDTO.spotifyId())
+                                .title(updateDTO.title())
+                                .artist(updateDTO.artist())
+                                .albumImage(updateDTO.albumImage())
+                                .build();
+
                         return spotifyMusicRepository.save(newMusic);
                     });
 

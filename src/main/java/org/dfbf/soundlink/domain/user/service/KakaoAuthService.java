@@ -106,7 +106,7 @@ public class KakaoAuthService {
                 .socialId(Long.valueOf(kakaoUser.id()))
                 .socialType(SocialType.KAKAO)
                 .loginId("kakao_" + kakaoUser.id()) // 카카오 ID 기반 로그인 ID 생성
-                .password(passwordEncoder.encode(null))
+                .password(passwordEncoder.encode(""))
                 .email(kakaoUser.kakao_account().email())
                 .build();
         return userRepository.save(newUser);

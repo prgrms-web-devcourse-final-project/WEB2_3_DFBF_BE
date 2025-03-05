@@ -21,7 +21,7 @@ public class Blocklist {
     @Column(name = "blocklist_id")
     private Long blocklistId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne/*(fetch = FetchType.LAZY)*/
     @JoinColumn(name = "user_id")
     private User user;
 

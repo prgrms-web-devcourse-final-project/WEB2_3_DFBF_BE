@@ -49,9 +49,6 @@ public class UserService {
 
     private static final String domain = "";
 
-    @Value("${HTTP_ONLY_COOKIE}")
-    private boolean httpOnlyCookie;
-
     // 회원가입
     public ResponseResult signUp(UserSignUpDto userSignUpDto) {
         try {
@@ -217,7 +214,7 @@ public class UserService {
                 .domain(domain)
                 .path("/")
                 .httpOnly(true)
-                .secure(httpOnlyCookie)
+                .secure(false)
                 .maxAge(REFRESH_TOKEN_EXPIRATION_TIME/1000) // 만료시간 설정(밀리초 -> 초로 변경)
                 .build();
     }
@@ -264,7 +261,7 @@ public class UserService {
                     .domain(domain)
                     .path("/")
                     .httpOnly(true)
-                    .secure(httpOnlyCookie)
+                    .secure(false)
                     .maxAge(0)
                     .build();
             response.setHeader("Set-Cookie", refreshCookie.toString());//쿠키 삭제 요청

@@ -41,7 +41,7 @@ public class AuthController {
     // 카카오 로그인 (인가 코드 받아서 회원가입 또는 로그인 진행)
     @Operation(summary = "카카오 로그인", description = "카카오 로그인 후 JWT 발급")
     @GetMapping("/login/kakao")
-    public ResponseResult kakaoCallback(@RequestParam String code) {
-        return kakaoAuthService.kakaoLogin(code);
+    public ResponseResult kakaoCallback(@RequestParam String code, HttpServletResponse response) {
+        return kakaoAuthService.kakaoLogin(code, response);
     }
 }

@@ -8,6 +8,7 @@ import org.dfbf.soundlink.domain.emotionRecord.dto.response.*;
 import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.emotionRecord.exception.EmotionRecordNotFoundException;
+import org.dfbf.soundlink.domain.emotionRecord.exception.SpotifyMusicNotFoundException;
 import org.dfbf.soundlink.domain.emotionRecord.exception.UserNotFoundException;
 import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepository;
 import org.dfbf.soundlink.domain.emotionRecord.repository.SpotifyMusicRepository;
@@ -151,11 +152,13 @@ public class EmotionRecordService {
     public ResponseResult getVideoIdBySpotifyId(String spotifyId) {
 
         try {
-            String videoId = spotifyMusicRepository.findBySpotifyId(spotifyId)
-                    .map(SpotifyMusic::getVideoId)
-                    .orElse(null);
+            SpotifyMusic music = spotifyMusicRepository.findBySpotifyId(spotifyId)
+                    .orElseThrow(SpotifyMusicNotFoundException::new);
 
+            String videoId = music.getVideoId();
             return new ResponseResult(ErrorCode.SUCCESS, videoId);
+        } catch (SpotifyMusicNotFoundException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_SPOTIFY_MUSIC, e.getMessage());
         } catch (DataAccessException e) {
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         } catch (Exception e) {

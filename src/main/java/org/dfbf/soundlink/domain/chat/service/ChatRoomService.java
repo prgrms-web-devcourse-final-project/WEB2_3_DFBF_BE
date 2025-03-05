@@ -1,6 +1,12 @@
 package org.dfbf.soundlink.domain.chat.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.dfbf.soundlink.domain.alert.dto.AlertChatRequest;
+import org.dfbf.soundlink.domain.alert.entity.Alert;
+import org.dfbf.soundlink.domain.alert.service.AlertService;
+import org.dfbf.soundlink.domain.blocklist.repository.BlockListRepository;
+import org.dfbf.soundlink.domain.blocklist.service.BlockListService;
 import org.dfbf.soundlink.domain.chat.entity.redis.ChatRequest;
 import org.dfbf.soundlink.domain.chat.dto.ChatReqDto;
 import org.dfbf.soundlink.domain.chat.entity.ChatRoom;
@@ -27,12 +33,15 @@ import java.sql.Timestamp;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ChatRoomService {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final EmotionRecordRepository emotionRecordRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final UserRepository userRepository;
+    private final BlockListRepository blockListRepository;
+    private final AlertService alertService;
 
     private static final String CHAT_REQUEST_KEY = "chatRequest";
 
@@ -50,6 +59,11 @@ public class ChatRoomService {
                 return new ResponseResult(400, "You can't chat with yourself.");
             }
 
+            // 응답자가 요청자를 차단한 경우
+            if (blockListRepository.existsByUser_UserIdAndBlockedUser_UserId(responseUserId, requestUserId)) {
+                return new ResponseResult(400, "Blocked user.");
+            }
+
             // Redis에 이미 requestUserId가 포함되어 있는 경우
             if (!redisTemplate.keys(CHAT_REQUEST_KEY + requestUserId + "to*").isEmpty()) {
                 String firstKey = redisTemplate.keys(CHAT_REQUEST_KEY + requestUserId + "to*").iterator().next(); // 첫 번째 키 가져오기
@@ -64,10 +78,21 @@ public class ChatRoomService {
             // Redis 저장
             redisTemplate.opsForValue().set(key, chatRequest, Duration.ofSeconds(61));
 
+            // 알림 전송
+            User requestUser = userRepository.findByUserIdWithCache(requestUserId)
+                    .orElseThrow(UserNotFoundException::new);
+            AlertChatRequest alertChatRequest = new AlertChatRequest(emotionRecordId, requestUser.getNickname());
+            Alert alert = new Alert("chatRequest", alertChatRequest);
+            //log.info("request: " + requestUserId + ", response: " + responseUserId);
+            alertService.send(responseUserId, "alarm", alert);
+
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (EmotionRecordNotFoundException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD);
+        } catch (UserNotFoundException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
         } catch (Exception e) {
+            log.error(e.getMessage());
             return new ResponseResult(400, "Chat request failed.");
         }
     }
@@ -89,6 +114,7 @@ public class ChatRoomService {
         } catch (EmotionRecordNotFoundException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD);
         } catch (Exception e) {
+            log.error(e.getMessage());
             return new ResponseResult(400, "Chat request failed.");
         }
     }

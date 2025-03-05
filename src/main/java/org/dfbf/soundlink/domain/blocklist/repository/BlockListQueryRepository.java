@@ -50,4 +50,16 @@ public class BlockListQueryRepository implements BlockListCustomRepository {
                         .fetchOne()
         );
     }
+
+    @Override
+    public Boolean existsByUser_UserIdAndBlockedUser_UserId(Long requestId, Long responseId) {
+        return jpaQueryFactory
+                .selectOne()
+                .from(qBlocklist)
+                .where(
+                        qBlocklist.user.userId.eq(responseId),
+                        qBlocklist.blockedUser.userId.eq(requestId)
+                )
+                .fetchFirst() != null;
+    }
 }

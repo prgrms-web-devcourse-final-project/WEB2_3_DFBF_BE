@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.dfbf.soundlink.domain.alert.service.AlertService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -21,19 +22,19 @@ public class AlertController {
 
     @GetMapping("/connect")
     @Operation(summary = "SSE 연결 API", description = "SSE 연결")
-    public SseEmitter subscribe(@RequestParam("username") String username) {
-        return alertService.connectAlarm(username);
+    public SseEmitter subscribe(/*@AuthenticationPrincipal Long id*/ @RequestParam("id") Long id) {
+        return alertService.connectAlarm(id);
     }
 
-    @PostMapping("")
-    @Operation(summary = "알림 전송 API", description = "알림을 전송하는 기능")
-    public void send(@RequestParam("alarmId") long alarmId, @RequestParam("username") String username, @RequestParam("msg") String msg) {
-        alertService.send(alarmId, username, msg);
-    }
+//    @PostMapping("")
+//    @Operation(summary = "알림 전송 API", description = "알림을 전송하는 기능")
+//    public void send(@RequestParam("id") Long id, @RequestParam("msg") String msg) {
+//        alertService.send(id,"test" ,msg);
+//    }
 
     @DeleteMapping
     @Operation(summary = "SSE 연결 해제 API", description = "SSE 연결 해제")
-    public void disconnect(@RequestParam("username") String username) {
-        alertService.disconnectAlarm(username);
+    public void disconnect(@RequestParam("id") Long id) {
+        alertService.disconnectAlarm(id);
     }
 }

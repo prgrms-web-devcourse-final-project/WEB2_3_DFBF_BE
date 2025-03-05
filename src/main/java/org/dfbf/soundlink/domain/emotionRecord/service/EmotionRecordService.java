@@ -46,6 +46,7 @@ public class EmotionRecordService {
             // 음악 저장
             SpotifyMusic spotifyMusic = SpotifyMusic.builder()
                     .spotifyId(request.spotifyId())
+                    .videoId(request.videoId())
                     .title(request.title())
                     .artist(request.artist())
                     .albumImage(request.albumImage())

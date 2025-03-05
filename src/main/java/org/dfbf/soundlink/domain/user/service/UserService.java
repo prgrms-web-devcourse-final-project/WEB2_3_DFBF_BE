@@ -20,12 +20,9 @@ import org.dfbf.soundlink.domain.user.exception.NoUserDataException;
 import org.dfbf.soundlink.domain.user.repository.ProfileMusicRepository;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
 import org.dfbf.soundlink.global.auth.JwtProvider;
-import org.dfbf.soundlink.global.auth.TokenProperties;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -235,7 +232,8 @@ public class UserService {
                 return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, "계정을 찾을 수 없습니다.");
             }
             // 비밀번호 검증(암호화 된 비밀번호 비교)
-            if(!passwordEncoder.matches(loginReqDto.password(), userRepository.findPasswordByLoginId(loginReqDto.loginId()))){
+            if( loginReqDto.password() == null || loginReqDto.password().isEmpty() ||
+                    !passwordEncoder.matches(loginReqDto.password(), userRepository.findPasswordByLoginId(loginReqDto.loginId()))){
                 return new ResponseResult( ErrorCode.NOT_EQUALS_PASSWORD,"잘못된 비밀번호 입니다.");
             }
 

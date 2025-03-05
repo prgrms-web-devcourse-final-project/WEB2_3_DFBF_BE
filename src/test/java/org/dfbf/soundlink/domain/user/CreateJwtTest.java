@@ -12,7 +12,7 @@ import java.util.Base64;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @SpringBootTest
-public class CreateJwtTest {
+class CreateJwtTest {
 
     @Value("${jwt.secret}")
     private String secretKeyPlain;

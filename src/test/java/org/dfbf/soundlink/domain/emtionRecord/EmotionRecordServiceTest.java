@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class EmotionRecordServiceTest {
+class EmotionRecordServiceTest {
     @InjectMocks
     private EmotionRecordService emotionRecordService;
     @Mock

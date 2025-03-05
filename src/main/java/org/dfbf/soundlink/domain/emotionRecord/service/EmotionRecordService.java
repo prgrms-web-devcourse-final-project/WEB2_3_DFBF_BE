@@ -147,6 +147,22 @@ public class EmotionRecordService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public ResponseResult getVideoIdBySpotifyId(String spotifyId) {
+
+        try {
+            String videoId = spotifyMusicRepository.findBySpotifyId(spotifyId)
+                    .map(SpotifyMusic::getVideoId)
+                    .orElse(null);
+
+            return new ResponseResult(ErrorCode.SUCCESS, videoId);
+        } catch (DataAccessException e) {
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
     @Transactional
     public ResponseResult updateEmotionRecord(Long recordId, EmotionRecordUpdateRequestDTO updateDTO) {
         try {

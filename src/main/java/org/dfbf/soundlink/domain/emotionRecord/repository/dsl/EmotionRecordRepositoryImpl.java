@@ -2,8 +2,10 @@ package org.dfbf.soundlink.domain.emotionRecord.repository.dsl;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.dfbf.soundlink.domain.blocklist.entity.QBlocklist;
 import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
 import org.dfbf.soundlink.domain.emotionRecord.entity.QEmotionRecord;
 import org.dfbf.soundlink.domain.emotionRecord.entity.QSpotifyMusic;
@@ -79,9 +81,25 @@ public class EmotionRecordRepositoryImpl implements EmotionRecordRepositoryCusto
                 .join(QEmotionRecord.emotionRecord.user, QUser.user).fetchJoin()
                 .leftJoin(QEmotionRecord.emotionRecord.spotifyMusic, QSpotifyMusic.spotifyMusic).fetchJoin()
                 .where(
-                        excludeUserId(userId),
-                        filterByEmotions(emotions),
-                        filterBySpotifyId(spotifyId)
+                        JPAExpressions.selectOne()
+                                .from(QBlocklist.blocklist)
+                                .where(
+                                        // 1. 내가 차단한 사용자
+                                        // blocklist.user.userId가 로그인 사용자의 ID
+                                        // blocklist.blockedUser.userId가 EmotionRecord 작성자의 ID
+                                        QBlocklist.blocklist.user.userId.eq(userId)
+                                                .and(QBlocklist.blocklist.blockedUser.userId.eq(QEmotionRecord.emotionRecord.user.userId))
+                                                .or(
+                                                        // 2. 나를 차단한 사용자
+                                                        // blocklist.user.userId가 EmotionRecord 작성자의 ID
+                                                        // blocklist.blockedUser.userId가 로그인 사용자의 ID
+                                                        QBlocklist.blocklist.user.userId.eq(QEmotionRecord.emotionRecord.user.userId)
+                                                                .and(QBlocklist.blocklist.blockedUser.userId.eq(userId))
+                                                )
+                                ).notExists(), // 위의 조건을 만족하는 레코드가 존재하지 않을 때 결과에 포함
+                        excludeUserId(userId),          // 로그인 된 userId를 제외한 EmotionRecord 조회
+                        filterByEmotions(emotions),     // 감정이 있을 경우
+                        filterBySpotifyId(spotifyId)    // spotifyId 있을 경우
                 )
                 .orderBy(QEmotionRecord.emotionRecord.createdAt.desc())
                 .offset(pageable.getOffset())
@@ -96,9 +114,20 @@ public class EmotionRecordRepositoryImpl implements EmotionRecordRepositoryCusto
                                 .from(QEmotionRecord.emotionRecord)
                                 .join(QEmotionRecord.emotionRecord.user, QUser.user)
                                 .where(
-                                        excludeUserId(userId),          // 로그인 된 userId를 제외한 EmotionRecord 조회
-                                        filterByEmotions(emotions),     // 감정이 있을 경우
-                                        filterBySpotifyId(spotifyId)    // spotifyId 있을 경우
+                                        JPAExpressions.selectOne()
+                                                .from(QBlocklist.blocklist)
+                                                .where(
+                                                        QBlocklist.blocklist.user.userId.eq(userId)
+                                                                .and(QBlocklist.blocklist.blockedUser.userId.eq(QEmotionRecord.emotionRecord.user.userId))
+                                                                .or(
+                                                                        QBlocklist.blocklist.user.userId.eq(QEmotionRecord.emotionRecord.user.userId)
+                                                                                .and(QBlocklist.blocklist.blockedUser.userId.eq(userId))
+                                                                )
+                                                )
+                                                .notExists(),
+                                        excludeUserId(userId),
+                                        filterByEmotions(emotions),
+                                        filterBySpotifyId(spotifyId)
                                 )
                                 .fetchOne()
                 ).orElse(0L));

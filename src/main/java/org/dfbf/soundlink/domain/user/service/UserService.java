@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dfbf.soundlink.domain.alert.service.AlertService;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepository;
 import org.dfbf.soundlink.domain.emotionRecord.repository.SpotifyMusicRepository;
@@ -54,6 +55,7 @@ public class UserService {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final TokenService tokenService;
+    private final AlertService alertService;
 
     private static final String domain = "";
 
@@ -288,6 +290,9 @@ public class UserService {
 
             tokenService.deleteRefreshToken(userId);
             this.evictUserCache(userId);
+
+            // SSE 연결 해제
+            alertService.disconnectAlarm(userId);
 
             return new ResponseResult(ErrorCode.SUCCESS,"로그아웃 되었습니다.");
 

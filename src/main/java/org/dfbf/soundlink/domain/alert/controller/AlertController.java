@@ -22,7 +22,7 @@ public class AlertController {
 
     @GetMapping("/connect")
     @Operation(summary = "SSE 연결 API", description = "SSE 연결")
-    public SseEmitter subscribe(/*@AuthenticationPrincipal Long id*/ @RequestParam("id") Long id) {
+    public SseEmitter subscribe(@AuthenticationPrincipal Long id) {
         return alertService.connectAlarm(id);
     }
 

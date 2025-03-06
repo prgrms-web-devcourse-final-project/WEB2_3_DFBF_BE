@@ -46,4 +46,10 @@ public class ChatController {
     public ResponseResult roomList(@AuthenticationPrincipal Long userId){
         return chatRoomService.getChatRoomList(userId);
     }
+
+    @GetMapping("/room/detail")
+    @Operation(summary = "채팅방 상세 정보", description ="곡정보,상태,생성일을 불러옴")
+    public ResponseResult roomInfo(@RequestParam("chatRoomId") Long chatRoomId, @AuthenticationPrincipal Long userId){
+        return chatRoomService.getChatRoomInfo(chatRoomId, userId);
+    }
 }

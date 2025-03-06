@@ -1,6 +1,7 @@
 package org.dfbf.soundlink.domain.chat.service;
 
 import lombok.RequiredArgsConstructor;
+import org.dfbf.soundlink.domain.chat.dto.ChatRoomWithVideoResDto;
 import org.dfbf.soundlink.domain.chat.entity.redis.ChatRequest;
 import org.dfbf.soundlink.domain.chat.dto.ChatReqDto;
 import org.dfbf.soundlink.domain.chat.entity.ChatRoom;
@@ -16,7 +17,6 @@ import org.dfbf.soundlink.domain.user.repository.UserRepository;
 import org.dfbf.soundlink.global.comm.enums.RoomStatus;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
@@ -111,6 +111,9 @@ public class ChatRoomService {
 
             Long responseUserId = emotionRecord.getUser().getUserId();
 
+            //비디오아이디 추가
+            String videoId = emotionRecord.getSpotifyMusic().getVideoId();
+
             ChatRoom chatRoom = ChatRoom.builder()
                     .requestUserId(requestUserId)
                     .recordId(emotionRecord)
@@ -123,11 +126,12 @@ public class ChatRoomService {
             chatRoomRepository.save(chatRoom);
 
             ChatReqDto chatReqDto = new ChatReqDto(userId, responseUserId);
-            
+
+            ChatRoomWithVideoResDto responseDto = new ChatRoomWithVideoResDto(chatRoom.getChatRoomId(), videoId);
+
             // 레디스에 저장
             redisTemplate.opsForValue().set("Room::"+chatRoom.getChatRoomId(), String.valueOf(chatReqDto));
-
-            return new ResponseResult(ErrorCode.SUCCESS, chatRoom);
+            return new ResponseResult(ErrorCode.SUCCESS, responseDto);
         } catch (Exception e) {
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
@@ -152,6 +156,7 @@ public class ChatRoomService {
             redisTemplate.delete("Room::"+chatRoomId); // 레디스에서 삭제
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (Exception e) {
+            e.printStackTrace();
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }

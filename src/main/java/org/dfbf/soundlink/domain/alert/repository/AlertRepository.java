@@ -43,9 +43,9 @@ public class AlertRepository {
     }
 
     // 저장된 알람을 가져오는 메서드
-    public List<String> getSavedAlerts(Long userId) {
-        // 저장된 알람 목록을 리턴하는 로직을 추가
-        // 예시로 간단히 List<String> 타입으로, 필요에 따라 알람 객체를 리턴할 수도 있음
-        return new ArrayList<>(); // 이곳을 실제 알람 저장 로직으로 수정
-    }
+//    public List<String> getSavedAlerts(Long userId) {
+//        // 저장된 알람 목록을 리턴하는 로직을 추가
+//        // 예시로 간단히 List<String> 타입으로, 필요에 따라 알람 객체를 리턴할 수도 있음
+//        return new ArrayList<>(); // 이곳을 실제 알람 저장 로직으로 수정
+//    }
 }

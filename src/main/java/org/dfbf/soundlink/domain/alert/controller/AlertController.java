@@ -26,15 +26,9 @@ public class AlertController {
         return alertService.connectAlarm(id);
     }
 
-//    @PostMapping("")
-//    @Operation(summary = "알림 전송 API", description = "알림을 전송하는 기능")
-//    public void send(@RequestParam("id") Long id, @RequestParam("msg") String msg) {
-//        alertService.send(id,"test" ,msg);
-//    }
-
-    @DeleteMapping
-    @Operation(summary = "SSE 연결 해제 API", description = "SSE 연결 해제")
-    public void disconnect(@RequestParam("id") Long id) {
-        alertService.disconnectAlarm(id);
+    @PostMapping("")
+    @Operation(summary = "알림 전송 API", description = "알림을 전송하는 기능 (CHAT 서버에서 사용하는 기능입니다.)")
+    public void send(@RequestParam("id") Long id, @RequestParam("msg") String msg) {
+        alertService.send(id,"test" ,msg);
     }
 }

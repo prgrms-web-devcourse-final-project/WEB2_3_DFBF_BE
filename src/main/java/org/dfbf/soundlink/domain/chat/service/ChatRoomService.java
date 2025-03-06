@@ -141,8 +141,11 @@ public class ChatRoomService {
                     .orElseThrow(EmotionRecordNotFoundException::new);
 
             // 이미 존재하는 채팅방인지 확인
-            if(chatRoomRepository.existsByRequestUserIdAndRecordId(requestUserId,emotionRecord)){
-                return new ResponseResult(ErrorCode.CHAT_FAILED, "이미 존재하는 채팅방입니다.");
+            Optional<Long> chatRoomId = chatRoomRepository.findChatRoomIdByRequestUserIdAndRecordId(userId, recordId);
+            if (chatRoomId.isPresent()) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("chatRoomId", chatRoomId.get());
+                return new ResponseResult(ErrorCode.CHAT_FAILED, map);
             }
 
             Long responseUserId = emotionRecord.getUser().getUserId();

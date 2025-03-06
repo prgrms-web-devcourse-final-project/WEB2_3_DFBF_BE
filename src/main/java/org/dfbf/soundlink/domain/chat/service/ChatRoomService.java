@@ -205,7 +205,7 @@ public class ChatRoomService {
         try {
             List<ChatRoom> chatRooms = chatRoomRepository.findByRequestUserIdOrderByCreatedAtDesc(userId);
 
-            List<ChatRoomListDto> List = chatRooms.stream()
+            List<ChatRoomListDto> chatRoomList = chatRooms.stream()
                     .map(chatRoom -> new ChatRoomListDto(
                             chatRoom.getChatRoomId(),
                             chatRoom.getRecordId().getSpotifyMusic().getSpotifyId(),
@@ -216,8 +216,8 @@ public class ChatRoomService {
                             chatRoom.getRecordId().getComment(),
                             chatRoom.getCreatedAt()
                     ))
-                    .collect(Collectors.toList());
-            return new ResponseResult(ErrorCode.SUCCESS, List);
+                    .toList();
+            return new ResponseResult(ErrorCode.SUCCESS, chatRoomList);
         } catch (Exception e) {
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }

@@ -2,7 +2,6 @@ package org.dfbf.soundlink.domain.alert.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
-import org.dfbf.soundlink.global.exception.ErrorCode;
 
 import java.time.Instant;
 import java.time.ZoneId;

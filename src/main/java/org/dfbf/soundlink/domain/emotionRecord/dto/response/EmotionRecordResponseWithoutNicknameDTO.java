@@ -8,7 +8,7 @@ import java.time.format.DateTimeFormatter;
 public record EmotionRecordResponseWithoutNicknameDTO(
         Long recordId,
         String emotion,
-        SpotifyMusicResponseDTO spotifyMusic,
+        SpotifyMusicResponseWithoutVideoIdDTO spotifyMusic,
         String comment,
         String createdAt
 ) {
@@ -16,7 +16,7 @@ public record EmotionRecordResponseWithoutNicknameDTO(
         return new EmotionRecordResponseWithoutNicknameDTO(
                 record.getRecordId(),
                 record.getEmotion().name(),
-                record.getSpotifyMusic() != null ? SpotifyMusicResponseDTO.fromEntity(record.getSpotifyMusic()) : null,
+                record.getSpotifyMusic() != null ? SpotifyMusicResponseWithoutVideoIdDTO.fromEntity(record.getSpotifyMusic()) : null,
                 record.getComment(),
                 formatTimestamp(record.getCreatedAt())
         );

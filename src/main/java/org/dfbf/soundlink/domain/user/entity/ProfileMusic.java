@@ -21,7 +21,7 @@ public class ProfileMusic {
     @JoinColumn(name = "profile_music_id")
     private Long profileMusicId;
 
-    @ManyToOne
+    @ManyToOne/*(fetch = FetchType.LAZY)*/
     @JoinColumn(name = "spotify_id")
     private SpotifyMusic spotifyMusic;
 

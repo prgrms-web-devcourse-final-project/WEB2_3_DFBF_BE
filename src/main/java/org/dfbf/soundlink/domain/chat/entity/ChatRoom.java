@@ -28,11 +28,11 @@ public class ChatRoom {
     @Column(name = "end_time")
     private Timestamp endTime;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn (name = "request_user_id")
     private User requestUserId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "record_id")
     private EmotionRecord recordId;
 

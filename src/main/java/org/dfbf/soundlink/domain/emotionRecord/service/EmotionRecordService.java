@@ -8,6 +8,7 @@ import org.dfbf.soundlink.domain.emotionRecord.dto.response.*;
 import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.emotionRecord.exception.EmotionRecordNotFoundException;
+import org.dfbf.soundlink.domain.emotionRecord.exception.SpotifyMusicNotFoundException;
 import org.dfbf.soundlink.domain.emotionRecord.exception.UserNotFoundException;
 import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepository;
 import org.dfbf.soundlink.domain.emotionRecord.repository.SpotifyMusicRepository;
@@ -45,6 +46,7 @@ public class EmotionRecordService {
             // 음악 저장
             SpotifyMusic spotifyMusic = SpotifyMusic.builder()
                     .spotifyId(request.spotifyId())
+                    .videoId(request.videoId())
                     .title(request.title())
                     .artist(request.artist())
                     .albumImage(request.albumImage())
@@ -147,6 +149,24 @@ public class EmotionRecordService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public ResponseResult getVideoIdBySpotifyId(String spotifyId) {
+
+        try {
+            SpotifyMusic music = spotifyMusicRepository.findBySpotifyId(spotifyId)
+                    .orElseThrow(SpotifyMusicNotFoundException::new);
+
+            String videoId = music.getVideoId();
+            return new ResponseResult(ErrorCode.SUCCESS, videoId);
+        } catch (SpotifyMusicNotFoundException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_SPOTIFY_MUSIC, e.getMessage());
+        } catch (DataAccessException e) {
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
     @Transactional
     public ResponseResult updateEmotionRecord(Long recordId, EmotionRecordUpdateRequestDTO updateDTO) {
         try {
@@ -159,12 +179,13 @@ public class EmotionRecordService {
             // EmotionRecord를 업데이트하기 전에 SpotifyMusic이 없다면 생성 후 먼저 저장해줘야 함
             SpotifyMusic spotifyMusic = spotifyMusicRepository.findBySpotifyId(updateDTO.spotifyId())
                     .orElseGet(() -> {
-                        SpotifyMusic newMusic = new SpotifyMusic(
-                                updateDTO.spotifyId(),
-                                updateDTO.title(),
-                                updateDTO.artist(),
-                                updateDTO.albumImage()
-                        );
+                        SpotifyMusic newMusic = SpotifyMusic.builder()
+                                .spotifyId(updateDTO.spotifyId())
+                                .title(updateDTO.title())
+                                .artist(updateDTO.artist())
+                                .albumImage(updateDTO.albumImage())
+                                .build();
+
                         return spotifyMusicRepository.save(newMusic);
                     });
 

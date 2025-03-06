@@ -66,6 +66,7 @@ dependencies {
     testImplementation("org.mockito:mockito-inline:4.7.0")
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testImplementation("org.junit.jupiter:junit-jupiter-engine")
+    testImplementation("org.springframework.security:spring-security-test")
 
     // Json (Jackson)
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")

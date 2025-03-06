@@ -7,6 +7,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dfbf.soundlink.domain.alert.service.AlertService;
+import org.dfbf.soundlink.domain.blocklist.repository.BlockListRepository;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepository;
 import org.dfbf.soundlink.domain.emotionRecord.repository.SpotifyMusicRepository;
@@ -25,7 +26,6 @@ import org.dfbf.soundlink.global.auth.TokenProperties;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -34,7 +34,6 @@ import org.springframework.stereotype.Service;
 import javax.naming.AuthenticationException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -58,6 +57,7 @@ public class UserService {
     private final AlertService alertService;
 
     private static final String domain = "";
+    private final BlockListRepository blockListRepository;
 
     // 회원가입
     public ResponseResult signUp(UserSignUpDto userSignUpDto) {
@@ -127,6 +127,7 @@ public class UserService {
                     .orElseThrow(NoUserDataException::new);
 
             emotionRecordRepository.deleteByUser(user); // 유저 감정 기록 삭제
+            blockListRepository.deleteAllByUser_UserId(user.getUserId());  // 유저 차단 목록 삭제
             userRepository.deleteById(userId);          // 유저 삭제
 
             return new ResponseResult(ErrorCode.SUCCESS);
@@ -237,7 +238,8 @@ public class UserService {
                 return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, "계정을 찾을 수 없습니다.");
             }
             // 비밀번호 검증(암호화 된 비밀번호 비교)
-            if(!passwordEncoder.matches(loginReqDto.password(), userRepository.findPasswordByLoginId(loginReqDto.loginId()))){
+            if( loginReqDto.password() == null || loginReqDto.password().isEmpty() ||
+                    !passwordEncoder.matches(loginReqDto.password(), userRepository.findPasswordByLoginId(loginReqDto.loginId()))){
                 return new ResponseResult( ErrorCode.NOT_EQUALS_PASSWORD,"잘못된 비밀번호 입니다.");
             }
 

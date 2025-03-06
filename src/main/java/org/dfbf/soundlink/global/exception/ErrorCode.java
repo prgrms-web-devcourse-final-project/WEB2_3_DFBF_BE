@@ -23,6 +23,12 @@ public enum ErrorCode {
     // 서버 관련 오류
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "내부 서버 에러"),
 
+    // Feign 관련 오류
+    KAKAO_API_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "카카오 API 인증 실패 (401)"),
+    KAKAO_API_FORBIDDEN(HttpStatus.FORBIDDEN, "카카오 API 접근 권한 없음 (403)"),
+    KAKAO_API_BAD_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 요청 (400)"),
+    KAKAO_API_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 서버 오류 (500)"),
+
     // User
     FAIL_TO_FIND_USER(HttpStatus.NOT_FOUND, "존재하지 않는 회원입니다"),
     NOT_EQUALS_PASSWORD(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다."),
@@ -46,6 +52,9 @@ public enum ErrorCode {
     FAIL_TO_FIND_EMOTION(HttpStatus.NOT_FOUND, "해당 감정을 찾을 수 없습니다."),
     INVALID_PAGE_REQUEST(HttpStatus.BAD_REQUEST, "페이지 요청 값이 잘못되었습니다."),
 
+    // SpotifyMusic
+    FAIL_TO_FIND_SPOTIFY_MUSIC(HttpStatus.NOT_FOUND, "해당 SpotifyId를 찾을 수 없습니다."),
+
     // Auth
     TOKEN_NOT_EXPIRED(HttpStatus.OK, "토큰 정상"),
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "토큰 만료됨"),
@@ -61,7 +70,7 @@ public enum ErrorCode {
     //채팅방 관련 에러
     CHAT_UNAUTHORIZED(HttpStatus.FORBIDDEN,"권한이 없습니다"),
     CHATROOM_NOT_FOUND(HttpStatus.NOT_FOUND,"채팅방을 찾을 수 없습니다."),
-    CHAT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR,"서버 내부 에러. 중복된 레코드가 존재합니다.");
+    CHAT_FAILED(HttpStatus.CONFLICT,"서버 내부 에러. 중복된 레코드가 존재합니다.");
 
 
     private final HttpStatus status;

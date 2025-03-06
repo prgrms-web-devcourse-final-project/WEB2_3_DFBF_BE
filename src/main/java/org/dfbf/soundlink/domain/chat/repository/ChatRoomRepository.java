@@ -5,6 +5,6 @@ import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
+public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long>, ChatRoomCustomRepository {
     boolean existsByRequestUserIdAndRecordId(User requestUserId, EmotionRecord recordId);
 }

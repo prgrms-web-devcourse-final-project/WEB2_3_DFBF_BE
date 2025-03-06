@@ -30,6 +30,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -69,6 +72,14 @@ public class ChatRoomService {
                 String firstKey = redisTemplate.keys(CHAT_REQUEST_KEY + requestUserId + "to*").iterator().next(); // 첫 번째 키 가져오기
                 Long ttl = redisTemplate.getExpire(firstKey);
                 return new ResponseResult(400, ttl + "초 후에 다시 시도해주세요.");
+            }
+
+            // 요청 유저가 emotionRecordId에 대한 채팅방이 이미 있는 경우, 채팅방 번호와 함께 응답
+            Optional<Long> chatRoomId = chatRoomRepository.findChatRoomIdByRequestUserIdAndRecordId(requestUserId, emotionRecordId);
+            if (chatRoomId.isPresent()) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("chatRoomId", chatRoomId.get());
+                return new ResponseResult(ErrorCode.CHAT_FAILED, map);
             }
 
             // Key & Request 객체 생성
@@ -150,9 +161,13 @@ public class ChatRoomService {
             ChatReqDto chatReqDto = new ChatReqDto(userId, responseUserId);
 
             // 레디스에 저장
-            redisTemplate.opsForValue().set("Room::"+chatRoom.getChatRoomId(), String.valueOf(chatReqDto));
+            redisTemplate.opsForValue().set("Room::" + chatRoom.getChatRoomId(), String.valueOf(chatReqDto));
 
-            return new ResponseResult(ErrorCode.SUCCESS, chatRoom);
+            // ChatRoomId Map에 저장
+            Map<String, Object> map = new HashMap<>();
+            map.put("chatRoomId", chatRoom.getChatRoomId());
+
+            return new ResponseResult(ErrorCode.SUCCESS, map);
         } catch (Exception e) {
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }

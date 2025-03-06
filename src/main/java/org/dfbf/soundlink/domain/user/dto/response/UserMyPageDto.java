@@ -9,12 +9,12 @@ public class UserMyPageDto {
     private final String nickname;
     private final ProfileMusic profileMusic;
 
-    public UserMyPageDto(String loginId, String nickname, String spotifyId, String title, String artist, String album) {
+    public UserMyPageDto(String loginId, String nickname, String spotifyId, String title, String artist, String album, String videoId) {
         this.loginId = loginId;
         this.nickname = nickname;
-        this.profileMusic = new ProfileMusic(spotifyId, title, artist, album);
+        this.profileMusic = new ProfileMusic(spotifyId, title, artist, album, videoId);
     }
 }
 
 // Inner 레코드
-record ProfileMusic(String spotifyId, String title, String artist, String album) {}
+record ProfileMusic(String spotifyId, String title, String artist, String album, String videoId) {}

@@ -30,7 +30,8 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
                         QSpotifyMusic.spotifyMusic.spotifyId,
                         QSpotifyMusic.spotifyMusic.title,
                         QSpotifyMusic.spotifyMusic.artist,
-                        QSpotifyMusic.spotifyMusic.albumImage
+                        QSpotifyMusic.spotifyMusic.albumImage,
+                        QSpotifyMusic.spotifyMusic.videoId
                 ))
                 .from(QUser.user)
                 .leftJoin(QUser.user.profileMusic, QProfileMusic.profileMusic)
@@ -49,7 +50,8 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
                         QSpotifyMusic.spotifyMusic.spotifyId,
                         QSpotifyMusic.spotifyMusic.title,
                         QSpotifyMusic.spotifyMusic.artist,
-                        QSpotifyMusic.spotifyMusic.albumImage
+                        QSpotifyMusic.spotifyMusic.albumImage,
+                        QSpotifyMusic.spotifyMusic.videoId
                 ))
                 .from(QUser.user)
                 .leftJoin(QUser.user.profileMusic, QProfileMusic.profileMusic)

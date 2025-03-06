@@ -7,6 +7,7 @@ import org.dfbf.soundlink.domain.alert.entity.Alert;
 import org.dfbf.soundlink.domain.alert.service.AlertService;
 import org.dfbf.soundlink.domain.blocklist.repository.BlockListRepository;
 import org.dfbf.soundlink.domain.blocklist.service.BlockListService;
+import org.dfbf.soundlink.domain.chat.dto.ChatRoomListDto;
 import org.dfbf.soundlink.domain.chat.entity.redis.ChatRequest;
 import org.dfbf.soundlink.domain.chat.dto.ChatReqDto;
 import org.dfbf.soundlink.domain.chat.entity.ChatRoom;
@@ -31,8 +32,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.sql.Timestamp;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -195,4 +198,28 @@ public class ChatRoomService {
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
+
+    //채팅방 목록 불러오기
+    public ResponseResult getChatRoomList(@AuthenticationPrincipal Long userId) {
+        try {
+            List<ChatRoom> chatRooms = chatRoomRepository.findByRequestUserIdOrderByCreatedAtDesc(userId);
+
+            List<ChatRoomListDto> List = chatRooms.stream()
+                    .map(chatRoom -> new ChatRoomListDto(
+                            chatRoom.getChatRoomId(),
+                            chatRoom.getRecordId().getSpotifyMusic().getSpotifyId(),
+                            chatRoom.getRecordId().getSpotifyMusic().getTitle(),
+                            chatRoom.getRecordId().getSpotifyMusic().getArtist(),
+                            chatRoom.getRecordId().getSpotifyMusic().getAlbumImage(),
+                            chatRoom.getRecordId().getSpotifyMusic().getVideoId(),
+                            chatRoom.getRecordId().getComment(),
+                            chatRoom.getCreatedAt().toString()
+                    ))
+                    .collect(Collectors.toList());
+            return new ResponseResult(ErrorCode.SUCCESS, List);
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
 }

@@ -40,4 +40,10 @@ public class ChatController {
     public ResponseResult close(@AuthenticationPrincipal Long userId, @RequestParam("chatRoomId") Long chatRoomId) {
         return chatRoomService.closeChatRoom(userId, chatRoomId);
     }
+
+    @GetMapping("/room-list")
+    @Operation(summary = "채팅 목록 불러오기", description = "채팅 목록 불러옴")
+    public ResponseResult roomList(@AuthenticationPrincipal Long userId){
+        return chatRoomService.getChatRoomList(userId);
+    }
 }

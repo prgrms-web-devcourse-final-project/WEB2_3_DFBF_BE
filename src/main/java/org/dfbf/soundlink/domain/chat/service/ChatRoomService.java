@@ -156,7 +156,6 @@ public class ChatRoomService {
             redisTemplate.delete("Room::"+chatRoomId); // 레디스에서 삭제
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (Exception e) {
-            e.printStackTrace();
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }

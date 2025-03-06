@@ -73,7 +73,7 @@ public class AlertService {
     public void send(/*Long alarmId,*/ Long userId, String alertName, Object msg) {
         SseEmitter sseEmitter = emitterRepository.get(userId)
                 .orElseGet(() -> {
-                    log.info("[SseEmitter] {} SseEmitter Not Founded", USER_PREFIX + id);
+                    log.info("[SseEmitter] {} SseEmitter Not Founded", USER_PREFIX + userId);
                     return new SseEmitter(); // 기본 객체 반환 (예시)
                 });
 
@@ -94,7 +94,7 @@ public class AlertService {
     public void disconnectAlarm(Long userId) {
         SseEmitter sseEmitter = emitterRepository.get(userId)
                 .orElseGet(() -> {
-                    log.info("[SseEmitter] {} SseEmitter Not Founded",  USER_PREFIX + id);
+                    log.info("[SseEmitter] {} SseEmitter Not Founded",  USER_PREFIX + userId);
                     return new SseEmitter(); // 기본 객체 반환 (예시)
                 });
 

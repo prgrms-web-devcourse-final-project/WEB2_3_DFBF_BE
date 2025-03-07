@@ -71,7 +71,10 @@ public class AlertService {
                     sseEmitter.send(SseEmitter.event().name("ping").data("connection keep-alive"));
                 }
             } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
+                if (e instanceof InterruptedException) {
+                    // 인터럽트 상태를 다시 설정
+                    Thread.currentThread().interrupt();
+                }
             } finally {
                 sseEmitter.complete();
             }

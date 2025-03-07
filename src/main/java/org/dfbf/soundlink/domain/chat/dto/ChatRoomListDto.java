@@ -6,6 +6,8 @@ import java.sql.Timestamp;
 
 public record ChatRoomListDto(
         Long chatRoomId,
+        String nickname,
+        String emotion,
         String spotifyId,
         String title,
         String artist,

@@ -229,6 +229,8 @@ public class ChatRoomService {
             List<ChatRoomListDto> chatRoomList = chatRooms.stream()
                     .map(chatRoom -> new ChatRoomListDto(
                             chatRoom.getChatRoomId(),
+                            chatRoom.getRecordId().getUser().getNickname(),
+                            chatRoom.getRecordId().getEmotion().name(),
                             chatRoom.getRecordId().getSpotifyMusic().getSpotifyId(),
                             chatRoom.getRecordId().getSpotifyMusic().getTitle(),
                             chatRoom.getRecordId().getSpotifyMusic().getArtist(),

@@ -1,17 +1,17 @@
 package org.dfbf.soundlink.domain.alert.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dfbf.soundlink.domain.alert.repository.AlertRepository;
-import org.springframework.boot.autoconfigure.graphql.GraphQlProperties;
-import org.springframework.http.HttpStatus;
+import org.dfbf.soundlink.global.exception.ErrorCode;
+import org.dfbf.soundlink.global.exception.ResponseResult;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import javax.management.Notification;
 import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
 
 @Service
 @Slf4j
@@ -53,24 +53,35 @@ public class AlertService {
             emitterRepository.delete(id);
         });
 
+
 //        // 연결 시 기존에 저장된 알람을 전송
 //        sendSavedAlerts(id, sseEmitter);
 
-        try {
-            sseEmitter.send(SseEmitter.event()
-                    .id(createAlarmId(id, null))
-                    .name(ALARM_NAME)
-                    .data("connect completed!!")
-            );
-        } catch (IOException e) {
-            log.error(e.getMessage(), e);
-        }
+        Executors.newSingleThreadExecutor().submit(() -> {
+            try {
+                sseEmitter.send(SseEmitter.event()
+                        .id(createAlarmId(id, null))
+                        .name("open")
+                        .data("connect completed!!")
+                );
+
+                // 45초마다 빈 데이터를 보내어 연결을 유지
+                while (true) {
+                    Thread.sleep(40000); // 45초마다 빈 메시지를 전송
+                    sseEmitter.send(SseEmitter.event().name("ping").data("connection keep-alive"));
+                }
+            } catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                sseEmitter.complete();
+            }
+        });
 
         return sseEmitter;
     }
 
     // SSE를 통해 메시지 전송
-    public void send(/*Long alarmId,*/ Long userId, String alertName, Object msg) {
+    public ResponseResult send(/*Long alarmId,*/ Long userId, String alertName, Object msg) {
         SseEmitter sseEmitter = emitterRepository.get(userId)
                 .orElseGet(() -> {
                     log.info("[SseEmitter] {} SseEmitter Not Founded", USER_PREFIX + userId);
@@ -78,15 +89,21 @@ public class AlertService {
                 });
 
         try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String jsonMsg = objectMapper.writeValueAsString(msg); // msg를 JSON 문자열로 변환
+
             sseEmitter.send(
                     SseEmitter.event()
                             .id(createAlarmId(userId, null))
                             .name(alertName)
-                            .data(msg)
+                            .data(jsonMsg, MediaType.APPLICATION_JSON) // 변환된 JSON 문자열 전송
             );
+
+            return new ResponseResult(ErrorCode.SUCCESS);
         } catch (IOException e) {
             emitterRepository.delete(userId);
             log.error(e.getMessage(), e);
+            return new ResponseResult(ErrorCode.BAD_REQUEST_STATUS, e.getMessage());
         }
     }
 

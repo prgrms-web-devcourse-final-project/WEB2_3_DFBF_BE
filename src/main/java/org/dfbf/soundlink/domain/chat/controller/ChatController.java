@@ -40,4 +40,16 @@ public class ChatController {
     public ResponseResult close(@AuthenticationPrincipal Long userId, @RequestParam("chatRoomId") Long chatRoomId) {
         return chatRoomService.closeChatRoom(userId, chatRoomId);
     }
+
+    @GetMapping("/room-list")
+    @Operation(summary = "채팅 목록 불러오기", description = "채팅 목록 불러옴")
+    public ResponseResult roomList(@AuthenticationPrincipal Long userId){
+        return chatRoomService.getChatRoomList(userId);
+    }
+
+    @GetMapping("/room/detail")
+    @Operation(summary = "채팅방 상세 정보", description ="곡정보,상태,생성일을 불러옴")
+    public ResponseResult roomInfo(@RequestParam("chatRoomId") Long chatRoomId, @AuthenticationPrincipal Long userId){
+        return chatRoomService.getChatRoomInfo(chatRoomId, userId);
+    }
 }

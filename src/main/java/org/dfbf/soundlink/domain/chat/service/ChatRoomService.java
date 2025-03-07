@@ -7,6 +7,8 @@ import org.dfbf.soundlink.domain.alert.entity.Alert;
 import org.dfbf.soundlink.domain.alert.service.AlertService;
 import org.dfbf.soundlink.domain.blocklist.repository.BlockListRepository;
 import org.dfbf.soundlink.domain.blocklist.service.BlockListService;
+import org.dfbf.soundlink.domain.chat.dto.ChatRoomInfoDto;
+import org.dfbf.soundlink.domain.chat.dto.ChatRoomListDto;
 import org.dfbf.soundlink.domain.chat.entity.redis.ChatRequest;
 import org.dfbf.soundlink.domain.chat.dto.ChatReqDto;
 import org.dfbf.soundlink.domain.chat.entity.ChatRoom;
@@ -31,8 +33,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.sql.Timestamp;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -196,6 +200,60 @@ public class ChatRoomService {
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (Exception e) {
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    //채팅방 목록 불러오기
+    public ResponseResult getChatRoomList(@AuthenticationPrincipal Long userId) {
+        try {
+            List<ChatRoom> chatRooms = chatRoomRepository.findByRequestUserIdOrderByCreatedAtDesc(userId);
+
+            List<ChatRoomListDto> chatRoomList = chatRooms.stream()
+                    .map(chatRoom -> new ChatRoomListDto(
+                            chatRoom.getChatRoomId(),
+                            chatRoom.getRecordId().getSpotifyMusic().getSpotifyId(),
+                            chatRoom.getRecordId().getSpotifyMusic().getTitle(),
+                            chatRoom.getRecordId().getSpotifyMusic().getArtist(),
+                            chatRoom.getRecordId().getSpotifyMusic().getAlbumImage(),
+                            chatRoom.getRecordId().getSpotifyMusic().getVideoId(),
+                            chatRoom.getRecordId().getComment(),
+                            chatRoom.getCreatedAt()
+                    ))
+                    .toList();
+            return new ResponseResult(ErrorCode.SUCCESS, chatRoomList);
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    //채팅방 상세 정보 조회
+    public ResponseResult getChatRoomInfo(Long chatRoomId, Long userId) {
+        try {
+            ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                    .orElseThrow(ChatRoomNotFoundException::new);
+
+            // 채팅방 요청자 또는 응답자가 아닌 경우 예외 처리
+            if (!chatRoom.getRequestUserId().getUserId().equals(userId) &&
+                    !chatRoom.getRecordId().getUser().getUserId().equals(userId)) {
+                throw new UnauthorizedAccessException(); // 권한이 없으면 예외 발생
+            }
+
+            ChatRoomInfoDto infoDto = new ChatRoomInfoDto(
+                    chatRoom.getRecordId().getSpotifyMusic().getSpotifyId(),
+                    chatRoom.getRecordId().getSpotifyMusic().getTitle(),
+                    chatRoom.getRecordId().getSpotifyMusic().getArtist(),
+                    chatRoom.getRecordId().getSpotifyMusic().getAlbumImage(),
+                    chatRoom.getRecordId().getSpotifyMusic().getVideoId(),
+                    chatRoom.getStatus().name(),
+                    chatRoom.getCreatedAt()
+            );
+            return new ResponseResult(ErrorCode.SUCCESS, infoDto);
+        } catch (ChatRoomNotFoundException e) {
+            return new ResponseResult(ErrorCode.CHATROOM_NOT_FOUND, "채팅방을 찾을 수 없습니다.");
+        }catch (UnauthorizedAccessException e) {
+            return new ResponseResult(ErrorCode.CHAT_UNAUTHORIZED,"권한이 없습니다.");
+        }catch (Exception e) {
+            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, "채팅방 세부 정보를 가져오는 데 실패했습니다.");
         }
     }
 }

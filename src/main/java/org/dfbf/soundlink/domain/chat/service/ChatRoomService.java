@@ -112,14 +112,24 @@ public class ChatRoomService {
     }
 
     // 요청을 삭제
-    public ResponseResult deleteRequestFromRedis(Long requestUserId, Long emotionRecordId) {
+    public ResponseResult deleteRequestFromRedis(Long responseUserId, Long emotionRecordId, String requestNickname) {
         try {
+            Long recordIdInUserId = emotionRecordRepository.findUserIdByRecordId(emotionRecordId)
+                    .orElseThrow(EmotionRecordNotFoundException::new);
+
+            if (!recordIdInUserId.equals(responseUserId)) {
+                return new ResponseResult(400, "응답자와 글쓴이가 일치하지 않습니다.");
+            }
+
             // Key 생성
+            Long requestUserId = userRepository.findUserIdByNickname(requestNickname)
+                    .orElseThrow(UserNotFoundException::new);
             String key = CHAT_REQUEST_KEY + requestUserId + "to" + emotionRecordId;
 
             // Redis에 Key가 존재하는 경우 삭제 (KEY가 없는 경우 400)
             if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
                 redisTemplate.delete(key);
+                alertService.send(requestUserId, "Fail", "채팅 요청을 거부했습니다");
                 return new ResponseResult(ErrorCode.SUCCESS);
             } else {
                 return new ResponseResult(400, "ChatRequest not found or expired.");
@@ -127,17 +137,22 @@ public class ChatRoomService {
 
         } catch (EmotionRecordNotFoundException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD);
+        } catch (UserNotFoundException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
         } catch (Exception e) {
             log.error(e.getMessage());
             return new ResponseResult(400, "Chat request failed.");
         }
     }
 
+    // 채팅방 생성
     @Transactional
-    public ResponseResult createChatRoom(@AuthenticationPrincipal Long userId, Long recordId) {
+    public ResponseResult createChatRoom(@AuthenticationPrincipal Long userId, Long recordId, String requestNickname) {
         try {
-            // 요청 보내는사람
-            User requestUserId = userRepository.findById(userId)
+            // 요청 보낸사람
+            Long requestUserId = userRepository.findUserIdByNickname(requestNickname)
+                    .orElseThrow(UserNotFoundException::new);
+            User user = userRepository.findByUserIdWithCache(requestUserId)
                     .orElseThrow(UserNotFoundException::new);
 
             // 감정기록 조회
@@ -145,7 +160,7 @@ public class ChatRoomService {
                     .orElseThrow(EmotionRecordNotFoundException::new);
 
             // 이미 존재하는 채팅방인지 확인
-            Optional<Long> chatRoomId = chatRoomRepository.findChatRoomIdByRequestUserIdAndRecordId(userId, recordId);
+            Optional<Long> chatRoomId = chatRoomRepository.findChatRoomIdByRequestUserIdAndRecordId(requestUserId, recordId);
             if (chatRoomId.isPresent()) {
                 Map<String, Object> map = new HashMap<>();
                 map.put("chatRoomId", chatRoomId.get());
@@ -155,9 +170,9 @@ public class ChatRoomService {
             Long responseUserId = emotionRecord.getUser().getUserId();
 
             ChatRoom chatRoom = ChatRoom.builder()
-                    .requestUserId(requestUserId)
+                    .requestUserId(user)
                     .recordId(emotionRecord)
-                    .status(RoomStatus.WAITING) //상태 : 대기
+                    .status(RoomStatus.CONNECTED) //상태 : 대기
                     .startTime(new Timestamp(System.currentTimeMillis()))
                     .endTime(null)
                     .build();
@@ -173,6 +188,9 @@ public class ChatRoomService {
             // ChatRoomId Map에 저장
             Map<String, Object> map = new HashMap<>();
             map.put("chatRoomId", chatRoom.getChatRoomId());
+
+            // 요청자에게 방번호를 보냄
+            alertService.send(requestUserId, "Accept", map);
 
             return new ResponseResult(ErrorCode.SUCCESS, map);
         } catch (Exception e) {

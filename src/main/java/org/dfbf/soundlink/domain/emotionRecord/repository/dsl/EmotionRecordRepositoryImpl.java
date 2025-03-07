@@ -152,6 +152,17 @@ public class EmotionRecordRepositoryImpl implements EmotionRecordRepositoryCusto
                 .execute();
     }
 
+    @Override
+    public Optional<Long> findUserIdByRecordId(Long emotionRecordId) {
+        return Optional.ofNullable(
+                jpaQueryFactory
+                        .select(QEmotionRecord.emotionRecord.user.userId)
+                        .from(QEmotionRecord.emotionRecord)
+                        .where(QEmotionRecord.emotionRecord.recordId.eq(emotionRecordId))
+                        .fetchOne()
+        );
+    }
+
     private BooleanExpression excludeUserId(Long userId) {
         return userId != null ? QUser.user.userId.ne(userId) : null;
     }

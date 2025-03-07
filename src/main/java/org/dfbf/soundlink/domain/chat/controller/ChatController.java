@@ -25,14 +25,14 @@ public class ChatController {
 
     @DeleteMapping("/request")
     @Operation(summary = "채팅 요청 취소 API", description = "채팅 요청 취소")
-    public ResponseResult cancelChatRequest(@AuthenticationPrincipal Long id, @RequestParam("recordId") Long emotionRecordId) {
-        return chatRoomService.deleteRequestFromRedis(id, emotionRecordId);
+    public ResponseResult cancelChatRequest(@AuthenticationPrincipal Long id, @RequestParam("recordId") Long emotionRecordId, @RequestParam("requestNickname") String requestNickname) {
+        return chatRoomService.deleteRequestFromRedis(id, emotionRecordId, requestNickname);
     }
 
     @PostMapping("/create")
     @Operation(summary = "채팅요청 시 채팅방 생성", description = "requestId, responseId 값 확인")
-    public ResponseResult create(@AuthenticationPrincipal Long userId, @RequestParam("recordId") Long recordId) {
-        return chatRoomService.createChatRoom(userId, recordId);
+    public ResponseResult create(@AuthenticationPrincipal Long userId, @RequestParam("recordId") Long recordId, @RequestParam("requestNickname") String requestNickname) {
+        return chatRoomService.createChatRoom(userId, recordId, requestNickname);
     }
 
     @PostMapping("/close")

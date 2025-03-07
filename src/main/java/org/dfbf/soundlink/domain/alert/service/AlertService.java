@@ -70,11 +70,11 @@ public class AlertService {
                     Thread.sleep(40000); // 45초마다 빈 메시지를 전송
                     sseEmitter.send(SseEmitter.event().name("ping").data("connection keep-alive"));
                 }
-            } catch (IOException | InterruptedException e) {
-                if (e instanceof InterruptedException) {
-                    // 인터럽트 상태를 다시 설정
-                    Thread.currentThread().interrupt();
-                }
+            } catch (IOException e) {
+                log.error(e.getMessage());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.error(e.getMessage());
             } finally {
                 sseEmitter.complete();
             }

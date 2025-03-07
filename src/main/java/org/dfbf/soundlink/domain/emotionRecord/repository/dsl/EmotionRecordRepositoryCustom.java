@@ -21,4 +21,6 @@ public interface EmotionRecordRepositoryCustom {
     Optional<EmotionRecord> findByRecordId(Long recordId);
 
     int deleteByRecordId(Long recordId);
+
+    Optional<Long> findUserIdByRecordId(Long recordId);
 }

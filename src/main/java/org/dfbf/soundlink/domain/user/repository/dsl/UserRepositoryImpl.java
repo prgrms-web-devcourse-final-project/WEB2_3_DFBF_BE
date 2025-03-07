@@ -95,4 +95,14 @@ public class UserRepositoryImpl implements UserRepositoryCustom {
 
         return user; // 저장 후 바로 캐싱
     }
+
+    @Override
+    public Optional<Long> findUserIdByNickname(String requestNickname){
+        return Optional.ofNullable(
+                jpaQueryFactory
+                .select(QUser.user.userId)
+                .from(QUser.user)
+                .where(QUser.user.nickname.eq(requestNickname))
+                .fetchOne());
+    }
 }

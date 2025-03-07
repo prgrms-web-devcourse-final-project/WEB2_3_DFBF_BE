@@ -17,4 +17,6 @@ public interface UserRepositoryCustom {
     Optional<User> findByUserIdWithCache(Long userId);
 
     User saveWithCache(User user);
+
+    Optional<Long> findUserIdByNickname(String requestNickname);
 }

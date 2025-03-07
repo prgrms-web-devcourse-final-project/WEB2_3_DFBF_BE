@@ -4,13 +4,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.dfbf.soundlink.domain.alert.service.AlertService;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 @RestController
 @RequestMapping("/api/alert")
@@ -20,15 +16,15 @@ public class AlertController {
 
     private final AlertService alertService;
 
-    @GetMapping("/connect")
+    @GetMapping(value = "/connect", produces = "text/event-stream")
     @Operation(summary = "SSE 연결 API", description = "SSE 연결")
-    public SseEmitter subscribe(@AuthenticationPrincipal Long id) {
+    public SseEmitter subscribe(/*@AuthenticationPrincipal Long id*/ @RequestParam("id") Long id) {
         return alertService.connectAlarm(id);
     }
 
     @PostMapping("")
     @Operation(summary = "알림 전송 API", description = "알림을 전송하는 기능 (CHAT 서버에서 사용하는 기능입니다.)")
-    public void send(@RequestParam("id") Long id, @RequestParam("msg") String msg) {
-        alertService.send(id,"test" ,msg);
+    public ResponseResult send(@RequestParam("id") Long id, @RequestParam("msg") String msg) {
+        return alertService.send(id,"test" ,msg);
     }
 }

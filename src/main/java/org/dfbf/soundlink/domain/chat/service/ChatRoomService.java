@@ -21,6 +21,7 @@ import org.dfbf.soundlink.domain.emotionRecord.exception.EmotionRecordNotFoundEx
 import org.dfbf.soundlink.domain.emotionRecord.exception.UserNotFoundException;
 import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepository;
 import org.dfbf.soundlink.domain.user.entity.User;
+import org.dfbf.soundlink.domain.user.exception.NoUserDataException;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
 import org.dfbf.soundlink.global.comm.enums.RoomStatus;
 import org.dfbf.soundlink.global.exception.ErrorCode;
@@ -177,50 +178,71 @@ public class ChatRoomService {
     @Transactional
     public ResponseResult createChatRoom(@AuthenticationPrincipal Long userId, Long recordId, String requestNickname) {
         try {
-            // 요청 보낸사람
-            Long requestUserId = userRepository.findUserIdByNickname(requestNickname)
-                    .orElseThrow(UserNotFoundException::new);
-            User user = userRepository.findByUserIdWithCache(requestUserId)
-                    .orElseThrow(UserNotFoundException::new);
-
-            // 감정기록 조회
-            EmotionRecord emotionRecord = emotionRecordRepository.findById(recordId)
+            Long recordIdInUserId = emotionRecordRepository.findUserIdByRecordId(recordId)
                     .orElseThrow(EmotionRecordNotFoundException::new);
 
-            // 이미 존재하는 채팅방인지 확인
-            Optional<Long> chatRoomId = chatRoomRepository.findChatRoomIdByRequestUserIdAndRecordId(requestUserId, recordId);
-            if (chatRoomId.isPresent()) {
-                Map<String, Object> map = new HashMap<>();
-                map.put("chatRoomId", chatRoomId.get());
-                return new ResponseResult(ErrorCode.CHAT_FAILED, map);
+            if (!userId.equals(recordIdInUserId)) {
+                return new ResponseResult(400, "응답자만 요청을 거절할 수 있습니다.");
             }
 
-            Long responseUserId = emotionRecord.getUser().getUserId();
+            // Key 생성
+            String key = CHAT_REQUEST_KEY + userId + "to" + recordId;
 
-            ChatRoom chatRoom = ChatRoom.builder()
-                    .requestUserId(user)
-                    .recordId(emotionRecord)
-                    .status(RoomStatus.CONNECTED) //상태 : 대기
-                    .startTime(new Timestamp(System.currentTimeMillis()))
-                    .endTime(null)
-                    .build();
+            // Redis에 Key가 존재하는 경우 삭제 & 방생성 (KEY가 없는 경우 400)
+            if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+                redisTemplate.delete(key);
 
-            // DB에 저장
-            chatRoomRepository.save(chatRoom);
+                // 요청 보낸사람
+                Long requestUserId = userRepository.findUserIdByNickname(requestNickname)
+                        .orElseThrow(UserNotFoundException::new);
+                User user = userRepository.findByUserIdWithCache(requestUserId)
+                        .orElseThrow(UserNotFoundException::new);
 
-            ChatReqDto chatReqDto = new ChatReqDto(userId, responseUserId);
+                // 감정기록 조회
+                EmotionRecord emotionRecord = emotionRecordRepository.findById(recordId)
+                        .orElseThrow(EmotionRecordNotFoundException::new);
 
-            // 레디스에 저장
-            redisTemplate.opsForValue().set("Room::" + chatRoom.getChatRoomId(), String.valueOf(chatReqDto));
+                // 이미 존재하는 채팅방인지 확인
+                Optional<Long> chatRoomId = chatRoomRepository.findChatRoomIdByRequestUserIdAndRecordId(requestUserId, recordId);
+                if (chatRoomId.isPresent()) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("chatRoomId", chatRoomId.get());
+                    return new ResponseResult(ErrorCode.CHAT_FAILED, map);
+                }
 
-            // ChatRoomId Map에 저장
-            Map<String, Object> map = new HashMap<>();
-            map.put("chatRoomId", chatRoom.getChatRoomId());
+                Long responseUserId = emotionRecord.getUser().getUserId();
 
-            // 요청자에게 방번호를 보냄
-            alertService.send(requestUserId, "Accept", map);
+                ChatRoom chatRoom = ChatRoom.builder()
+                        .requestUserId(user)
+                        .recordId(emotionRecord)
+                        .status(RoomStatus.CONNECTED) //상태 : 대기
+                        .startTime(new Timestamp(System.currentTimeMillis()))
+                        .endTime(null)
+                        .build();
 
-            return new ResponseResult(ErrorCode.SUCCESS, map);
+                // DB에 저장
+                chatRoomRepository.save(chatRoom);
+
+                ChatReqDto chatReqDto = new ChatReqDto(userId, responseUserId);
+
+                // 레디스에 저장
+                redisTemplate.opsForValue().set("Room::" + chatRoom.getChatRoomId(), String.valueOf(chatReqDto));
+
+                // ChatRoomId Map에 저장
+                Map<String, Object> map = new HashMap<>();
+                map.put("chatRoomId", chatRoom.getChatRoomId());
+
+                // 요청자에게 방번호를 보냄
+                alertService.send(requestUserId, "Accept", map);
+
+                return new ResponseResult(ErrorCode.SUCCESS, map);
+            } else {
+                return new ResponseResult(400, "ChatRequest not found or expired.");
+            }
+        } catch (EmotionRecordNotFoundException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
+        } catch (NoUserDataException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
         } catch (Exception e) {
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }

@@ -62,7 +62,8 @@ class UserServiceTest {
                 Optional.of("spotify123"), // Spotify ID 존재
                 Optional.of("New Title"),
                 Optional.of("New Artist"),
-                Optional.of("New Album Image")
+                Optional.of("New Album Image"),
+                Optional.of("New VideoId")
         );
 
         SpotifyMusic spotifyMusic = new SpotifyMusic(updateDto);

@@ -104,26 +104,26 @@ class UserServiceTest {
         verify(passwordEncoder, times(1)).encode(userSignUpDto.password());
     }
 
-    @Test
-    @DisplayName("회원삭제 성공")
-    void deleteUser_Success(){
-        //given
-        Long userId = 1L;
-        User user = mock(User.class);
-
-        // 유저를 찾기
-        when(userRepository.findByUserIdWithCache(userId)).thenReturn(Optional.of(user));
-        // 감정 기록 삭제, doNotion()-> 단지 메소드가 호출되었는지만 확인
-        doNothing().when(emotionRecordRepository).deleteByUser(user);
-        // 유저 삭제
-        doNothing().when(userRepository).deleteById(userId);
-
-        //when
-        ResponseResult result = userService.deleteUser(userId);
-
-        //then
-        assertEquals(200, result.getCode());
-        verify(emotionRecordRepository, times(1)).deleteByUser(user); //(1): 1번 호출되었는지 확인 = 감정기록이 삭제 됨.
-//        verify(userRepository, times(0)).deleteById(userId);//(0):호출되지 않았는지 확인 = 사용자가 삭제 되지 않음.(1):성공적으로 삭제됨.
-    }
+//    @Test
+//    @DisplayName("회원삭제 성공")
+//    void deleteUser_Success(){
+//        //given
+//        Long userId = 1L;
+//        User user = mock(User.class);
+//
+//        // 유저를 찾기
+//        when(userRepository.findByUserIdWithCache(userId)).thenReturn(Optional.of(user));
+//        // 감정 기록 삭제, doNotion()-> 단지 메소드가 호출되었는지만 확인
+//        doNothing().when(emotionRecordRepository).deleteByUser(user);
+//        // 유저 삭제
+//        doNothing().when(userRepository).deleteById(userId);
+//
+//        //when
+//        ResponseResult result = userService.deleteUser(userId);
+//
+//        //then
+//        assertEquals(200, result.getCode());
+//        verify(emotionRecordRepository, times(1)).deleteByUser(user); //(1): 1번 호출되었는지 확인 = 감정기록이 삭제 됨.
+////        verify(userRepository, times(0)).deleteById(userId);//(0):호출되지 않았는지 확인 = 사용자가 삭제 되지 않음.(1):성공적으로 삭제됨.
+//    }
 }

@@ -4,6 +4,7 @@ import io.lettuce.core.dynamic.annotation.Param;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.dfbf.soundlink.domain.chat.dto.ChatRejectDto;
 import org.dfbf.soundlink.domain.chat.service.ChatRoomService;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,8 +32,8 @@ public class ChatController {
 
     @PostMapping("/request/reject")
     @Operation(summary = "채팅 요청 거절 API", description = "채팅 요청 거절 (응답자가 요청 자체를 거절)")
-    public ResponseResult rejectChatRequest(@AuthenticationPrincipal Long id, @RequestParam("recordId") Long emotionRecordId, @RequestParam("requestNickname") String requestNickname) {
-        return chatRoomService.requestRejected(id, emotionRecordId, requestNickname);
+    public ResponseResult rejectChatRequest(@AuthenticationPrincipal Long id, ChatRejectDto chatRejectDto) {
+        return chatRoomService.requestRejected(id, chatRejectDto);
     }
 
     @PostMapping("/create")

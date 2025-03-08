@@ -7,6 +7,7 @@ import org.dfbf.soundlink.domain.alert.entity.Alert;
 import org.dfbf.soundlink.domain.alert.service.AlertService;
 import org.dfbf.soundlink.domain.blocklist.repository.BlockListRepository;
 import org.dfbf.soundlink.domain.blocklist.service.BlockListService;
+import org.dfbf.soundlink.domain.chat.dto.ChatRejectDto;
 import org.dfbf.soundlink.domain.chat.dto.ChatRoomInfoDto;
 import org.dfbf.soundlink.domain.chat.dto.ChatRoomListDto;
 import org.dfbf.soundlink.domain.chat.entity.redis.ChatRequest;
@@ -139,9 +140,9 @@ public class ChatRoomService {
     }
 
     // 요청 거절
-    public ResponseResult requestRejected(Long responseUserId, Long emotionRecordId, String requestNickname) {
+    public ResponseResult requestRejected(Long responseUserId, ChatRejectDto chatRejectDto) {
         try {
-            Long recordIdInUserId = emotionRecordRepository.findUserIdByRecordId(emotionRecordId)
+            Long recordIdInUserId = emotionRecordRepository.findUserIdByRecordId(chatRejectDto.emotionRecordId())
                     .orElseThrow(EmotionRecordNotFoundException::new);
 
             if (!responseUserId.equals(recordIdInUserId)) {
@@ -149,9 +150,9 @@ public class ChatRoomService {
             }
 
             // Key 생성
-            Long requestUserId = userRepository.findUserIdByNickname(requestNickname)
+            Long requestUserId = userRepository.findUserIdByNickname(chatRejectDto.requestNickname())
                     .orElseThrow(UserNotFoundException::new);
-            String key = CHAT_REQUEST_KEY + requestUserId + "to" + emotionRecordId;
+            String key = CHAT_REQUEST_KEY + requestUserId + "to" + chatRejectDto.emotionRecordId();
 
             // Redis에 Key가 존재하는 경우 삭제 (KEY가 없는 경우 400)
             if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {

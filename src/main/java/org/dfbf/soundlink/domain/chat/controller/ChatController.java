@@ -24,9 +24,15 @@ public class ChatController {
     }
 
     @DeleteMapping("/request")
-    @Operation(summary = "채팅 요청 취소 API", description = "채팅 요청 취소")
-    public ResponseResult cancelChatRequest(@AuthenticationPrincipal Long id, @RequestParam("recordId") Long emotionRecordId, @RequestParam("requestNickname") String requestNickname) {
-        return chatRoomService.deleteRequestFromRedis(id, emotionRecordId, requestNickname);
+    @Operation(summary = "채팅 요청 취소 API", description = "채팅 요청 취소 (요청 보내느사람이 요청 자체를 취소)")
+    public ResponseResult cancelChatRequest(@AuthenticationPrincipal Long id, @RequestParam("recordId") Long emotionRecordId) {
+        return chatRoomService.deleteRequestFromRedis(id, emotionRecordId);
+    }
+
+    @PostMapping("/request/reject")
+    @Operation(summary = "채팅 요청 거절 API", description = "채팅 요청 거절 (응답자가 요청 자체를 거절)")
+    public ResponseResult rejectChatRequest(@AuthenticationPrincipal Long id, @RequestParam("recordId") Long emotionRecordId, @RequestParam("requestNickname") String requestNickname) {
+        return chatRoomService.requestRejected(id, emotionRecordId, requestNickname);
     }
 
     @PostMapping("/create")

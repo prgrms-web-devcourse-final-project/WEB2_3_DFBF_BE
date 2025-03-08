@@ -112,13 +112,40 @@ public class ChatRoomService {
     }
 
     // 요청을 삭제
-    public ResponseResult deleteRequestFromRedis(Long responseUserId, Long emotionRecordId, String requestNickname) {
+    public ResponseResult deleteRequestFromRedis(Long userId, Long emotionRecordId) {
         try {
             Long recordIdInUserId = emotionRecordRepository.findUserIdByRecordId(emotionRecordId)
                     .orElseThrow(EmotionRecordNotFoundException::new);
 
-            if (!recordIdInUserId.equals(responseUserId)) {
-                return new ResponseResult(400, "응답자와 글쓴이가 일치하지 않습니다.");
+            // Key 생성
+            String key = CHAT_REQUEST_KEY + userId + "to" + emotionRecordId;
+
+            // Redis에 Key가 존재하는 경우 삭제 (KEY가 없는 경우 400)
+            if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+                redisTemplate.delete(key);
+                return new ResponseResult(ErrorCode.SUCCESS);
+            } else {
+                return new ResponseResult(400, "ChatRequest not found or expired.");
+            }
+
+        } catch (EmotionRecordNotFoundException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD);
+        } catch (UserNotFoundException e) {
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return new ResponseResult(400, "Chat request failed.");
+        }
+    }
+
+    // 요청 거절
+    public ResponseResult requestRejected(Long responseUserId, Long emotionRecordId, String requestNickname) {
+        try {
+            Long recordIdInUserId = emotionRecordRepository.findUserIdByRecordId(emotionRecordId)
+                    .orElseThrow(EmotionRecordNotFoundException::new);
+
+            if (!responseUserId.equals(recordIdInUserId)) {
+                return new ResponseResult(400, "응답자만 요청을 거절할 수 있습니다.");
             }
 
             // Key 생성
@@ -145,7 +172,7 @@ public class ChatRoomService {
         }
     }
 
-    // 채팅방 생성
+    // 채팅방 생성 (요청 수락)
     @Transactional
     public ResponseResult createChatRoom(@AuthenticationPrincipal Long userId, Long recordId, String requestNickname) {
         try {

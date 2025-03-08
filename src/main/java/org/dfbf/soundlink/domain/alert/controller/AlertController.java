@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.dfbf.soundlink.domain.alert.service.AlertService;
 import org.dfbf.soundlink.global.exception.ResponseResult;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -18,7 +19,7 @@ public class AlertController {
 
     @GetMapping(value = "/connect", produces = "text/event-stream")
     @Operation(summary = "SSE 연결 API", description = "SSE 연결")
-    public SseEmitter subscribe(/*@AuthenticationPrincipal Long id*/ @RequestParam("id") Long id) {
+    public SseEmitter subscribe(@AuthenticationPrincipal Long id) {
         return alertService.connectAlarm(id);
     }
 

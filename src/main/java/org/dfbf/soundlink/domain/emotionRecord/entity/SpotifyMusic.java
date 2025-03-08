@@ -57,5 +57,6 @@ public class SpotifyMusic {
         this.title = userUpdateDto.title().get();
         this.artist = userUpdateDto.artist().get();
         this.albumImage = userUpdateDto.albumImage().get();
+        this.videoId = userUpdateDto.videoId().get();
     }
 }

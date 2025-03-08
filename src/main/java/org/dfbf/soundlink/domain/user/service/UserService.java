@@ -100,7 +100,7 @@ public class UserService {
                     .orElseThrow(NoUserDataException::new);
             String spotifyId = userUpdateDto.spotifyId().orElse(null);
 
-            if (spotifyId != null) {
+            if (spotifyId != null && !spotifyId.equals("-1")) {
                 // SpotifyMusic 객체 찾기 (없으면 새로 생성 & 저장)
                 SpotifyMusic spotifyMusic = spotifyMusicRepository.findBySpotifyId(spotifyId)
                         .orElseGet(() -> {
@@ -110,6 +110,7 @@ public class UserService {
                         });
                 user.update(userUpdateDto, passwordEncoder, spotifyMusic);
             } else {
+                if(spotifyId.equals("-1")) { user.getProfileMusic().deleteSpotifyId(); }
                 user.update(userUpdateDto, passwordEncoder);
             }
 

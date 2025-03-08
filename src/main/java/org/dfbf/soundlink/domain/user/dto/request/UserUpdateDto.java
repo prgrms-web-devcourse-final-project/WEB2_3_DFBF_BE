@@ -10,6 +10,7 @@ public record UserUpdateDto(
         Optional<String> spotifyId,
         Optional<String> title,
         Optional<String> artist,
-        Optional<String> albumImage
+        Optional<String> albumImage,
+        Optional<String> videoId
 ) {
 }

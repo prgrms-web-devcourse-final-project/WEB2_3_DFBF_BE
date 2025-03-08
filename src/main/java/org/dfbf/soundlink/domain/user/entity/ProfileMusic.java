@@ -41,4 +41,8 @@ public class ProfileMusic {
     public void update(SpotifyMusic spotifyMusic) {
         this.spotifyMusic = spotifyMusic;
     }
+
+    public void deleteSpotifyId() {
+        this.spotifyMusic = null;
+    }
 }

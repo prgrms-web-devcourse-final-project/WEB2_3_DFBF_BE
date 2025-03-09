@@ -1,4 +1,4 @@
-package org.dfbf.soundlink.global.auth.client;
+package org.dfbf.soundlink.global.feign.auth;
 
 import org.dfbf.soundlink.domain.user.dto.response.KakaoUserDTO;
 import org.springframework.cloud.openfeign.FeignClient;

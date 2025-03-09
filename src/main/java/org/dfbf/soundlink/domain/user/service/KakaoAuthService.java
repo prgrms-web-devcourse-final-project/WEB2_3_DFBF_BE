@@ -7,8 +7,8 @@ import org.dfbf.soundlink.domain.user.dto.response.KakaoUserDTO;
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
 import org.dfbf.soundlink.global.auth.JwtProvider;
-import org.dfbf.soundlink.global.auth.client.KakaoAuthClient;
-import org.dfbf.soundlink.global.auth.client.KakaoUserClient;
+import org.dfbf.soundlink.global.feign.auth.KakaoAuthClient;
+import org.dfbf.soundlink.global.feign.auth.KakaoUserClient;
 import org.dfbf.soundlink.global.comm.enums.SocialType;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +41,9 @@ public class KakaoAuthService {
 
     @Value("${REFRESH_TOKEN_EXPIRATION_TIME}")
     private int REFRESH_TOKEN_EXPIRATION_TIME;
+
+    @Value("${app.mode}")
+    private String appMode;
 
     @Value("${cookie.setting.secure}")
     private boolean secure;
@@ -133,13 +136,25 @@ public class KakaoAuthService {
 
     // RefreshToken을 쿠키로 설정
     private ResponseCookie getRefreshToken(String refreshToken) {
-        return ResponseCookie
-                .from("REFRESHTOKEN", refreshToken)
-                .domain(domain)
-                .path("/")
-                .httpOnly(true)
-                .secure(secure)
-                .maxAge(REFRESH_TOKEN_EXPIRATION_TIME/1000) // 만료시간 설정(밀리초 -> 초로 변경)
-                .build();
+        if (!appMode.equals("dev")) {
+            return ResponseCookie
+                    .from("REFRESHTOKEN", refreshToken)
+                    .domain(domain)
+                    .path("/")
+                    .httpOnly(true)
+                    .secure(true)
+                    .sameSite("None")
+                    .maxAge(REFRESH_TOKEN_EXPIRATION_TIME/1000) // 만료시간 설정(밀리초 -> 초로 변경)
+                    .build();
+        } else {
+            return ResponseCookie
+                    .from("REFRESHTOKEN", refreshToken)
+                    .domain(domain)
+                    .path("/")
+                    .httpOnly(true)
+                    .secure(secure)
+                    .maxAge(REFRESH_TOKEN_EXPIRATION_TIME/1000) // 만료시간 설정(밀리초 -> 초로 변경)
+                    .build();
+        }
     }
 }

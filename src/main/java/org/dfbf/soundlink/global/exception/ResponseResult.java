@@ -1,13 +1,13 @@
 package org.dfbf.soundlink.global.exception;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.Instant;
 
-@Getter
+@Data
 @ToString
+@AllArgsConstructor
+@NoArgsConstructor(force = true)
 public class ResponseResult {
     private final int code;
     private final String message;

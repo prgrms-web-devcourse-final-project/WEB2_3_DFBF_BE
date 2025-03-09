@@ -1,7 +1,7 @@
 package org.dfbf.soundlink.domain.chat.controller;
 
-import io.lettuce.core.dynamic.annotation.Param;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.dfbf.soundlink.domain.chat.dto.ChatRejectDto;
@@ -58,5 +58,11 @@ public class ChatController {
     @Operation(summary = "채팅방 상세 정보", description ="곡정보,상태,생성일을 불러옴")
     public ResponseResult roomInfo(@RequestParam("chatRoomId") Long chatRoomId, @AuthenticationPrincipal Long userId){
         return chatRoomService.getChatRoomInfo(chatRoomId, userId);
+    }
+
+    @GetMapping("/history")
+    @Operation(summary = "채팅방 내 채팅 내역", description = "채팅 그 자체를 가져오는 API (배포서버에서만 작동)")
+    public ResponseResult getChatHistory(@AuthenticationPrincipal Long userId, @RequestParam("chatRoomId") String chatRoomId) {
+        return chatRoomService.getChatHistoryResponse(userId, chatRoomId);
     }
 }

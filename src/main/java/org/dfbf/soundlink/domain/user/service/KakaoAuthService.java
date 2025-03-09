@@ -45,6 +45,9 @@ public class KakaoAuthService {
     @Value("${app.mode}")
     private String appMode;
 
+    @Value("${cookie.setting.secure}")
+    private boolean secure;
+
     /**
      *  카카오 로그인 및 JWT 발급
      */
@@ -149,7 +152,7 @@ public class KakaoAuthService {
                     .domain(domain)
                     .path("/")
                     .httpOnly(true)
-                    .secure(false)
+                    .secure(secure)
                     .maxAge(REFRESH_TOKEN_EXPIRATION_TIME/1000) // 만료시간 설정(밀리초 -> 초로 변경)
                     .build();
         }

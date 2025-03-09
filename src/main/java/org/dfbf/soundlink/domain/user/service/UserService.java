@@ -62,6 +62,9 @@ public class UserService {
     @Value("${app.mode}")
     private String appMode;
 
+    @Value("${cookie.setting.secure}")
+    private boolean secure;
+
     // 회원가입
     public ResponseResult signUp(UserSignUpDto userSignUpDto) {
         try {
@@ -243,7 +246,7 @@ public class UserService {
                     .domain(domain)
                     .path("/")
                     .httpOnly(true)
-                    .secure(false)
+                    .secure(secure)
                     .maxAge(time.equals(0) ? time : REFRESH_TOKEN_EXPIRATION_TIME / 1000)
                     .build();
         }

@@ -125,7 +125,7 @@ public class ChatRoomService {
             // Redis에 Key가 존재하는 경우 삭제 (KEY가 없는 경우 400)
             if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
                 redisTemplate.delete(key);
-                alertService.send(recordIdInUserId, "Cancel", "Chat request has been canceled.");
+                alertService.send(recordIdInUserId, "cancel", "Chat request has been canceled.");
                 return new ResponseResult(ErrorCode.SUCCESS);
             } else {
                 return new ResponseResult(400, "ChatRequest not found or expired.");
@@ -159,7 +159,7 @@ public class ChatRoomService {
             // Redis에 Key가 존재하는 경우 삭제 (KEY가 없는 경우 400)
             if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
                 redisTemplate.delete(key);
-                alertService.send(requestUserId, "Fail", "채팅 요청을 거부했습니다");
+                alertService.send(requestUserId, "fail", "채팅 요청을 거부했습니다");
                 return new ResponseResult(ErrorCode.SUCCESS);
             } else {
                 return new ResponseResult(400, "ChatRequest not found or expired.");
@@ -234,7 +234,7 @@ public class ChatRoomService {
                 map.put("chatRoomId", chatRoom.getChatRoomId());
 
                 // 요청자에게 방번호를 보냄
-                alertService.send(requestUserId, "Accept", map);
+                alertService.send(requestUserId, "accept", map);
 
                 return new ResponseResult(ErrorCode.SUCCESS, map);
             } else {

@@ -45,6 +45,7 @@ public class UserService {
     private final ProfileMusicRepository profileMusicRepository;
     private final SpotifyMusicRepository spotifyMusicRepository;
     private final EmotionRecordRepository emotionRecordRepository;
+    private final BlockListRepository blockListRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final MailService mailService;
     private final RedisService redisService;
@@ -55,9 +56,6 @@ public class UserService {
     private final RedisTemplate<String, String> redisTemplate;
     private final TokenService tokenService;
     private final AlertService alertService;
-
-    private static final String domain = "";
-    private final BlockListRepository blockListRepository;
 
     @Value("${app.mode}")
     private String appMode;
@@ -233,7 +231,7 @@ public class UserService {
         if (!appMode.equals("dev")) {
             return ResponseCookie
                     .from("REFRESHTOKEN", refreshToken)
-                    .domain(domain)
+                    .domain("soundlink.kr")
                     .path("/")
                     .httpOnly(true)
                     .secure(true)
@@ -243,7 +241,7 @@ public class UserService {
         } else {
             return ResponseCookie
                     .from("REFRESHTOKEN", refreshToken)
-                    .domain(domain)
+                    .domain("")
                     .path("/")
                     .httpOnly(true)
                     .secure(secure)

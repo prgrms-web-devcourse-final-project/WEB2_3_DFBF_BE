@@ -31,7 +31,6 @@ public class KakaoAuthService {
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
     private final BCryptPasswordEncoder passwordEncoder;
-    private static final String domain = "";
 
     @Value("${kakao.client-id}")
     private String clientId;
@@ -139,7 +138,7 @@ public class KakaoAuthService {
         if (!appMode.equals("dev")) {
             return ResponseCookie
                     .from("REFRESHTOKEN", refreshToken)
-                    .domain(domain)
+                    .domain("soundlink.kr")
                     .path("/")
                     .httpOnly(true)
                     .secure(true)
@@ -149,7 +148,7 @@ public class KakaoAuthService {
         } else {
             return ResponseCookie
                     .from("REFRESHTOKEN", refreshToken)
-                    .domain(domain)
+                    .domain("")
                     .path("/")
                     .httpOnly(true)
                     .secure(secure)

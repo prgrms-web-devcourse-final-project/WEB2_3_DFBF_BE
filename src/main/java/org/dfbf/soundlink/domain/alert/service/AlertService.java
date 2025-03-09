@@ -23,7 +23,7 @@ public class AlertService {
     // 60 * 1000 * 60 = 3,600,000{ms} = 1시간
     private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
     private static final String ALARM_NAME = "alarm";
-    private static final String USER_PREFIX = "user;";
+    private static final String USER_PREFIX = "user:";
 
     private String createAlarmId(Long userId, Long alarmId) {
         String username = String.valueOf(userId);

@@ -119,12 +119,13 @@ public class ChatRoomService {
             Long recordIdInUserId = emotionRecordRepository.findUserIdByRecordId(emotionRecordId)
                     .orElseThrow(EmotionRecordNotFoundException::new);
 
-            // Key 생성
+            // Key 생성ƒse
             String key = CHAT_REQUEST_KEY + userId + "to" + emotionRecordId;
 
             // Redis에 Key가 존재하는 경우 삭제 (KEY가 없는 경우 400)
             if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
                 redisTemplate.delete(key);
+                alertService.send(recordIdInUserId, "Cancel", "Chat request has been canceled.");
                 return new ResponseResult(ErrorCode.SUCCESS);
             } else {
                 return new ResponseResult(400, "ChatRequest not found or expired.");

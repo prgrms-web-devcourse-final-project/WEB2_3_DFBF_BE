@@ -32,6 +32,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.naming.AuthenticationException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -110,7 +111,7 @@ public class UserService {
                         });
                 user.update(userUpdateDto, passwordEncoder, spotifyMusic);
             } else {
-                if(spotifyId.equals("-1")) { user.getProfileMusic().deleteSpotifyId(); }
+                if("-1".equals(spotifyId)) { user.getProfileMusic().deleteSpotifyId(); }
                 user.update(userUpdateDto, passwordEncoder);
             }
 
@@ -119,7 +120,9 @@ public class UserService {
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (NoUserDataException e) {
-            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.BAD_REQUEST, e.getMessage());
         }
     }
 

@@ -32,7 +32,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.naming.AuthenticationException;
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -60,8 +59,8 @@ public class UserService {
     private static final String domain = "";
     private final BlockListRepository blockListRepository;
 
-    @Value("${cookie.setting.secure}")
-    private boolean secure;
+    @Value("${app.mode}")
+    private String appMode;
 
     // 회원가입
     public ResponseResult signUp(UserSignUpDto userSignUpDto) {
@@ -227,15 +226,27 @@ public class UserService {
     private int REFRESH_TOKEN_EXPIRATION_TIME;
 
     // RefreshToken을 쿠키로 설정
-    private ResponseCookie getRefreshToken(String refreshToken) {
-        return ResponseCookie
-                .from("REFRESHTOKEN", refreshToken)
-                .domain(domain)
-                .path("/")
-                .httpOnly(true)
-                .secure(secure)
-                .maxAge(REFRESH_TOKEN_EXPIRATION_TIME/1000) // 만료시간 설정(밀리초 -> 초로 변경)
-                .build();
+    private ResponseCookie getRefreshToken(String refreshToken, Integer time) {
+        if (!appMode.equals("dev")) {
+            return ResponseCookie
+                    .from("REFRESHTOKEN", refreshToken)
+                    .domain(domain)
+                    .path("/")
+                    .httpOnly(true)
+                    .secure(true)
+                    .sameSite("None")
+                    .maxAge(time.equals(0) ? time : REFRESH_TOKEN_EXPIRATION_TIME / 1000)
+                    .build();
+        } else {
+            return ResponseCookie
+                    .from("REFRESHTOKEN", refreshToken)
+                    .domain(domain)
+                    .path("/")
+                    .httpOnly(true)
+                    .secure(false)
+                    .maxAge(time.equals(0) ? time : REFRESH_TOKEN_EXPIRATION_TIME / 1000)
+                    .build();
+        }
     }
   
     // 로그인
@@ -260,7 +271,7 @@ public class UserService {
             String refreshToken = jwtProvider.createRefreshToken(user.getUserId());
 
             //refreshToken - 쿠키
-            ResponseCookie refreshCookie = getRefreshToken(refreshToken);
+            ResponseCookie refreshCookie = this.getRefreshToken(refreshToken, 1);
             response.setHeader("Set-Cookie", refreshCookie.toString());
 
             //accessToken - 바디
@@ -284,15 +295,8 @@ public class UserService {
     public ResponseResult logout(HttpServletResponse response, HttpServletRequest request) {
         try {
             //클라이언트 - 토큰 삭제
-            ResponseCookie refreshCookie = ResponseCookie
-                    .from("REFRESHTOKEN", "") //쿠키 삭제시 빈문자열
-                    .domain(domain)
-                    .path("/")
-                    .httpOnly(true)
-                    .secure(secure)
-                    .maxAge(0)
-                    .build();
-            response.setHeader("Set-Cookie", refreshCookie.toString());//쿠키 삭제 요청
+            ResponseCookie refreshCookie = this.getRefreshToken(request.getHeader("Refresh-Token"), 0);
+            response.setHeader("Set-Cookie", refreshCookie.toString()); //쿠키 삭제 요청
 
             String accessToken = jwtProvider.resolveAccessToken(request); // 요청에서 액세스 토큰 추출
             Long userId = jwtProvider.getUserId(accessToken); // 액세스 토큰을 넘겨서 userId 추출
@@ -367,7 +371,7 @@ public class UserService {
                 //레디스에 새로운 리프레시 토큰 업데이트!
                 tokenService.updateRefreshToken(userId, newRefreshToken);
 
-                ResponseCookie refreshCookie = getRefreshToken(newRefreshToken);
+                ResponseCookie refreshCookie = getRefreshToken(newRefreshToken, 1);
                 response.setHeader("Set-Cookie", refreshCookie.toString());
 
                 Map<String, String> responseBody = new HashMap<>();

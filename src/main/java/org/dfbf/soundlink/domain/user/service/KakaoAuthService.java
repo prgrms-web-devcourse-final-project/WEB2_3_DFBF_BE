@@ -42,8 +42,8 @@ public class KakaoAuthService {
     @Value("${REFRESH_TOKEN_EXPIRATION_TIME}")
     private int REFRESH_TOKEN_EXPIRATION_TIME;
 
-    @Value("${cookie.setting.secure}")
-    private boolean secure;
+    @Value("${app.mode}")
+    private String appMode;
 
     /**
      *  카카오 로그인 및 JWT 발급
@@ -133,13 +133,25 @@ public class KakaoAuthService {
 
     // RefreshToken을 쿠키로 설정
     private ResponseCookie getRefreshToken(String refreshToken) {
-        return ResponseCookie
-                .from("REFRESHTOKEN", refreshToken)
-                .domain(domain)
-                .path("/")
-                .httpOnly(true)
-                .secure(secure)
-                .maxAge(REFRESH_TOKEN_EXPIRATION_TIME/1000) // 만료시간 설정(밀리초 -> 초로 변경)
-                .build();
+        if (!appMode.equals("dev")) {
+            return ResponseCookie
+                    .from("REFRESHTOKEN", refreshToken)
+                    .domain(domain)
+                    .path("/")
+                    .httpOnly(true)
+                    .secure(true)
+                    .sameSite("None")
+                    .maxAge(REFRESH_TOKEN_EXPIRATION_TIME/1000) // 만료시간 설정(밀리초 -> 초로 변경)
+                    .build();
+        } else {
+            return ResponseCookie
+                    .from("REFRESHTOKEN", refreshToken)
+                    .domain(domain)
+                    .path("/")
+                    .httpOnly(true)
+                    .secure(false)
+                    .maxAge(REFRESH_TOKEN_EXPIRATION_TIME/1000) // 만료시간 설정(밀리초 -> 초로 변경)
+                    .build();
+        }
     }
 }

@@ -23,6 +23,12 @@ public class AlertController {
         return alertService.connectAlarm(id);
     }
 
+    @GetMapping(value = "/connect/test", produces = "text/event-stream")
+    @Operation(summary = "SSE 연결 API", description = "SSE 연결")
+    public SseEmitter subscribe_test(@RequestParam("id") Long id) {
+        return alertService.connectAlarm(id);
+    }
+
     @PostMapping("")
     @Operation(summary = "알림 전송 API", description = "알림을 전송하는 기능 (CHAT 서버에서 사용하는 기능입니다.)")
     public ResponseResult send(@RequestParam("id") Long id, @RequestParam("msg") String msg) {

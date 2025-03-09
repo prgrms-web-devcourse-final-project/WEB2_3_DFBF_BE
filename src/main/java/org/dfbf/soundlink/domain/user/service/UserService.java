@@ -267,7 +267,7 @@ public class UserService {
             return new ResponseResult(responseBody);
         } catch (Exception e) {
             log.info("[ERROR] " + e.getMessage());
-            return new ResponseResult(ErrorCode. INTERNAL_SERVER_ERROR);
+            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 

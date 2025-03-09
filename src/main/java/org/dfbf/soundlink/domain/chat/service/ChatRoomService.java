@@ -26,11 +26,13 @@ import org.dfbf.soundlink.domain.user.repository.UserRepository;
 import org.dfbf.soundlink.global.comm.enums.RoomStatus;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
+import org.dfbf.soundlink.global.feign.chat.DevChatClient;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.time.Duration;
 import java.sql.Timestamp;
@@ -51,6 +53,7 @@ public class ChatRoomService {
     private final UserRepository userRepository;
     private final BlockListRepository blockListRepository;
     private final AlertService alertService;
+    private final DevChatClient devChatClient;
 
     private static final String CHAT_REQUEST_KEY = "chatRequest";
 
@@ -326,5 +329,10 @@ public class ChatRoomService {
         }catch (Exception e) {
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, "채팅방 세부 정보를 가져오는 데 실패했습니다.");
         }
+    }
+
+    // (개발서버 전용) 채팅방 내 채팅 내역 가져오기
+    public ResponseResult getChatHistoryResponse(Long userId, String chatRoomId){
+        return devChatClient.getChatHistoryDev(chatRoomId, userId);
     }
 }

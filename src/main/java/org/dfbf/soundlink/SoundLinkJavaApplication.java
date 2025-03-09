@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-@EnableFeignClients(basePackages = "org.dfbf.soundlink.global.auth.client", defaultConfiguration = FeignConfig.class)
+@EnableFeignClients(basePackages = "org.dfbf.soundlink.global.feign", defaultConfiguration = FeignConfig.class)
 @SpringBootApplication(exclude= SecurityAutoConfiguration.class)
 @EnableCaching
 public class SoundLinkJavaApplication {

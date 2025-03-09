@@ -25,7 +25,7 @@ public class AlertController {
 
     @GetMapping(value = "/connect/test", produces = "text/event-stream")
     @Operation(summary = "SSE 연결 API", description = "SSE 연결")
-    public SseEmitter subscribe_test(@RequestParam("id") Long id) {
+    public SseEmitter subscribeTest(@RequestParam("id") Long id) {
         return alertService.connectAlarm(id);
     }
 

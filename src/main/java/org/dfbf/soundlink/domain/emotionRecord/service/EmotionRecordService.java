@@ -2,6 +2,8 @@ package org.dfbf.soundlink.domain.emotionRecord.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dfbf.soundlink.domain.chat.entity.ChatRoom;
+import org.dfbf.soundlink.domain.chat.repository.ChatRoomRepository;
 import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordRequestDTO;
 import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordUpdateRequestDTO;
 import org.dfbf.soundlink.domain.emotionRecord.dto.response.*;
@@ -36,6 +38,7 @@ public class EmotionRecordService {
     private final UserRepository userRepository;
 
     private final EmotionRecordCacheService emotionRecordCacheService;
+    private final ChatRoomRepository chatRoomRepository;
 
     @Transactional
     public ResponseResult saveEmotionRecordWithMusic(Long userId, EmotionRecordRequestDTO request) {
@@ -214,7 +217,17 @@ public class EmotionRecordService {
             EmotionRecord emotionRecord = emotionRecordRepository.findByRecordId(recordId)
                     .orElseThrow(EmotionRecordNotFoundException::new);
 
+            // 해당 EmotionRecord를 참조하는 채팅방 조회
+            List<ChatRoom> chatRooms = chatRoomRepository.findByRecordId(emotionRecord);
+
+            // 채팅방이 존재하면 모두 삭제 후 삭제 내용을 즉시 반영
+            if (chatRooms != null && !chatRooms.isEmpty()) {
+                chatRoomRepository.deleteAll(chatRooms);
+                chatRoomRepository.flush(); // 즉시 DB에 반영
+            }
+
             int deletedCount = emotionRecordRepository.deleteByRecordId(recordId);
+            emotionRecordRepository.flush(); // 즉시 DB에 반영
 
             // 게시글 삭제 시, 해당 조건에 맞는 캐시 키 삭제
             emotionRecordCacheService.evictEmotionRecordCache(

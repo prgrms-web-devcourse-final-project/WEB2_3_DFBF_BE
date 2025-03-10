@@ -1,5 +1,6 @@
 package org.dfbf.soundlink.domain.user.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.dfbf.soundlink.domain.user.dto.response.KakaoTokenResponseDTO;
@@ -50,7 +51,7 @@ public class KakaoAuthService {
     /**
      *  카카오 로그인 및 JWT 발급
      */
-    public ResponseResult kakaoLogin(String code, HttpServletResponse response) {
+    public ResponseResult kakaoLogin(String code, HttpServletResponse response, HttpServletRequest request) {
         // 요청 파라미터 설정 (JSONObject 대신 하나의 Key와 하나 이상의 value로 이루어진 리스트를 쌍으로 받기 위해 LinkedMultiValueMap 사용)
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "authorization_code");
@@ -71,7 +72,7 @@ public class KakaoAuthService {
 
         if (existingUser.isPresent()) {
             // 기존 사용자가 존재 시, 로그인 처리
-            return generateTokenResponse(existingUser.get(), response);
+            return generateTokenResponse(existingUser.get(), response, request);
         } else {
             // 신규 가입은 닉네임 중복 확인 필요
             if (userRepository.existsByNickname(kakaoNickname)) {
@@ -80,19 +81,19 @@ public class KakaoAuthService {
             }
             // 회원가입
             User newUser = registerNewKakaoUser(kakaoUser, kakaoNickname);
-            return generateTokenResponse(newUser, response);
+            return generateTokenResponse(newUser, response, request);
         }
     }
 
     /**
      *  JWT 토큰 생성
      */
-    private ResponseResult generateTokenResponse(User user, HttpServletResponse response) {
+    private ResponseResult generateTokenResponse(User user, HttpServletResponse response, HttpServletRequest request) {
         String jwtAccessToken = jwtProvider.createAccessToken(user.getUserId());
         String jwtRefreshToken = jwtProvider.createRefreshToken(user.getUserId());
 
         //refreshToken - 쿠키
-        ResponseCookie refreshCookie = getRefreshToken(jwtRefreshToken);
+        ResponseCookie refreshCookie = getRefreshToken(jwtRefreshToken, request);
         response.setHeader("Set-Cookie", refreshCookie.toString());
 
         //accessToken - 바디
@@ -134,8 +135,10 @@ public class KakaoAuthService {
     }
 
     // RefreshToken을 쿠키로 설정
-    private ResponseCookie getRefreshToken(String refreshToken) {
-        if (!appMode.equals("dev")) {
+    private ResponseCookie getRefreshToken(String refreshToken, HttpServletRequest request) {
+        String forwardedProto = request.getHeader("X-Forwarded-Proto");
+
+        if (!appMode.equals("dev") || !("https".equalsIgnoreCase(forwardedProto))) {
             return ResponseCookie
                     .from("REFRESHTOKEN", refreshToken)
                     .domain("soundlink.kr")
@@ -143,7 +146,7 @@ public class KakaoAuthService {
                     .httpOnly(true)
                     .secure(true)
                     .sameSite("None")
-                    .maxAge(REFRESH_TOKEN_EXPIRATION_TIME/1000) // 만료시간 설정(밀리초 -> 초로 변경)
+                    .maxAge(REFRESH_TOKEN_EXPIRATION_TIME / 1000) // 만료시간 설정(밀리초 -> 초로 변경)
                     .build();
         } else {
             return ResponseCookie
@@ -152,7 +155,7 @@ public class KakaoAuthService {
                     .path("/")
                     .httpOnly(true)
                     .secure(secure)
-                    .maxAge(REFRESH_TOKEN_EXPIRATION_TIME/1000) // 만료시간 설정(밀리초 -> 초로 변경)
+                    .maxAge(REFRESH_TOKEN_EXPIRATION_TIME / 1000) // 만료시간 설정(밀리초 -> 초로 변경)
                     .build();
         }
     }

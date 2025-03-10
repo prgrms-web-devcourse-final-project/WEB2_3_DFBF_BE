@@ -22,8 +22,8 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "로그인", description = "로그인 API")
-    public ResponseResult login(@RequestBody LoginReqDto loginReqDto, HttpServletResponse response) {
-        return userService.login(loginReqDto, response);
+    public ResponseResult login(@RequestBody LoginReqDto loginReqDto, HttpServletResponse response, HttpServletRequest request) {
+        return userService.login(loginReqDto, response, request);
     }
 
     @PostMapping("/logout")
@@ -41,7 +41,7 @@ public class AuthController {
     // 카카오 로그인 (인가 코드 받아서 회원가입 또는 로그인 진행)
     @Operation(summary = "카카오 로그인", description = "카카오 로그인 후 JWT 발급")
     @GetMapping("/login/kakao")
-    public ResponseResult kakaoCallback(@RequestParam("code") String code, HttpServletResponse response) {
-        return kakaoAuthService.kakaoLogin(code, response);
+    public ResponseResult kakaoCallback(@RequestParam("code") String code, HttpServletResponse response, HttpServletRequest request) {
+        return kakaoAuthService.kakaoLogin(code, response, request);
     }
 }

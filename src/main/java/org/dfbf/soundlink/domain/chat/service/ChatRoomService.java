@@ -83,14 +83,6 @@ public class ChatRoomService {
                 return new ResponseResult(400, ttl + "초 후에 다시 시도해주세요.");
             }
 
-            // 요청 유저가 emotionRecordId에 대한 채팅방이 이미 있는 경우, 채팅방 번호와 함께 응답
-            Optional<Long> chatRoomId = chatRoomRepository.findChatRoomIdByRequestUserIdAndRecordId(requestUserId, emotionRecordId);
-            if (chatRoomId.isPresent()) {
-                Map<String, Object> map = new HashMap<>();
-                map.put("chatRoomId", chatRoomId.get());
-                return new ResponseResult(ErrorCode.CHAT_FAILED, map);
-            }
-
             // Key & Request 객체 생성
             String key = CHAT_REQUEST_KEY + requestUserId + "to" + emotionRecordId;
             ChatRequest chatRequest = new ChatRequest(requestUserId, responseUserId, emotionRecordId);
@@ -211,7 +203,7 @@ public class ChatRoomService {
                 if (chatRoomId.isPresent()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put("chatRoomId", chatRoomId.get());
-                    return new ResponseResult(ErrorCode.CHAT_FAILED, map);
+                    return new ResponseResult(map);
                 }
 
                 Long responseUserId = emotionRecord.getUser().getUserId();
@@ -239,7 +231,7 @@ public class ChatRoomService {
                 // 요청자에게 방번호를 보냄
                 alertService.send(requestUserId, "accept", map);
 
-                return new ResponseResult(ErrorCode.SUCCESS, map);
+                return new ResponseResult(map);
             } else {
                 return new ResponseResult(400, "ChatRequest not found or expired.");
             }

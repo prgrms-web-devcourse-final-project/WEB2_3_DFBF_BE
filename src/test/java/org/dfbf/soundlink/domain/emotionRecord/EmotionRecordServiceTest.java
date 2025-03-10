@@ -1,5 +1,7 @@
 package org.dfbf.soundlink.domain.emotionRecord;
 
+import org.dfbf.soundlink.domain.chat.entity.ChatRoom;
+import org.dfbf.soundlink.domain.chat.repository.ChatRoomRepository;
 import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordRequestDTO;
 import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordUpdateRequestDTO;
 import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
@@ -20,6 +22,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.dfbf.soundlink.global.comm.enums.Emotions.HAPPY;
@@ -32,6 +36,8 @@ class EmotionRecordServiceTest {
     private EmotionRecordService emotionRecordService;
     @Mock
     private EmotionRecordCacheService emotionRecordCacheService;
+    @Mock
+    private ChatRoomRepository chatRoomRepository;
     @Mock
     private EmotionRecordRepository emotionRecordRepository;
     @Mock
@@ -92,6 +98,13 @@ class EmotionRecordServiceTest {
         when(mockRecord.getSpotifyMusic()).thenReturn(mockMusic);
         when(mockRecord.getEmotion()).thenReturn(Emotions.HAPPY);
 
+        // 채팅방 모의 객체 생성 (해당 EmotionRecord를 참조하는 채팅방 존재)
+        ChatRoom mockChatRoom = mock(ChatRoom.class);
+        List<ChatRoom> mockChatRooms = Collections.singletonList(mockChatRoom);
+
+        // 스텁 설정
+        when(chatRoomRepository.findByRecordId(mockRecord))
+                .thenReturn(mockChatRooms);
         when(emotionRecordRepository.findByRecordId(recordId)).thenReturn(Optional.of(mockRecord));
         when(emotionRecordRepository.deleteByRecordId(recordId)).thenReturn(1); // 삭제된 레코드 수 1개
 
@@ -105,7 +118,11 @@ class EmotionRecordServiceTest {
         // then
         assertEquals(200, result.getCode());
         verify(emotionRecordRepository).findByRecordId(recordId);
+        verify(chatRoomRepository).findByRecordId(mockRecord);
+        verify(chatRoomRepository).deleteAll(mockChatRooms);
+        verify(chatRoomRepository).flush();
         verify(emotionRecordRepository).deleteByRecordId(recordId);
+        verify(emotionRecordRepository).flush();
         verify(emotionRecordCacheService).evictEmotionRecordCache(any(), any(), any());
     }
 

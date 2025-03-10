@@ -1,4 +1,4 @@
-package org.dfbf.soundlink.domain.emtionRecord;
+package org.dfbf.soundlink.domain.emotionRecord;
 
 import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordRequestDTO;
 import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordUpdateRequestDTO;
@@ -10,7 +10,6 @@ import org.dfbf.soundlink.domain.emotionRecord.service.EmotionRecordService;
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
 import org.dfbf.soundlink.global.comm.enums.Emotions;
-import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,7 +17,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 
 import java.util.Optional;

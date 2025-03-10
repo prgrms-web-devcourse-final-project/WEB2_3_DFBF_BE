@@ -19,14 +19,18 @@ public class AlertController {
 
     @GetMapping(value = "/connect", produces = "text/event-stream")
     @Operation(summary = "SSE 연결 API", description = "SSE 연결")
-    public SseEmitter subscribe(@AuthenticationPrincipal Long id) {
-        return alertService.connectAlarm(id);
+    public SseEmitter subscribe(
+            @AuthenticationPrincipal Long id,
+            @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId) {
+        return alertService.connectAlarm(id, lastEventId);
     }
 
     @GetMapping(value = "/connect/test", produces = "text/event-stream")
     @Operation(summary = "SSE 연결 API", description = "SSE 연결")
-    public SseEmitter subscribeTest(@RequestParam("id") Long id) {
-        return alertService.connectAlarm(id);
+    public SseEmitter subscribeTest(
+            @RequestParam("id") Long id,
+            @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId) {
+        return alertService.connectAlarm(id, lastEventId);
     }
 
     @PostMapping("")

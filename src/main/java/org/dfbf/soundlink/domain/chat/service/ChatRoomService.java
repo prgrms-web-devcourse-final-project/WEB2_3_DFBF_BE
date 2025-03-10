@@ -6,7 +6,6 @@ import org.dfbf.soundlink.domain.alert.dto.AlertChatRequest;
 import org.dfbf.soundlink.domain.alert.entity.Alert;
 import org.dfbf.soundlink.domain.alert.service.AlertService;
 import org.dfbf.soundlink.domain.blocklist.repository.BlockListRepository;
-import org.dfbf.soundlink.domain.blocklist.service.BlockListService;
 import org.dfbf.soundlink.domain.chat.dto.ChatRejectDto;
 import org.dfbf.soundlink.domain.chat.dto.ChatRoomInfoDto;
 import org.dfbf.soundlink.domain.chat.dto.ChatRoomListDto;
@@ -23,16 +22,15 @@ import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepositor
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.exception.NoUserDataException;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
+import org.dfbf.soundlink.domain.user.service.UserStatusService;
 import org.dfbf.soundlink.global.comm.enums.RoomStatus;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.dfbf.soundlink.global.feign.chat.DevChatClient;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.time.Duration;
 import java.sql.Timestamp;
@@ -40,7 +38,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -54,6 +51,7 @@ public class ChatRoomService {
     private final BlockListRepository blockListRepository;
     private final AlertService alertService;
     private final DevChatClient devChatClient;
+    private final UserStatusService userStatusService;
 
     private static final String CHAT_REQUEST_KEY = "chatRequest";
 
@@ -239,6 +237,8 @@ public class ChatRoomService {
                 // 요청자에게 방번호를 보냄
                 alertService.send(requestUserId, "accept", map);
 
+                userStatusService.setChatting(userId, true);
+
                 return new ResponseResult(ErrorCode.SUCCESS, map);
             } else {
                 return new ResponseResult(400, "ChatRequest not found or expired.");
@@ -269,6 +269,9 @@ public class ChatRoomService {
             chatRoomRepository.save(chatRoom); // DB에 저장
 
             redisTemplate.delete("Room::"+chatRoomId); // 레디스에서 삭제
+
+            userStatusService.setChatting(userId, false);
+
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (Exception e) {
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());

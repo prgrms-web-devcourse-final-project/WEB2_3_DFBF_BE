@@ -34,10 +34,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.sql.Timestamp;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -69,6 +74,13 @@ public class ChatRoomService {
                 return new ResponseResult(400, "You can't chat with yourself.");
             }
 
+            //이미 요청이 있는지 확인(Redis에 emotionRecordId에 대한 요청이 있는지 확인)
+            Set<String> existIngKeys = redisTemplate.keys(CHAT_REQUEST_KEY + "*to" + emotionRecordId + "*");
+            if(!existIngKeys.isEmpty()){
+                //이미 요청이 있을 경우, 예외처리
+                return new ResponseResult(400, "Another user has already sent a request for this record.");
+            }
+
             // 응답자가 요청자를 차단한 경우
             if (blockListRepository.existsByUser_UserIdAndBlockedUser_UserId(responseUserId, requestUserId)) {
                 return new ResponseResult(400, "Blocked user.");
@@ -79,14 +91,6 @@ public class ChatRoomService {
                 String firstKey = redisTemplate.keys(CHAT_REQUEST_KEY + requestUserId + "to*").iterator().next(); // 첫 번째 키 가져오기
                 Long ttl = redisTemplate.getExpire(firstKey);
                 return new ResponseResult(400, ttl + "초 후에 다시 시도해주세요.");
-            }
-
-            // 요청 유저가 emotionRecordId에 대한 채팅방이 이미 있는 경우, 채팅방 번호와 함께 응답
-            Optional<Long> chatRoomId = chatRoomRepository.findChatRoomIdByRequestUserIdAndRecordId(requestUserId, emotionRecordId);
-            if (chatRoomId.isPresent()) {
-                Map<String, Object> map = new HashMap<>();
-                map.put("chatRoomId", chatRoomId.get());
-                return new ResponseResult(ErrorCode.CHAT_FAILED, map);
             }
 
             // Key & Request 객체 생성
@@ -209,7 +213,7 @@ public class ChatRoomService {
                 if (chatRoomId.isPresent()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put("chatRoomId", chatRoomId.get());
-                    return new ResponseResult(ErrorCode.CHAT_FAILED, map);
+                    return new ResponseResult(map);
                 }
 
                 Long responseUserId = emotionRecord.getUser().getUserId();
@@ -240,6 +244,7 @@ public class ChatRoomService {
                 userStatusService.setChatting(userId, true);
 
                 return new ResponseResult(ErrorCode.SUCCESS, map);
+
             } else {
                 return new ResponseResult(400, "ChatRequest not found or expired.");
             }

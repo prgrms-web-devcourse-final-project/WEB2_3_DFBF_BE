@@ -3,9 +3,11 @@ package org.dfbf.soundlink.domain.alert.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dfbf.soundlink.domain.alert.entity.Alert;
 import org.dfbf.soundlink.domain.alert.repository.AlertRepository;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -21,13 +23,43 @@ import java.util.concurrent.TimeUnit;
 public class AlertService {
 
     private final AlertRepository alertRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     // 60 * 1000 * 60 = 3,600,000{ms} = 1시간
     private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
-    private static final String USER_PREFIX = "user:";
 
     private String createEmitterId(Long userId) {
         return String.valueOf(userId) + "_" + System.currentTimeMillis();
+    }
+
+    // 사용자에게 전송되지 않은 알림을 Redis에서 꺼내서 전송하고 삭제
+    private void sendPendingAlerts(Long userId, SseEmitter sseEmitter) {
+        String keyPattern = "alert:" + userId + "_*";  // 사용자 알림에 대한 키 패턴
+
+        // 해당 키 패턴을 가진 모든 알림을 가져오기
+        redisTemplate.keys(keyPattern).forEach(key -> {
+            Alert alert = (Alert) redisTemplate.opsForValue().get(key); // Redis에서 알림 가져오기
+            if (alert != null) {
+                try {
+                    log.info("Sending pending alert to user {}", userId);
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    String jsonMsg = objectMapper.writeValueAsString(alert.getData());
+
+                    // 알림 전송
+                    sseEmitter.send(SseEmitter.event()
+                            .id(alert.getEventId())
+                            .name(alert.getType())
+                            .data(jsonMsg)
+                    );
+
+                    // 알림을 Redis에서 삭제
+                    redisTemplate.delete(key);
+                    log.info("Pending alert sent and removed from Redis for user {}", userId);
+                } catch (IOException e) {
+                    log.error("Error sending pending alert", e);
+                }
+            }
+        });
     }
 
     // SSE 서버 연결
@@ -57,21 +89,22 @@ public class AlertService {
             log.error("Error sending ping", e);
         }
 
-//        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-//        scheduler.scheduleAtFixedRate(() -> {
-//            try {
-//                this.send(id, "ping", "connection keep-alive");
-//            } catch (Exception e) {
-//                log.error("Error sending ping", e);
-//            }
-//        }, 0, 45, TimeUnit.SECONDS); // 45초마다 빈 메시지 전송
+        // 사용자에게 전송되지 않은 알림 전송
+        this.sendPendingAlerts(id, sseEmitter);
+
+        Executors.newSingleThreadExecutor().submit(() -> {
+            while (true) {
+                Thread.sleep(40000); // 45초마다 빈 메시지를 전송
+                sseEmitter.send(SseEmitter.event().name("ping").data("connection keep-alive"));
+            }
+        });
 
         return sseEmitter;
     }
 
     // SSE를 통해 메시지 전송
-    public ResponseResult send(Long userId, String alertName, Object data) {
-        String eventId = alertName.equals("ping") ? "-1" : this.createEmitterId(userId);
+    public void send(Long userId, String alertName, Object data) {
+        String eventId = this.createEmitterId(userId);
 
         String emitterId = alertRepository.getEmitterId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Not Found EmitterId: " + userId));
@@ -89,11 +122,8 @@ public class AlertService {
                             .name(alertName)
                             .data(jsonMsg, MediaType.APPLICATION_JSON) // 변환된 JSON 문자열 전송
             );
-
-            return new ResponseResult(ErrorCode.SUCCESS);
         } catch (IOException e) {
             alertRepository.delete(userId, emitterId);
-            return new ResponseResult(ErrorCode.BAD_REQUEST_STATUS, e.getMessage());
         }
     }
 
@@ -107,5 +137,16 @@ public class AlertService {
 
         alertRepository.delete(userId, emitterId);
         sseEmitter.complete();
+    }
+
+    // Alert 객체 생성
+    public Alert createAlert(Long userId, String type, Object data) {
+        return Alert.builder()
+                .eventId(this.createEmitterId(userId))
+                .type(type)
+                .userId(userId)
+                .data(data)
+                .build();
+
     }
 }

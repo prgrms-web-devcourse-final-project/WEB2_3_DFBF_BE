@@ -7,11 +7,11 @@ import org.dfbf.soundlink.domain.alert.entity.Alert;
 import org.dfbf.soundlink.domain.alert.service.AlertService;
 import org.dfbf.soundlink.domain.blocklist.repository.BlockListRepository;
 import org.dfbf.soundlink.domain.chat.dto.ChatRejectDto;
+import org.dfbf.soundlink.domain.chat.dto.ChatReqDto;
 import org.dfbf.soundlink.domain.chat.dto.ChatRoomInfoDto;
 import org.dfbf.soundlink.domain.chat.dto.ChatRoomListDto;
-import org.dfbf.soundlink.domain.chat.entity.redis.ChatRequest;
-import org.dfbf.soundlink.domain.chat.dto.ChatReqDto;
 import org.dfbf.soundlink.domain.chat.entity.ChatRoom;
+import org.dfbf.soundlink.domain.chat.entity.redis.ChatRequest;
 import org.dfbf.soundlink.domain.chat.exception.ChatRoomNotFoundException;
 import org.dfbf.soundlink.domain.chat.exception.UnauthorizedAccessException;
 import org.dfbf.soundlink.domain.chat.repository.ChatRoomRepository;
@@ -27,21 +27,16 @@ import org.dfbf.soundlink.global.comm.enums.RoomStatus;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.dfbf.soundlink.global.feign.chat.DevChatClient;
+import org.dfbf.soundlink.global.kafka.KafkaProducer;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.sql.Timestamp;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.time.Duration;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -56,9 +51,11 @@ public class ChatRoomService {
     private final BlockListRepository blockListRepository;
     private final AlertService alertService;
     private final DevChatClient devChatClient;
+    private final KafkaProducer kafkaProducer;
     private final UserStatusService userStatusService;
 
     private static final String CHAT_REQUEST_KEY = "chatRequest";
+    private static final String TOPIC = "alert-topic";
 
     // 요청을 Redis에 저장 (TTL: 60초)
     public ResponseResult saveRequestToRedis(Long requestUserId, Long emotionRecordId) {
@@ -74,7 +71,14 @@ public class ChatRoomService {
                 return new ResponseResult(400, "You can't chat with yourself.");
             }
 
-            //이미 요청이 있는지 확인(Redis에 emotionRecordId에 대한 요청이 있는지 확인)
+            // Redis에 이미 requestUserId가 포함되어 있는 경우
+            if (!redisTemplate.keys(CHAT_REQUEST_KEY + requestUserId + "to*").isEmpty()) {
+                String firstKey = redisTemplate.keys(CHAT_REQUEST_KEY + requestUserId + "to*").iterator().next(); // 첫 번째 키 가져오기
+                Long ttl = redisTemplate.getExpire(firstKey);
+                return new ResponseResult(400, ttl + "초 후에 다시 시도해주세요.");
+            }
+
+            // 이미 요청이 있는지 확인(Redis에 emotionRecordId에 대한 요청이 있는지 확인)
             Set<String> existIngKeys = redisTemplate.keys(CHAT_REQUEST_KEY + "*to" + emotionRecordId + "*");
             if(!existIngKeys.isEmpty()){
                 //이미 요청이 있을 경우, 예외처리
@@ -85,13 +89,6 @@ public class ChatRoomService {
             // 응답자가 요청자를 차단한 경우
             if (blockListRepository.existsByUser_UserIdAndBlockedUser_UserId(responseUserId, requestUserId)) {
                 return new ResponseResult(400, "Blocked user.");
-            }
-
-            // Redis에 이미 requestUserId가 포함되어 있는 경우
-            if (!redisTemplate.keys(CHAT_REQUEST_KEY + requestUserId + "to*").isEmpty()) {
-                String firstKey = redisTemplate.keys(CHAT_REQUEST_KEY + requestUserId + "to*").iterator().next(); // 첫 번째 키 가져오기
-                Long ttl = redisTemplate.getExpire(firstKey);
-                return new ResponseResult(400, ttl + "초 후에 다시 시도해주세요.");
             }
 
             // Key & Request 객체 생성
@@ -105,8 +102,8 @@ public class ChatRoomService {
             User requestUser = userRepository.findByUserIdWithCache(requestUserId)
                     .orElseThrow(UserNotFoundException::new);
             AlertChatRequest alertChatRequest = new AlertChatRequest(emotionRecordId, requestUser.getNickname());
-            Alert alert = new Alert("chatRequest", alertChatRequest);
-            alertService.send(responseUserId, "alarm", alert);
+            Alert alert = alertService.createAlert(responseUserId, "alarm", alertChatRequest);
+            kafkaProducer.send(TOPIC, alert);
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (EmotionRecordNotFoundException e) {
@@ -131,7 +128,9 @@ public class ChatRoomService {
             // Redis에 Key가 존재하는 경우 삭제 (KEY가 없는 경우 400)
             if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
                 redisTemplate.delete(key);
-                alertService.send(recordIdInUserId, "cancel", "Chat request has been canceled.");
+                Alert alert = alertService.createAlert(recordIdInUserId, "cancel", "Chat request has been canceled.");
+                kafkaProducer.send(TOPIC, alert);
+                log.info("tset");
                 return new ResponseResult(ErrorCode.SUCCESS);
             } else {
                 return new ResponseResult(400, "ChatRequest not found or expired.");
@@ -165,7 +164,8 @@ public class ChatRoomService {
             // Redis에 Key가 존재하는 경우 삭제 (KEY가 없는 경우 400)
             if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
                 redisTemplate.delete(key);
-                alertService.send(requestUserId, "fail", "채팅 요청을 거부했습니다");
+                Alert alert = alertService.createAlert(requestUserId, "fail", "채팅 요청을 거부했습니다");
+                kafkaProducer.send(TOPIC, alert);
                 return new ResponseResult(ErrorCode.SUCCESS);
             } else {
                 return new ResponseResult(400, "ChatRequest not found or expired.");
@@ -214,7 +214,10 @@ public class ChatRoomService {
                 if (chatRoomId.isPresent()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put("chatRoomId", chatRoomId.get());
-                    alertService.send(requestUserId, "accept", map);
+                  
+                    Alert alert = alertService.createAlert(requestUserId, "accept", map);
+                    kafkaProducer.send(TOPIC, alert);
+                  
                     return new ResponseResult(map);
                 }
 
@@ -241,7 +244,8 @@ public class ChatRoomService {
                 map.put("chatRoomId", chatRoom.getChatRoomId());
 
                 // 요청자에게 방번호를 보냄
-                alertService.send(requestUserId, "accept", map);
+                Alert alert = alertService.createAlert(requestUserId, "accept", map);
+                kafkaProducer.send(TOPIC, alert);
 
                 userStatusService.setChatting(userId, true);
 

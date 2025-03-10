@@ -228,8 +228,11 @@ public class UserService {
 
     // RefreshToken을 쿠키로 설정
     // 8080 (토큰 발행) -> 8081 (토큰 검증 RT)
-    private ResponseCookie getRefreshToken(String refreshToken, Integer time) {
-        if (!appMode.equals("dev")) {
+    private ResponseCookie getRefreshToken(String refreshToken, Integer time, HttpServletRequest request) {
+        String forwardedProto = request.getHeader("X-Forwarded-Proto");
+        log.info("[FORWARDED_PROTO] " + forwardedProto);
+
+        if (!appMode.equals("dev") && "https".equalsIgnoreCase(forwardedProto)) {
             return ResponseCookie
                     .from("REFRESHTOKEN", refreshToken)
                     .domain("soundlink.kr")
@@ -252,7 +255,7 @@ public class UserService {
     }
   
     // 로그인
-    public ResponseResult login(LoginReqDto loginReqDto, HttpServletResponse response) {
+    public ResponseResult login(LoginReqDto loginReqDto, HttpServletResponse response, HttpServletRequest request) {
         try {
             if(!userRepository.existsByLoginId(loginReqDto.loginId())) {
                 return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, "계정을 찾을 수 없습니다.");
@@ -273,7 +276,7 @@ public class UserService {
             String refreshToken = jwtProvider.createRefreshToken(user.getUserId());
 
             //refreshToken - 쿠키
-            ResponseCookie refreshCookie = this.getRefreshToken(refreshToken, 1);
+            ResponseCookie refreshCookie = this.getRefreshToken(refreshToken, 1, request);
             response.setHeader("Set-Cookie", refreshCookie.toString());
 
             //accessToken - 바디
@@ -297,7 +300,7 @@ public class UserService {
     public ResponseResult logout(HttpServletResponse response, HttpServletRequest request) {
         try {
             //클라이언트 - 토큰 삭제
-            ResponseCookie refreshCookie = this.getRefreshToken(request.getHeader("Refresh-Token"), 0);
+            ResponseCookie refreshCookie = this.getRefreshToken(request.getHeader("Refresh-Token"), 0, request);
             response.setHeader("Set-Cookie", refreshCookie.toString()); //쿠키 삭제 요청
 
             String accessToken = jwtProvider.resolveAccessToken(request); // 요청에서 액세스 토큰 추출
@@ -373,7 +376,7 @@ public class UserService {
                 //레디스에 새로운 리프레시 토큰 업데이트!
                 tokenService.updateRefreshToken(userId, newRefreshToken);
 
-                ResponseCookie refreshCookie = getRefreshToken(newRefreshToken, 1);
+                ResponseCookie refreshCookie = getRefreshToken(newRefreshToken, 1, request);
                 response.setHeader("Set-Cookie", refreshCookie.toString());
 
                 Map<String, String> responseBody = new HashMap<>();

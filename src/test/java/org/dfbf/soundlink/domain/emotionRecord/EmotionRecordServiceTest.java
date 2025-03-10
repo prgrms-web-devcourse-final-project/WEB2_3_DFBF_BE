@@ -6,6 +6,7 @@ import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepository;
 import org.dfbf.soundlink.domain.emotionRecord.repository.SpotifyMusicRepository;
+import org.dfbf.soundlink.domain.emotionRecord.service.EmotionRecordCacheService;
 import org.dfbf.soundlink.domain.emotionRecord.service.EmotionRecordService;
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
@@ -30,6 +31,8 @@ class EmotionRecordServiceTest {
     @InjectMocks
     private EmotionRecordService emotionRecordService;
     @Mock
+    private EmotionRecordCacheService emotionRecordCacheService;
+    @Mock
     private EmotionRecordRepository emotionRecordRepository;
     @Mock
     private SpotifyMusicRepository spotifyMusicRepository;
@@ -37,13 +40,20 @@ class EmotionRecordServiceTest {
     private UserRepository userRepository;
 
 
+
+
     @DisplayName("감정기록 작성(제목,가수,앨범,스포티파이아이디,감정,멘트):성공")
     @Test
     void saveEmotionRecordWithMusic_SUCCESS() {
+
+        // 각 테스트 전에 캐시 제거 호출은 아무 동작도 하지 않도록 설정
+        doNothing().when(emotionRecordCacheService)
+                .evictEmotionRecordCache(any(), any(), any());
+
         // given
         Long userId = 1L;
         EmotionRecordRequestDTO requestDTO = new EmotionRecordRequestDTO(
-                "spotify1233", "New videoId", "New Title", "New Artist", "New Image",HAPPY, "Test comment"
+                "spotify1233", "New videoId", "New Title", "New Artist", "New Image", HAPPY, "Test comment"
         );
 
         User mockUser = mock(User.class);
@@ -67,14 +77,38 @@ class EmotionRecordServiceTest {
     @DisplayName("감정기록 삭제:성공")
     @Test
     void deleteEmotionRecord_SUCCESS() {
-        //given
+        // given
         Long recordId = 1L;
-        when(emotionRecordRepository.deleteByRecordId(recordId)).thenReturn(1);//삭제된 레코드 수 1개
-        //when
+
+        // 모의 User, SpotifyMusic, Emotions 생성 및 스텁 처리
+        User mockUser = mock(User.class);
+        when(mockUser.getUserId()).thenReturn(100L);  // 예시 값
+
+        SpotifyMusic mockMusic = mock(SpotifyMusic.class);
+        when(mockMusic.getSpotifyId()).thenReturn("spotify123");
+
+        EmotionRecord mockRecord = mock(EmotionRecord.class);
+
+        // 실제 존재하는 EmotionRecord 모의 객체 (캐싱제거 처리로 추가)
+        when(mockRecord.getUser()).thenReturn(mockUser);
+        when(mockRecord.getSpotifyMusic()).thenReturn(mockMusic);
+        when(mockRecord.getEmotion()).thenReturn(Emotions.HAPPY);
+
+        when(emotionRecordRepository.findByRecordId(recordId)).thenReturn(Optional.of(mockRecord));
+        when(emotionRecordRepository.deleteByRecordId(recordId)).thenReturn(1); // 삭제된 레코드 수 1개
+
+        // 캐시 제거 호출은 아무 동작도 하지 않도록 설정
+        doNothing().when(emotionRecordCacheService)
+                .evictEmotionRecordCache(any(), any(), any());
+
+        // when
         ResponseResult result = emotionRecordService.deleteEmotionRecord(recordId);
-        //then
-        assertEquals(200,result.getCode());
+
+        // then
+        assertEquals(200, result.getCode());
+        verify(emotionRecordRepository).findByRecordId(recordId);
         verify(emotionRecordRepository).deleteByRecordId(recordId);
+        verify(emotionRecordCacheService).evictEmotionRecordCache(any(), any(), any());
     }
 
 
@@ -96,6 +130,11 @@ class EmotionRecordServiceTest {
     @Test
     @DisplayName("감정 기록 수정 성공 테스트")
     void updateEmotionRecord_Success() {
+
+        // 각 테스트 전에 캐시 제거 호출은 아무 동작도 하지 않도록 설정
+        doNothing().when(emotionRecordCacheService)
+                .evictEmotionRecordCache(any(), any(), any());
+
         // given
         Long recordId = 1L;
         EmotionRecordUpdateRequestDTO updateDTO = new EmotionRecordUpdateRequestDTO(

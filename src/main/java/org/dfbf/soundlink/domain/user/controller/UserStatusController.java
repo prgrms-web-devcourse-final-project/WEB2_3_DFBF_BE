@@ -1,5 +1,6 @@
 package org.dfbf.soundlink.domain.user.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.dfbf.soundlink.domain.user.dto.response.UserStatusDto;
 import org.dfbf.soundlink.domain.user.dto.response.UserStatusResponseDto;
@@ -13,6 +14,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RestController
 @RequestMapping("/api/userStatus")
 @RequiredArgsConstructor
+@Tag(name = "User Status API", description = "유저 상태 관련 API")
 public class UserStatusController {
     private final UserStatusService userStatusService;
     private final UserStatusSseService userStatusSseService;

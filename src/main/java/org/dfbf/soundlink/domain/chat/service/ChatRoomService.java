@@ -36,10 +36,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.time.Duration;
 import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -69,6 +66,13 @@ public class ChatRoomService {
             // 요청자와 응답자가 같은 경우
             if (requestUserId.equals(responseUserId)) {
                 return new ResponseResult(400, "You can't chat with yourself.");
+            }
+
+            //이미 요청이 있는지 확인(Redis에 emotionRecordId에 대한 요청이 있는지 확인)
+            Set<String> existIngKeys = redisTemplate.keys(CHAT_REQUEST_KEY + "*to" + emotionRecordId + "*");
+            if(!existIngKeys.isEmpty()){
+                //이미 요청이 있을 경우, 예외처리
+                return new ResponseResult(400, "Another user has already sent a request for this record.");
             }
 
             // 응답자가 요청자를 차단한 경우

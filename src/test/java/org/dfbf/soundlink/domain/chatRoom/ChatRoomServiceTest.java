@@ -42,7 +42,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ChatRoomServiceTest {
+class ChatRoomServiceTest {
     @InjectMocks
     private ChatRoomService chatRoomService;
 
@@ -113,14 +113,6 @@ public class ChatRoomServiceTest {
                 .comment("Great day!")
                 .build();
 
-        // ChatRoom 객체 생성
-        chatRoom = ChatRoom.builder()
-                .requestUserId(requestUser)  // 요청자는 requestUser
-                .recordId(emotionRecord)     // 감정 기록은 emotionRecord로 설정
-                .status(WAITING)
-                .startTime(new Timestamp(System.currentTimeMillis()))
-                .endTime(null)
-                .build();
 
         chatRejectDto = new ChatRejectDto(emotionRecordId, requestNickname);
     }
@@ -212,7 +204,6 @@ public class ChatRoomServiceTest {
     void testCreateChatRoom_Success() {
         Long userId = 2L;  // 응답자
         Long recordId = 123L;  // 감정기록 ID
-        String requestNickname = "requestUser";  // 요청자의 닉네임
 
         // Mock 설정
         when(emotionRecordRepository.findUserIdByRecordId(recordId)).thenReturn(Optional.of(userId));
@@ -346,14 +337,14 @@ public class ChatRoomServiceTest {
                 .videoId("test_video")
                 .build();
 
-        EmotionRecord emotionRecord = EmotionRecord.builder()
+        EmotionRecord testEmotionRecord = EmotionRecord.builder()
                 .user(requestUser)
                 .spotifyMusic(spotifyMusic)
                 .build();
 
         ChatRoom chatRoom = ChatRoom.builder()
                 .requestUserId(requestUser) // 요청자
-                .recordId(emotionRecord)
+                .recordId(testEmotionRecord)
                 .status(CONNECTED)
                 .startTime(new Timestamp(System.currentTimeMillis()))
                 .build();

@@ -1,13 +1,10 @@
 package org.dfbf.soundlink.domain.alert.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import lombok.*;
-import java.time.*;
+
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 @Data

@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.dfbf.soundlink.domain.alert.service.AlertService;
-import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -32,10 +31,4 @@ public class AlertController {
             @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId) {
         return alertService.connectAlarm(id, lastEventId);
     }
-
-//    @PostMapping("")
-//    @Operation(summary = "알림 전송 API", description = "알림을 전송하는 기능 (CHAT 서버에서 사용하는 기능입니다.)")
-//    public ResponseResult send(@RequestParam("id") Long id, @RequestParam("msg") String msg) {
-//        return alertService.send(id,"test" ,msg);
-//    }
 }

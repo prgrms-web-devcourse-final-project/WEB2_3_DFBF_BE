@@ -51,6 +51,7 @@ public class ChatRoomService {
     private final KafkaProducer kafkaProducer;
 
     private static final String CHAT_REQUEST_KEY = "chatRequest";
+    private static final String TOPIC = "alert-topic";
 
     // 요청을 Redis에 저장 (TTL: 60초)
     public ResponseResult saveRequestToRedis(Long requestUserId, Long emotionRecordId) {
@@ -98,7 +99,7 @@ public class ChatRoomService {
                     .orElseThrow(UserNotFoundException::new);
             AlertChatRequest alertChatRequest = new AlertChatRequest(emotionRecordId, requestUser.getNickname());
             Alert alert = alertService.createAlert(responseUserId, "alarm", alertChatRequest);
-            kafkaProducer.send("alert-topic", alert);
+            kafkaProducer.send(TOPIC, alert);
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (EmotionRecordNotFoundException e) {
@@ -124,7 +125,7 @@ public class ChatRoomService {
             if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
                 redisTemplate.delete(key);
                 Alert alert = alertService.createAlert(recordIdInUserId, "cancel", "Chat request has been canceled.");
-                kafkaProducer.send("alert-topic", alert);
+                kafkaProducer.send(TOPIC, alert);
                 log.info("tset");
                 return new ResponseResult(ErrorCode.SUCCESS);
             } else {
@@ -160,7 +161,7 @@ public class ChatRoomService {
             if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
                 redisTemplate.delete(key);
                 Alert alert = alertService.createAlert(requestUserId, "fail", "채팅 요청을 거부했습니다");
-                kafkaProducer.send("alert-topic", alert);
+                kafkaProducer.send(TOPIC, alert);
                 return new ResponseResult(ErrorCode.SUCCESS);
             } else {
                 return new ResponseResult(400, "ChatRequest not found or expired.");
@@ -210,7 +211,7 @@ public class ChatRoomService {
                     Map<String, Object> map = new HashMap<>();
                     map.put("chatRoomId", chatRoomId.get());
                     Alert alert = alertService.createAlert(requestUserId, "accept", map);
-                    kafkaProducer.send("alert-topic", alert);
+                    kafkaProducer.send(TOPIC, alert);
                     return new ResponseResult(map);
                 }
 
@@ -238,7 +239,7 @@ public class ChatRoomService {
 
                 // 요청자에게 방번호를 보냄
                 Alert alert = alertService.createAlert(requestUserId, "accept", map);
-                kafkaProducer.send("alert-topic", alert);
+                kafkaProducer.send(TOPIC, alert);
 
                 return new ResponseResult(map);
             } else {

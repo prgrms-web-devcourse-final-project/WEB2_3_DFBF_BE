@@ -84,9 +84,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-mail")
 
     // Kafka
-//    implementation ("org.springframework.kafka:spring-kafka") // Spring Boot에서 Kafka를 편하게 사용하도록 도와주는 라이브러리
-//    implementation ("org.apache.kafka:kafka-streams") // Kafka의 스트림 API를 사용할 때 필요
-//    implementation ("org.apache.kafka:kafka-clients") // Kafka 브로커와 직접 통신하는 기본 클라이언트 라이브러리
+    implementation ("org.springframework.kafka:spring-kafka") // Spring Boot에서 Kafka를 편하게 사용하도록 도와주는 라이브러리
+    implementation ("org.apache.kafka:kafka-streams") // Kafka의 스트림 API를 사용할 때 필요
+    implementation ("org.apache.kafka:kafka-clients") // Kafka 브로커와 직접 통신하는 기본 클라이언트 라이브러리
 
     //QueryDSL 추가
     implementation ("com.querydsl:querydsl-apt:5.0.0")

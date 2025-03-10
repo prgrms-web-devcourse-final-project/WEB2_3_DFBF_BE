@@ -33,9 +33,9 @@ public class AlertController {
         return alertService.connectAlarm(id, lastEventId);
     }
 
-    @PostMapping("")
-    @Operation(summary = "알림 전송 API", description = "알림을 전송하는 기능 (CHAT 서버에서 사용하는 기능입니다.)")
-    public ResponseResult send(@RequestParam("id") Long id, @RequestParam("msg") String msg) {
-        return alertService.send(id,"test" ,msg);
-    }
+//    @PostMapping("")
+//    @Operation(summary = "알림 전송 API", description = "알림을 전송하는 기능 (CHAT 서버에서 사용하는 기능입니다.)")
+//    public ResponseResult send(@RequestParam("id") Long id, @RequestParam("msg") String msg) {
+//        return alertService.send(id,"test" ,msg);
+//    }
 }

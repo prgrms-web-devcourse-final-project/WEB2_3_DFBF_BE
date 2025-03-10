@@ -122,7 +122,7 @@ public class ChatRoomService {
             Long recordIdInUserId = emotionRecordRepository.findUserIdByRecordId(emotionRecordId)
                     .orElseThrow(EmotionRecordNotFoundException::new);
 
-            // Key 생성ƒse
+            // Key 생성
             String key = CHAT_REQUEST_KEY + userId + "to" + emotionRecordId;
 
             // Redis에 Key가 존재하는 경우 삭제 (KEY가 없는 경우 400)
@@ -180,27 +180,27 @@ public class ChatRoomService {
 
     // 채팅방 생성 (요청 수락)
     @Transactional
-    public ResponseResult createChatRoom(@AuthenticationPrincipal Long userId, Long recordId, String requestNickname) {
+    public ResponseResult createChatRoom(Long userId, Long recordId, String requestNickname) {
         try {
             Long recordIdInUserId = emotionRecordRepository.findUserIdByRecordId(recordId)
                     .orElseThrow(EmotionRecordNotFoundException::new);
 
             if (!userId.equals(recordIdInUserId)) {
-                return new ResponseResult(400, "응답자만 요청을 거절할 수 있습니다.");
+                return new ResponseResult(400, "응답자만 요청을 수락할 수 있습니다.");
             }
 
+            // 요청 보낸사람
+            Long requestUserId = userRepository.findUserIdByNickname(requestNickname)
+                    .orElseThrow(UserNotFoundException::new);
+            User user = userRepository.findByUserIdWithCache(requestUserId)
+                    .orElseThrow(UserNotFoundException::new);
+
             // Key 생성
-            String key = CHAT_REQUEST_KEY + userId + "to" + recordId;
+            String key = CHAT_REQUEST_KEY + requestUserId + "to" + recordId;
 
             // Redis에 Key가 존재하는 경우 삭제 & 방생성 (KEY가 없는 경우 400)
             if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
                 redisTemplate.delete(key);
-
-                // 요청 보낸사람
-                Long requestUserId = userRepository.findUserIdByNickname(requestNickname)
-                        .orElseThrow(UserNotFoundException::new);
-                User user = userRepository.findByUserIdWithCache(requestUserId)
-                        .orElseThrow(UserNotFoundException::new);
 
                 // 감정기록 조회
                 EmotionRecord emotionRecord = emotionRecordRepository.findById(recordId)

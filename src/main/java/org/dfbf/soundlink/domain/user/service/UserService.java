@@ -227,6 +227,7 @@ public class UserService {
     private int REFRESH_TOKEN_EXPIRATION_TIME;
 
     // RefreshToken을 쿠키로 설정
+    // 8080 (토큰 발행) -> 8081 (토큰 검증 RT)
     private ResponseCookie getRefreshToken(String refreshToken, Integer time) {
         if (!appMode.equals("dev")) {
             return ResponseCookie

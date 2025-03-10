@@ -168,7 +168,7 @@ public class EmotionRecordService {
     public ResponseResult updateEmotionRecord(Long recordId, EmotionRecordUpdateRequestDTO updateDTO) {
         try {
             // 기존 감정 기록 조회
-            EmotionRecord record = emotionRecordRepository.findByRecordId(recordId)
+            EmotionRecord emotionRecord = emotionRecordRepository.findByRecordId(recordId)
                     .orElseThrow(EmotionRecordNotFoundException::new);
 
             // SpotifyMusic이 DB에 있는지 먼저 확인
@@ -186,14 +186,14 @@ public class EmotionRecordService {
                         return spotifyMusicRepository.save(newMusic);
                     });
 
-            record.updateEmotionRecord(updateDTO.emotion(), updateDTO.comment(), spotifyMusic);
+            emotionRecord.updateEmotionRecord(updateDTO.emotion(), updateDTO.comment(), spotifyMusic);
 
             // 수정된 정보를 Response DTO로 변환
-            EmotionRecordUpdateResponseDTO responseDTO = EmotionRecordUpdateResponseDTO.fromEntity(record);
+            EmotionRecordUpdateResponseDTO responseDTO = EmotionRecordUpdateResponseDTO.fromEntity(emotionRecord);
 
             // 게시글 수정 시, 해당 조건에 맞는 캐시 키 삭제
             emotionRecordCacheService.evictEmotionRecordCache(
-                    record.getUser().getUserId(),
+                    emotionRecord.getUser().getUserId(),
                     updateDTO.spotifyId(),
                     updateDTO.emotion()
             );
@@ -210,16 +210,16 @@ public class EmotionRecordService {
     @Transactional
     public ResponseResult deleteEmotionRecord(Long recordId) {
         try {
-            EmotionRecord record = emotionRecordRepository.findByRecordId(recordId)
+            EmotionRecord emotionRecord = emotionRecordRepository.findByRecordId(recordId)
                     .orElseThrow(EmotionRecordNotFoundException::new);
 
             int deletedCount = emotionRecordRepository.deleteByRecordId(recordId);
 
             // 게시글 삭제 시, 해당 조건에 맞는 캐시 키 삭제
             emotionRecordCacheService.evictEmotionRecordCache(
-                    record.getUser().getUserId(),
-                    record.getSpotifyMusic().getSpotifyId(),
-                    record.getEmotion().name()
+                    emotionRecord.getUser().getUserId(),
+                    emotionRecord.getSpotifyMusic().getSpotifyId(),
+                    emotionRecord.getEmotion().name()
             );
 
             // 삭제할 데이터가 없는 경우

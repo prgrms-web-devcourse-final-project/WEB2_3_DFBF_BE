@@ -40,8 +40,6 @@ class EmotionRecordServiceTest {
     private UserRepository userRepository;
 
 
-
-
     @DisplayName("감정기록 작성(제목,가수,앨범,스포티파이아이디,감정,멘트):성공")
     @Test
     void saveEmotionRecordWithMusic_SUCCESS() {
@@ -111,21 +109,6 @@ class EmotionRecordServiceTest {
         verify(emotionRecordCacheService).evictEmotionRecordCache(any(), any(), any());
     }
 
-
-//    @DisplayName("감정기록 DB오류 : 실패")
-//    @Test
-//    void deleteEmotionRecord_DataAccessException() {
-//        // given
-//        Long recordId = 1L;
-//        when(emotionRecordRepository.deleteByRecordId(recordId)).thenThrow(new DataAccessException("Database error") {});
-//
-//        // when
-//        ResponseResult result = emotionRecordService.deleteEmotionRecord(recordId);
-//
-//        // then
-//        assertEquals(ErrorCode.DB_ERROR, result.getCode());
-//        assertEquals("Database error", result.getMessage());
-//    }
 
     @Test
     @DisplayName("감정 기록 수정 성공 테스트")

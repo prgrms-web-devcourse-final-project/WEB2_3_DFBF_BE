@@ -43,7 +43,7 @@ public class EmotionRecordCacheServiceTest {
      */
     @DisplayName("캐시 존재 시, 결과 반환 테스트")
     @Test
-    public void testGetEmotionRecords_CacheHit() {
+    void testGetEmotionRecords_CacheHit() {
         Long userId = 2L;
         List<String> emotionList = Arrays.asList("HAPPY", "SAD");
         String spotifyId = "spotify1";
@@ -126,7 +126,7 @@ public class EmotionRecordCacheServiceTest {
      */
     @DisplayName("캐시 누락 시, DB에서 조회 후 반환 테스트")
     @Test
-    public void testGetEmotionRecords_CacheMiss() {
+    void testGetEmotionRecords_CacheMiss() {
         Long userId = 2L;
         List<String> emotionList = Arrays.asList("HAPPY", "SAD");
         String spotifyId = "spotify1";
@@ -170,7 +170,7 @@ public class EmotionRecordCacheServiceTest {
      */
     @DisplayName("키 삭제 테스트")
     @Test
-    public void testEvictEmotionRecordCache() {
+    void testEvictEmotionRecordCache() {
         Long userId = 1L;
         String spotifyId = "spotify1";
         String emotion = "happy";

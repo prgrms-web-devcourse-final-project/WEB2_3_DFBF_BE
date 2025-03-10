@@ -1,9 +1,13 @@
 package org.dfbf.soundlink.global.util;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import java.util.ArrayList;
 import java.util.List;
 
 // 캐시 관련 유틸 클래스
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CacheKeyGenerator {
     /**
      * 각 emotion에 대해 개별 캐시 키들을 생성 (데이터 캐싱 및 조회)

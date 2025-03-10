@@ -16,7 +16,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -143,12 +142,12 @@ public class EmotionRecordCacheService {
                             throw new IllegalArgumentException("잘못된 감정 값이 포함되어 있습니다: " + e);
                         }
                     })
-                    .collect(Collectors.toList());
+                    .toList();
         }
         Page<EmotionRecord> recordsPage = emotionRecordRepository.findByFilters(userId, emotionEnums, spotifyId, pageable);
         List<EmotionRecordResponseMainDTO> dtoList = recordsPage.getContent().stream()
                 .map(EmotionRecordResponseMainDTO::fromEntity)
-                .collect(Collectors.toList());
+                .toList();
         return EmotionRecordPageResponseDTO.fromPage(recordsPage, dtoList);
     }
 

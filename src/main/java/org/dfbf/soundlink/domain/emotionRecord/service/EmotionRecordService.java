@@ -2,6 +2,8 @@ package org.dfbf.soundlink.domain.emotionRecord.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dfbf.soundlink.domain.chat.entity.ChatRoom;
+import org.dfbf.soundlink.domain.chat.repository.ChatRoomRepository;
 import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordRequestDTO;
 import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordUpdateRequestDTO;
 import org.dfbf.soundlink.domain.emotionRecord.dto.response.*;
@@ -14,7 +16,6 @@ import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepositor
 import org.dfbf.soundlink.domain.emotionRecord.repository.SpotifyMusicRepository;
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
-import org.dfbf.soundlink.global.comm.enums.Emotions;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.dao.DataAccessException;
@@ -35,6 +36,9 @@ public class EmotionRecordService {
     private final SpotifyMusicRepository spotifyMusicRepository;
     private final EmotionRecordRepository emotionRecordRepository;
     private final UserRepository userRepository;
+
+    private final EmotionRecordCacheService emotionRecordCacheService;
+    private final ChatRoomRepository chatRoomRepository;
 
     @Transactional
     public ResponseResult saveEmotionRecordWithMusic(Long userId, EmotionRecordRequestDTO request) {
@@ -62,6 +66,13 @@ public class EmotionRecordService {
                     .spotifyMusic(spotifyMusic)
                     .build();
             emotionRecordRepository.save(emotionRecord);
+
+            // 게시글 생성 시, 해당 조건에 맞는 캐시 키 삭제
+            emotionRecordCacheService.evictEmotionRecordCache(
+                    userId,
+                    request.spotifyId(),
+                    request.emotion().name()
+            );
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (UserNotFoundException e) {
@@ -99,33 +110,22 @@ public class EmotionRecordService {
         }
     }
 
+    // 동적 검색 (로그인 사용자를 제외한 EmotionRecord 조회) - 캐시 적용
+    @Transactional(readOnly = true)
     public ResponseResult getEmotionRecordsExcludingUserIdByFilters(Long userId, List<String> emotionList, String spotifyId, int page, int size) {
-        List<Emotions> emotionEnums = null;
         ResponseResult pageValidationResult = validateAndCreatePageable(page, size);
         if (pageValidationResult.getCode() != 200 /*SUCCESS*/) {
             return pageValidationResult;
         }
 
-        Pageable pageable = (Pageable) pageValidationResult.getData();
-
-        if (emotionList != null && !emotionList.isEmpty()) {
-            try {
-                emotionEnums = emotionList.stream()
-                        .map(e -> Emotions.valueOf(e.toUpperCase()))
-                        .toList();
-            } catch (IllegalArgumentException e) {
-                return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION, "잘못된 감정 값이 포함되어 있습니다.");
-            }
-        }
-
         try {
-            Page<EmotionRecord> recordsPage = emotionRecordRepository.findByFilters(userId, emotionEnums, spotifyId, pageable);
-            List<EmotionRecordResponseMainDTO> dtoList = recordsPage.getContent()
-                    .stream()
-                    .map(EmotionRecordResponseMainDTO::fromEntity)
-                    .toList();
-
-            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordPageResponseDTO.fromPage(recordsPage, dtoList));
+            // EmotionRecordCacheService의 결합 캐시 조회 및 Fallback 처리
+            EmotionRecordPageResponseDTO<EmotionRecordResponseMainDTO> result =
+                    emotionRecordCacheService.getEmotionRecords(userId, emotionList, spotifyId, page, size);
+            return new ResponseResult(ErrorCode.SUCCESS, result);
+        } catch (IllegalArgumentException e) {
+            // 잘못된 감정 값이 포함된 경우
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION, e.getMessage());
         } catch (DataAccessException e) {
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         } catch (Exception e) {
@@ -172,7 +172,7 @@ public class EmotionRecordService {
     public ResponseResult updateEmotionRecord(Long recordId, EmotionRecordUpdateRequestDTO updateDTO) {
         try {
             // 기존 감정 기록 조회
-            EmotionRecord record = emotionRecordRepository.findByRecordId(recordId)
+            EmotionRecord emotionRecord = emotionRecordRepository.findByRecordId(recordId)
                     .orElseThrow(EmotionRecordNotFoundException::new);
 
             // SpotifyMusic이 DB에 있는지 먼저 확인
@@ -190,11 +190,17 @@ public class EmotionRecordService {
                         return spotifyMusicRepository.save(newMusic);
                     });
 
-            record.updateEmotionRecord(updateDTO.emotion(), updateDTO.comment(), spotifyMusic);
+            emotionRecord.updateEmotionRecord(updateDTO.emotion(), updateDTO.comment(), spotifyMusic);
 
             // 수정된 정보를 Response DTO로 변환
-            EmotionRecordUpdateResponseDTO responseDTO = EmotionRecordUpdateResponseDTO.fromEntity(record);
+            EmotionRecordUpdateResponseDTO responseDTO = EmotionRecordUpdateResponseDTO.fromEntity(emotionRecord);
 
+            // 게시글 수정 시, 해당 조건에 맞는 캐시 키 삭제
+            emotionRecordCacheService.evictEmotionRecordCache(
+                    emotionRecord.getUser().getUserId(),
+                    updateDTO.spotifyId(),
+                    updateDTO.emotion()
+            );
             return new ResponseResult(ErrorCode.SUCCESS, responseDTO);
         } catch (EmotionRecordNotFoundException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
@@ -208,7 +214,27 @@ public class EmotionRecordService {
     @Transactional
     public ResponseResult deleteEmotionRecord(Long recordId) {
         try {
+            EmotionRecord emotionRecord = emotionRecordRepository.findByRecordId(recordId)
+                    .orElseThrow(EmotionRecordNotFoundException::new);
+
+            // 해당 EmotionRecord를 참조하는 채팅방 조회
+            List<ChatRoom> chatRooms = chatRoomRepository.findByRecordId(emotionRecord);
+
+            // 채팅방이 존재하면 모두 삭제 후 삭제 내용을 즉시 반영
+            if (chatRooms != null && !chatRooms.isEmpty()) {
+                chatRoomRepository.deleteAll(chatRooms);
+                chatRoomRepository.flush(); // 즉시 DB에 반영
+            }
+
             int deletedCount = emotionRecordRepository.deleteByRecordId(recordId);
+            emotionRecordRepository.flush(); // 즉시 DB에 반영
+
+            // 게시글 삭제 시, 해당 조건에 맞는 캐시 키 삭제
+            emotionRecordCacheService.evictEmotionRecordCache(
+                    emotionRecord.getUser().getUserId(),
+                    emotionRecord.getSpotifyMusic().getSpotifyId(),
+                    emotionRecord.getEmotion().name()
+            );
 
             // 삭제할 데이터가 없는 경우
             if (deletedCount == 0) {

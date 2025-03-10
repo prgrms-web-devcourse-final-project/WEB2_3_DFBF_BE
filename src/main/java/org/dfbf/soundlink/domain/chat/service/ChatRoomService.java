@@ -22,6 +22,7 @@ import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepositor
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.exception.NoUserDataException;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
+import org.dfbf.soundlink.domain.user.service.UserStatusService;
 import org.dfbf.soundlink.global.comm.enums.RoomStatus;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
@@ -34,7 +35,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.Duration;
+
 import java.util.*;
+
 
 @Service
 @RequiredArgsConstructor
@@ -49,6 +52,7 @@ public class ChatRoomService {
     private final AlertService alertService;
     private final DevChatClient devChatClient;
     private final KafkaProducer kafkaProducer;
+    private final UserStatusService userStatusService;
 
     private static final String CHAT_REQUEST_KEY = "chatRequest";
     private static final String TOPIC = "alert-topic";
@@ -210,8 +214,10 @@ public class ChatRoomService {
                 if (chatRoomId.isPresent()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put("chatRoomId", chatRoomId.get());
+                  
                     Alert alert = alertService.createAlert(requestUserId, "accept", map);
                     kafkaProducer.send(TOPIC, alert);
+                  
                     return new ResponseResult(map);
                 }
 
@@ -241,7 +247,10 @@ public class ChatRoomService {
                 Alert alert = alertService.createAlert(requestUserId, "accept", map);
                 kafkaProducer.send(TOPIC, alert);
 
-                return new ResponseResult(map);
+                userStatusService.setChatting(userId, true);
+
+                return new ResponseResult(ErrorCode.SUCCESS, map);
+
             } else {
                 return new ResponseResult(400, "ChatRequest not found or expired.");
             }
@@ -271,6 +280,9 @@ public class ChatRoomService {
             chatRoomRepository.save(chatRoom); // DB에 저장
 
             redisTemplate.delete("Room::"+chatRoomId); // 레디스에서 삭제
+
+            userStatusService.setChatting(userId, false);
+
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (Exception e) {
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());

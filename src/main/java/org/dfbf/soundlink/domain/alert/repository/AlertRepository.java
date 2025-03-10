@@ -1,51 +1,52 @@
 package org.dfbf.soundlink.domain.alert.repository;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 
 @Slf4j
 @Repository
+@RequiredArgsConstructor
 public class AlertRepository {
-    private Map<String, SseEmitter> emitterMap = new ConcurrentHashMap<>();
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final Map<String, SseEmitter> sseEmitterMap = new HashMap<>();
 
-    private String createKey(Long userId) {
-        return "userAlarm:" + userId;
+    public String createEmitterId(Long userId) {
+        return String.valueOf(userId) + "_" + System.currentTimeMillis();
     }
 
-    public SseEmitter save(Long userId, SseEmitter sseEmitter) {
-        String key = this.createKey(userId);
-        if (emitterMap.containsKey(key)) {
-            emitterMap.remove(key);
-        }
-        emitterMap.put(key, sseEmitter);
+    // Redis에 emitterId 저장
+    public String saveEmitterId(Long userId, String emitterId) {
+        redisTemplate.opsForValue().set("alert::" + userId, emitterId);
 
-        log.info("[SseEmitter] Set {}", key);
+        return emitterId;
+    }
+
+    // Redis에서 emitterId 조회
+    public Optional<String> getEmitterId(Long userId) {
+        return Optional.ofNullable((String) redisTemplate.opsForValue().get("alert::" + userId));
+    }
+
+    // Redis에 SseEmitter 저장
+    public SseEmitter save(String emitterId, SseEmitter sseEmitter) {
+        sseEmitterMap.remove(emitterId);
+        sseEmitterMap.put(emitterId, sseEmitter);
+
         return sseEmitter;
     }
 
-    public Optional<SseEmitter> get(Long userId) {
-        String key = this.createKey(userId);
-        SseEmitter sseEmitter = emitterMap.get(key);
-
-        log.info("[SseEmitter] Get {}", key);
-        return Optional.ofNullable(sseEmitter);
+    // Redis에서 SseEmitter 조회
+    public Optional<SseEmitter> get(String emitterId) {
+        return Optional.ofNullable(sseEmitterMap.get(emitterId));
     }
 
-    public void delete(Long userId) {
-        emitterMap.remove(this.createKey(userId));
+    // Redis에서 emitterId, SseEmitter 삭제
+    public void delete(Long userId, String emitterId) {
+        sseEmitterMap.remove(emitterId);
+        redisTemplate.delete("alert::" + userId);
     }
-
-    // 저장된 알람을 가져오는 메서드
-//    public List<String> getSavedAlerts(Long userId) {
-//        // 저장된 알람 목록을 리턴하는 로직을 추가
-//        // 예시로 간단히 List<String> 타입으로, 필요에 따라 알람 객체를 리턴할 수도 있음
-//        return new ArrayList<>(); // 이곳을 실제 알람 저장 로직으로 수정
-//    }
 }

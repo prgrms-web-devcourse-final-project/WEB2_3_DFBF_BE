@@ -72,6 +72,7 @@ public class ChatRoomService {
             Set<String> existIngKeys = redisTemplate.keys(CHAT_REQUEST_KEY + "*to" + emotionRecordId + "*");
             if(!existIngKeys.isEmpty()){
                 //이미 요청이 있을 경우, 예외처리
+                log.info(existIngKeys.toString());
                 return new ResponseResult(400, "Another user has already sent a request for this record.");
             }
 
@@ -92,7 +93,7 @@ public class ChatRoomService {
             ChatRequest chatRequest = new ChatRequest(requestUserId, responseUserId, emotionRecordId);
 
             // Redis 저장
-            redisTemplate.opsForValue().set(key, chatRequest, Duration.ofSeconds(10));
+            redisTemplate.opsForValue().set(key, chatRequest, Duration.ofSeconds(60));
 
             // 알림 전송
             User requestUser = userRepository.findByUserIdWithCache(requestUserId)

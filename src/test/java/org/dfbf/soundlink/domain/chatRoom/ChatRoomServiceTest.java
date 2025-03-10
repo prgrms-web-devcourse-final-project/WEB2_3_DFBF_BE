@@ -70,7 +70,6 @@ class ChatRoomServiceTest {
     private User requestUser;
     private User responseUser;
     private EmotionRecord emotionRecord;
-    private ChatRoom chatRoom;
     private ChatRejectDto chatRejectDto;
 
     private static final String CHAT_REQUEST_KEY = "chatRequest";

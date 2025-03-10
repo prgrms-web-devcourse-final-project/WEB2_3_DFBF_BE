@@ -127,8 +127,8 @@ class ChatRoomServiceTest {
         when(blockListRepository.existsByUser_UserIdAndBlockedUser_UserId(responseUserId, requestUserId)).thenReturn(false); // 차단된 사용자 없음
 
         // 알림 서비스 mock
-        when(alertService.send(eq(responseUserId), eq("alarm"), any(Alert.class)))
-                .thenReturn(new ResponseResult(ErrorCode.SUCCESS));  // 알림 전송 mock
+//        when(alertService.send(eq(responseUserId), eq("alarm"), any(Alert.class)))
+//                .thenReturn(new ResponseResult(ErrorCode.SUCCESS));  // 알림 전송 mock
 
         // Redis 관련 mock 설정
         ValueOperations<String, Object> valueOps = mock(ValueOperations.class);  // ValueOperations 객체 생성

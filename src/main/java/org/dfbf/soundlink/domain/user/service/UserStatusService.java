@@ -3,10 +3,11 @@ package org.dfbf.soundlink.domain.user.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.dfbf.soundlink.domain.user.dto.response.UserStatusDto;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserStatusService {
@@ -28,7 +29,7 @@ public class UserStatusService {
             userStatusSseService.sendUserStatus(status.getUserId(), status);
 
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            log.error("유저 상태 저장 중 JsonProcessingException 오류: {}", e.getMessage());
         }
     }
 
@@ -40,7 +41,7 @@ public class UserStatusService {
             try {
                 return objectMapper.readValue(json, UserStatusDto.class);
             } catch (JsonProcessingException e) {
-                e.printStackTrace();
+                log.error("유저 상태 조회 중 JsonProcessing 오류: {}", e.getMessage());
             }
         }
         // 값이 없으면 기본 오프라인 상태 리턴

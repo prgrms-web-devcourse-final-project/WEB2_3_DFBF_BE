@@ -214,6 +214,7 @@ public class ChatRoomService {
                 if (chatRoomId.isPresent()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put("chatRoomId", chatRoomId.get());
+                    alertService.send(requestUserId, "accept", map);
                     return new ResponseResult(map);
                 }
 

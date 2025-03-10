@@ -1,5 +1,6 @@
 package org.dfbf.soundlink.domain.user.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -49,6 +50,8 @@ public class UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final MailService mailService;
     private final RedisService redisService;
+    private final UserStatusService userStatusService;
+    private final UserStatusSseService userStatusSseService;
 
     private final JwtProvider jwtProvider;
     private final TokenProperties tokenProperties;
@@ -56,6 +59,9 @@ public class UserService {
     private final RedisTemplate<String, String> redisTemplate;
     private final TokenService tokenService;
     private final AlertService alertService;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private static final String USER_STATUS_KEY_PREFIX = "user:status:";
 
     @Value("${app.mode}")
     private String appMode;
@@ -283,6 +289,8 @@ public class UserService {
             Map<String, String> responseBody = new HashMap<>();
             responseBody.put("accessToken", accessToken);
 
+            userStatusService.setOnline(user.getUserId());
+
             return new ResponseResult(responseBody);
         } catch (Exception e) {
             log.info("[ERROR] " + e.getMessage());
@@ -311,6 +319,8 @@ public class UserService {
 
             // SSE 연결 해제
             alertService.disconnectAlarm(userId);
+
+            userStatusService.setOffline(userId);
 
             return new ResponseResult(ErrorCode.SUCCESS,"로그아웃 되었습니다.");
 

@@ -4,6 +4,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.dfbf.soundlink.domain.user.dto.response.UserStatusDto;
 import org.dfbf.soundlink.domain.user.dto.response.UserStatusResponseDto;
+import org.dfbf.soundlink.domain.user.entity.User;
+import org.dfbf.soundlink.domain.user.exception.NoUserDataException;
+import org.dfbf.soundlink.domain.user.repository.UserRepository;
 import org.dfbf.soundlink.domain.user.service.UserStatusService;
 import org.dfbf.soundlink.domain.user.service.UserStatusSseService;
 import org.dfbf.soundlink.global.exception.ErrorCode;
@@ -18,14 +21,25 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public class UserStatusController {
     private final UserStatusService userStatusService;
     private final UserStatusSseService userStatusSseService;
+    private final UserRepository userRepository;
 
     @GetMapping("/subscribe")
-    public SseEmitter subscribe(@RequestParam Long userId) {
+    public SseEmitter subscribe(@RequestParam String loginId) {
+
+        User user = userRepository.findByLoginId(loginId)
+                .orElseThrow(NoUserDataException::new);
+        Long userId = user.getUserId();
+
         return userStatusSseService.subscribe(userId);
     }
 
-    @GetMapping("/{userId}")
-    public ResponseResult getUserStatus(@PathVariable Long userId) {
+    @GetMapping("/{loginId}")
+    public ResponseResult getUserStatus(@PathVariable String loginId) {
+
+        User user = userRepository.findByLoginId(loginId)
+                .orElseThrow(NoUserDataException::new);
+        Long userId = user.getUserId();
+
         UserStatusDto status = userStatusService.getUserStatus(userId);
 
         boolean isOnline = status.isOnline();
@@ -33,7 +47,7 @@ public class UserStatusController {
         long minutesAgo = userStatusService.getMinutesSinceLastActive(userId);
 
         UserStatusResponseDto dto = new UserStatusResponseDto(
-                userId,
+                loginId,
                 isOnline ? "ONLINE" : "OFFLINE",
                 isChatting ? "CHATTING" : "NOT_CHATTING",
                 isOnline

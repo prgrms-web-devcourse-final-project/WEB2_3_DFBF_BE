@@ -9,6 +9,7 @@ import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -62,8 +63,24 @@ public class AlertService {
         });
     }
 
+    @Async
+    public void sendPing(Long userId) throws InterruptedException {
+        while (alertRepository.getEmitterId(userId).isPresent()) {
+            String emitterId = alertRepository.getEmitterId(userId).get();
+            SseEmitter sseEmitter = alertRepository.get(emitterId).get();
+
+            Thread.sleep(40000); // 40초마다 빈 메시지 전송
+            try {
+                sseEmitter.send(SseEmitter.event().name("ping").data("connection keep-alive"));
+            } catch (IOException e) {
+                log.error("Ping 전송 중 오류 발생", e);
+                break;  // 오류가 발생하면 while 루프 종료
+            }
+        }
+    }
+
     // SSE 서버 연결
-    public SseEmitter connectAlarm(Long id, String lastEventId) {
+    public SseEmitter connectAlarm(Long id, String lastEventId) throws InterruptedException {
 
         if (lastEventId != null && !lastEventId.isEmpty()) {
             log.info("[lastEventId] {}", lastEventId);
@@ -86,25 +103,12 @@ public class AlertService {
         });  // 타임아웃 시 처리
 
         try {
-            log.info("아아 알림 테스트 {}", emitterId);
-            sseEmitter.send(SseEmitter.event()
-                    .id(this.createEmitterId(id))
-                    .name("open")
-                    .data("connect completed!!")
-            );
-        } catch (IOException e) {
+            // ping 이벤트를 비동기적으로 전송
+            sendPing(id);
+        } catch (InterruptedException e) {
             log.error("Error sending ping", e);
+            throw new RuntimeException(e);
         }
-
-        // 사용자에게 전송되지 않은 알림 전송
-        this.sendPendingAlerts(id, sseEmitter);
-
-        Executors.newSingleThreadExecutor().submit(() -> {
-            while (true) {
-                Thread.sleep(40000); // 45초마다 빈 메시지를 전송
-                sseEmitter.send(SseEmitter.event().name("ping").data("connection keep-alive"));
-            }
-        });
 
         return sseEmitter;
     }

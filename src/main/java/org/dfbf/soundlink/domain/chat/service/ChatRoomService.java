@@ -253,6 +253,7 @@ public class ChatRoomService {
 //                kafkaProducer.send(TOPIC, alert);
                 alertService.send(requestUserId, "accept", map);
 
+                // 채팅 오픈 상태 보내기
                 userStatusService.setChatting(userId, true);
 
                 return new ResponseResult(ErrorCode.SUCCESS, map);
@@ -281,12 +282,15 @@ public class ChatRoomService {
                 throw new UnauthorizedAccessException(); // 권한이 없을 경우 예외 발생
             }
 
+            // 채팅 완료 상태 보내기
+            userStatusService.setChatting(userId, false);
+
             chatRoom.updateChatRoomStatus(RoomStatus.CLOSED); // 삳태 '닫기'로 변경
             chatRoomRepository.save(chatRoom); // DB에 저장
 
+
             redisTemplate.delete("Room::"+chatRoomId); // 레디스에서 삭제
 
-            userStatusService.setChatting(userId, false);
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (Exception e) {

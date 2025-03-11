@@ -146,7 +146,7 @@ public class ChatRoomService {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
         } catch (Exception e) {
             log.error(e.getMessage());
-            return new ResponseResult(400, "Chat request failed.");
+            return new ResponseResult(400, "Failed to delete the chat request.");
         }
     }
 
@@ -182,7 +182,7 @@ public class ChatRoomService {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
         } catch (Exception e) {
             log.error(e.getMessage());
-            return new ResponseResult(400, "Chat request failed.");
+            return new ResponseResult(400, "Failed to reject the chat request.");
         }
     }
 
@@ -297,7 +297,7 @@ public class ChatRoomService {
     //채팅방 목록 불러오기
     public ResponseResult getChatRoomList(@AuthenticationPrincipal Long userId) {
         try {
-            List<ChatRoom> chatRooms = chatRoomRepository.findByRequestUserIdOrderByCreatedAtDesc(userId);
+            List<ChatRoom> chatRooms = chatRoomRepository.findChatRoomsByUserId(userId);
 
             List<ChatRoomListDto> chatRoomList = chatRooms.stream()
                     .map(chatRoom -> new ChatRoomListDto(

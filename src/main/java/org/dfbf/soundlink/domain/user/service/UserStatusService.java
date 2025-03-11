@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 public class UserStatusService {
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final UserStatusSseService userStatusSseService;
 
     // Redis Key Prefix
     private static final String USER_STATUS_KEY_PREFIX = "user:status:";
@@ -24,9 +23,6 @@ public class UserStatusService {
         try {
             String json = objectMapper.writeValueAsString(status);
             redisTemplate.opsForValue().set(key, json);
-
-            // 이게 SSE로 알림 보냄
-            userStatusSseService.sendUserStatus(status.getUserId(), status);
 
         } catch (JsonProcessingException e) {
             log.error("유저 상태 저장 중 JsonProcessingException 오류: {}", e.getMessage());

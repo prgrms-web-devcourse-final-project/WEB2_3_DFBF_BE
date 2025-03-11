@@ -8,11 +8,9 @@ import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.exception.NoUserDataException;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
 import org.dfbf.soundlink.domain.user.service.UserStatusService;
-import org.dfbf.soundlink.domain.user.service.UserStatusSseService;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @RequestMapping("/api/userStatus")
@@ -20,18 +18,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @Tag(name = "User Status API", description = "유저 상태 관련 API")
 public class UserStatusController {
     private final UserStatusService userStatusService;
-    private final UserStatusSseService userStatusSseService;
     private final UserRepository userRepository;
-
-    @GetMapping("/subscribe")
-    public SseEmitter subscribe(@RequestParam String loginId) {
-
-        User user = userRepository.findByLoginId(loginId)
-                .orElseThrow(NoUserDataException::new);
-        Long userId = user.getUserId();
-
-        return userStatusSseService.subscribe(userId);
-    }
 
     @GetMapping("/{loginId}")
     public ResponseResult getUserStatus(@PathVariable String loginId) {

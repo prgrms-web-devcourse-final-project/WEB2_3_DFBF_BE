@@ -16,6 +16,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -152,8 +153,7 @@ public class EmotionRecordCacheService {
      */
     private void storeInCache(String key, EmotionRecordPageResponseDTO<EmotionRecordResponseMainDTO> dto) {
         try {
-            redisTemplate.opsForValue().set(key, dto);
-            log.info("캐시 데이터 저장 성공 - key: {}", key);
+            redisTemplate.opsForValue().set(key, dto, 30, TimeUnit.MINUTES);    // TTL 30분
         } catch (Exception e) {
             log.error("캐시 데이터 저장 중 오류 발생 - key {}: {}", key, e.getMessage());
         }

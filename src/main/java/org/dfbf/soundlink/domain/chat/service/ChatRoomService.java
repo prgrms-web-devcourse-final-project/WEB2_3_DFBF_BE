@@ -102,9 +102,9 @@ public class ChatRoomService {
             User requestUser = userRepository.findByUserIdWithCache(requestUserId)
                     .orElseThrow(UserNotFoundException::new);
             AlertChatRequest alertChatRequest = new AlertChatRequest(emotionRecordId, requestUser.getNickname());
-//            Alert alert = alertService.createAlert(responseUserId, "alarm", alertChatRequest);
-//            kafkaProducer.send(TOPIC, alert);
-            alertService.send(responseUserId, "alarm", alertChatRequest);
+            Alert alert = alertService.createAlert(responseUserId, "alarm", alertChatRequest);
+            kafkaProducer.send(TOPIC, alert);
+            // alertService.send(responseUserId, "alarm", alertChatRequest);
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (EmotionRecordNotFoundException e) {

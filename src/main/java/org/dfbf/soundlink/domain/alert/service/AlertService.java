@@ -80,7 +80,7 @@ public class AlertService {
     }
 
     // SSE 서버 연결
-    public SseEmitter connectAlarm(Long id, String lastEventId) throws InterruptedException {
+    public SseEmitter connectAlarm(Long id, String lastEventId) {
 
         if (lastEventId != null && !lastEventId.isEmpty()) {
             log.info("[lastEventId] {}", lastEventId);

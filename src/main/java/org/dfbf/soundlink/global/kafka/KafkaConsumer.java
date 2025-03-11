@@ -38,7 +38,8 @@ public class KafkaConsumer {
             if (alertRepository.getEmitterId(alert.getUserId()).isPresent()) {
                 alertService.send(alert.getUserId(), alert.getType(), alert.getData());
             } else {
-                redisTemplate.opsForValue().set("alert:" + alert.getEventId(), alert, 10, TimeUnit.MINUTES);
+                //redisTemplate.opsForValue().set("alert:" + alert.getEventId(), alert, 10, TimeUnit.MINUTES);
+                log.info("No SSE connection for user {}.", alert.getUserId());
             }
         } catch (JsonProcessingException e) {
             log.error("JSON parsing error: {}", e.getMessage());

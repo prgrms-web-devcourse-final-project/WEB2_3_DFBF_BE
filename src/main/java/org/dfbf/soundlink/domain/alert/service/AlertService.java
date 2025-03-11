@@ -80,6 +80,7 @@ public class AlertService {
         sseEmitter.onTimeout(() -> alertRepository.delete(id, emitterId));     // 타임아웃 시 처리
 
         try {
+            log.info("아아 알림 테스트 {}", emitterId);
             sseEmitter.send(SseEmitter.event()
                     .id(this.createEmitterId(id))
                     .name("open")
@@ -116,6 +117,7 @@ public class AlertService {
             ObjectMapper objectMapper = new ObjectMapper();
             String jsonMsg = objectMapper.writeValueAsString(data); // msg를 JSON 문자열로 변환
 
+            log.info("아아 알림 테스트 {}", emitterId);
             sseEmitter.send(
                     SseEmitter.event()
                             .id(eventId)

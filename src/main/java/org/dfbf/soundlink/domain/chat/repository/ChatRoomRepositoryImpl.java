@@ -43,7 +43,7 @@ public class ChatRoomRepositoryImpl implements  ChatRoomCustomRepository {
     }
 
     @Override
-    public List<ChatRoom> findByRequestUserIdOrRecordId_User_UserIdOrderByCreatedAtDesc(Long userId) {
+    public List<ChatRoom> findChatRoomsByUserId(Long userId) {
         return queryFactory
                 .selectFrom(QChatRoom.chatRoom)
                 .leftJoin(QChatRoom.chatRoom.recordId, QEmotionRecord.emotionRecord)  // ChatRoom과 EmotionRecord를 left join

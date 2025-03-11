@@ -307,7 +307,7 @@ class ChatRoomServiceTest {
 
         List<ChatRoom> mockChatRooms = List.of(mockChatRoom);
 
-        when(chatRoomRepository.findByRequestUserIdOrderByCreatedAtDesc(userId)).thenReturn(mockChatRooms);
+        when(chatRoomRepository.findChatRoomsByUserId(userId)).thenReturn(mockChatRooms);
 
         //when
         ResponseResult result = chatRoomService.getChatRoomList(userId);

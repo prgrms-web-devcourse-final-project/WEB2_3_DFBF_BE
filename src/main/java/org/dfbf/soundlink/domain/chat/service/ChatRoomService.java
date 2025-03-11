@@ -102,8 +102,9 @@ public class ChatRoomService {
             User requestUser = userRepository.findByUserIdWithCache(requestUserId)
                     .orElseThrow(UserNotFoundException::new);
             AlertChatRequest alertChatRequest = new AlertChatRequest(emotionRecordId, requestUser.getNickname());
-            Alert alert = alertService.createAlert(responseUserId, "alarm", alertChatRequest);
-            kafkaProducer.send(TOPIC, alert);
+//            Alert alert = alertService.createAlert(responseUserId, "alarm", alertChatRequest);
+//            kafkaProducer.send(TOPIC, alert);
+            alertService.send(responseUserId, "alarm", alertChatRequest);
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (EmotionRecordNotFoundException e) {
@@ -128,8 +129,9 @@ public class ChatRoomService {
             // Redis에 Key가 존재하는 경우 삭제 (KEY가 없는 경우 400)
             if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
                 redisTemplate.delete(key);
-                Alert alert = alertService.createAlert(recordIdInUserId, "cancel", "Chat request has been canceled.");
-                kafkaProducer.send(TOPIC, alert);
+//                Alert alert = alertService.createAlert(recordIdInUserId, "cancel", "Chat request has been canceled.");
+//                kafkaProducer.send(TOPIC, alert);
+                alertService.send(recordIdInUserId, "cancel", "Chat request has been canceled.");
                 log.info("tset");
                 return new ResponseResult(ErrorCode.SUCCESS);
             } else {
@@ -164,8 +166,9 @@ public class ChatRoomService {
             // Redis에 Key가 존재하는 경우 삭제 (KEY가 없는 경우 400)
             if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
                 redisTemplate.delete(key);
-                Alert alert = alertService.createAlert(requestUserId, "fail", "채팅 요청을 거부했습니다");
-                kafkaProducer.send(TOPIC, alert);
+//                Alert alert = alertService.createAlert(requestUserId, "fail", "채팅 요청을 거부했습니다");
+//                kafkaProducer.send(TOPIC, alert);
+                alertService.send(requestUserId, "fail", "채팅 요청을 거부했습니다");
                 return new ResponseResult(ErrorCode.SUCCESS);
             } else {
                 return new ResponseResult(400, "ChatRequest not found or expired.");
@@ -214,8 +217,9 @@ public class ChatRoomService {
                     Map<String, Object> map = new HashMap<>();
                     map.put("chatRoomId", chatRoomId.get());
                   
-                    Alert alert = alertService.createAlert(requestUserId, "accept", map);
-                    kafkaProducer.send(TOPIC, alert);
+//                    Alert alert = alertService.createAlert(requestUserId, "accept", map);
+//                    kafkaProducer.send(TOPIC, alert);
+                    alertService.send(requestUserId, "accept", map);
                   
                     return new ResponseResult(map);
                 }
@@ -243,8 +247,9 @@ public class ChatRoomService {
                 map.put("chatRoomId", chatRoom.getChatRoomId());
 
                 // 요청자에게 방번호를 보냄
-                Alert alert = alertService.createAlert(requestUserId, "accept", map);
-                kafkaProducer.send(TOPIC, alert);
+//                Alert alert = alertService.createAlert(requestUserId, "accept", map);
+//                kafkaProducer.send(TOPIC, alert);
+                alertService.send(requestUserId, "accept", map);
 
                 userStatusService.setChatting(userId, true);
 

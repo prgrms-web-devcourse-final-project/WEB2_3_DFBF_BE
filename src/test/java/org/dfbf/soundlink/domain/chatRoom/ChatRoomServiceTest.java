@@ -166,7 +166,7 @@ class ChatRoomServiceTest {
         when(redisTemplate.hasKey(CHAT_REQUEST_KEY + requestUserId + "to" + emotionRecordId)).thenReturn(true);
 
         Alert mockAlert = mock(Alert.class);  // Alert 객체 mock
-        when(alertService.createAlert(eq(responseUserId), eq("cancel"), eq("Chat request has been canceled.")))
+        when(alertService.createAlert(responseUserId, "cancel", "Chat request has been canceled."))
                 .thenReturn(mockAlert);  // 알림 서비스 mock
 
         when(kafkaProducer.send(anyString(), any(Alert.class))).thenReturn(null);
@@ -182,7 +182,7 @@ class ChatRoomServiceTest {
         verify(redisTemplate).delete(CHAT_REQUEST_KEY + requestUserId + "to" + emotionRecordId);
 
         // 알림 서비스 호출 여부 확인
-        verify(alertService).createAlert(eq(responseUserId), eq("cancel"), eq("Chat request has been canceled."));
+        verify(alertService).createAlert(responseUserId, "cancel", "Chat request has been canceled.");
         verify(kafkaProducer).send(anyString(), any(Alert.class));
     }
 
@@ -197,7 +197,7 @@ class ChatRoomServiceTest {
         when(redisTemplate.hasKey(CHAT_REQUEST_KEY + requestUserId + "to" + emotionRecordId)).thenReturn(true);
 
         Alert mockAlert = mock(Alert.class);  // Alert 객체 mock
-        when(alertService.createAlert(eq(requestUserId), eq("fail"), eq("채팅 요청을 거부했습니다")))
+        when(alertService.createAlert(requestUserId, "fail", "채팅 요청을 거부했습니다"))
                 .thenReturn(mockAlert);
 
         doReturn(true).when(redisTemplate).delete(anyString());// Redis 키 삭제 시 true 반환
@@ -215,7 +215,7 @@ class ChatRoomServiceTest {
         verify(redisTemplate).delete(CHAT_REQUEST_KEY + requestUserId + "to" + emotionRecordId);
 
         // 알림 서비스 호출 여부 확인
-        verify(alertService).createAlert(eq(requestUserId), eq("fail"), eq("채팅 요청을 거부했습니다"));
+        verify(alertService).createAlert(requestUserId, "fail", "채팅 요청을 거부했습니다");
         verify(kafkaProducer).send(anyString(), any(Alert.class));//send 확인
     }
 

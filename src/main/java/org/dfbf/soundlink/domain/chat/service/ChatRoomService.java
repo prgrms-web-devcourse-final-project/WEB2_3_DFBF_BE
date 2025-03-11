@@ -182,7 +182,6 @@ public class ChatRoomService {
     }
 
     // 채팅방 생성 (요청 수락)
-    @Transactional
     public ResponseResult createChatRoom(Long userId, Long recordId, String requestNickname) {
         try {
             Long recordIdInUserId = emotionRecordRepository.findUserIdByRecordId(recordId)
@@ -264,7 +263,6 @@ public class ChatRoomService {
     }
 
     // 채팅방 닫기
-    @Transactional
     public ResponseResult closeChatRoom(@AuthenticationPrincipal Long userId, Long chatRoomId) {
         try {
             ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)

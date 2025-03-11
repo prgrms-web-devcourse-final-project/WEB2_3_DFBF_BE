@@ -108,12 +108,11 @@ public class ChatRoomService {
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (EmotionRecordNotFoundException e) {
-            return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD);
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
         } catch (UserNotFoundException e) {
-            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
         } catch (Exception e) {
-            log.error(e.getMessage());
-            return new ResponseResult(400, "Chat request failed.");
+            return new ResponseResult(ErrorCode.CHAT_REQUEST_FAILED, e.getMessage());
         }
     }
 

@@ -104,16 +104,18 @@ public class ChatRoomService {
             AlertChatRequest alertChatRequest = new AlertChatRequest(emotionRecordId, requestUser.getNickname());
 //            Alert alert = alertService.createAlert(responseUserId, "alarm", alertChatRequest);
 //            kafkaProducer.send(TOPIC, alert);
-            alertService.send(responseUserId, "alarm", alertChatRequest);
+             alertService.send(responseUserId, "alarm", alertChatRequest);
 
             return new ResponseResult(ErrorCode.SUCCESS);
+        } catch (IllegalArgumentException e) {
+            log.info(e.getMessage());
+            return new ResponseResult(ErrorCode.SUCCESS, "요청은 갔지만, 상대방의 SSE가 없어 알림이 전송되지 않았습니다.");
         } catch (EmotionRecordNotFoundException e) {
-            return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD);
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
         } catch (UserNotFoundException e) {
-            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
         } catch (Exception e) {
-            log.error(e.getMessage());
-            return new ResponseResult(400, "Failed to process chat request.");
+            return new ResponseResult(ErrorCode.CHAT_REQUEST_FAILED, e.getMessage());
         }
     }
 

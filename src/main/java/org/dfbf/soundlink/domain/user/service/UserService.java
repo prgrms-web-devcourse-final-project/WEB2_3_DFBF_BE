@@ -51,7 +51,6 @@ public class UserService {
     private final MailService mailService;
     private final RedisService redisService;
     private final UserStatusService userStatusService;
-    private final UserStatusSseService userStatusSseService;
 
     private final JwtProvider jwtProvider;
     private final TokenProperties tokenProperties;

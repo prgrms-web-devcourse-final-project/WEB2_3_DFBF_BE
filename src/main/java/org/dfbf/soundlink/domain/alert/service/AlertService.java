@@ -45,12 +45,12 @@ public class AlertService {
                     ObjectMapper objectMapper = new ObjectMapper();
                     String jsonMsg = objectMapper.writeValueAsString(alert.getData());
 
-                    // 알림 전송
+                    /* 알림 전송 -> 요청으로 비활성화
                     sseEmitter.send(SseEmitter.event()
                             .id(alert.getEventId())
                             .name(alert.getType())
                             .data(jsonMsg)
-                    );
+                    ); */
 
                     // 알림을 Redis에서 삭제
                     redisTemplate.delete(key);

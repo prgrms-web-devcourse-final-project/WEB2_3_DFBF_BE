@@ -52,8 +52,6 @@ public class EmotionRecordCacheService {
         // 캐시에서 결과가 모두 존재 시, (모든 감정에 대해 캐시 값이 있다면)
         // 여러 감정 조건에 따른 결과(각각 캐싱해 둔 것)를 합쳐서 반환
         if (cachedResults != null && cachedResults.stream().allMatch(Objects::nonNull)) {
-            log.info("캐시 hit: {}", keys);
-
             List<EmotionRecordResponseMainDTO> emotionRecords = new ArrayList<>();
             for (Object cachedResult : cachedResults) {
                 @SuppressWarnings("unchecked")
@@ -68,8 +66,6 @@ public class EmotionRecordCacheService {
             // 결합된 결과와 새로 계산한 페이징 정보를 이용해 최종 DTO 생성
             return new EmotionRecordPageResponseDTO<>(emotionRecords, page, totalPages, totalElements);
         }
-        log.info("캐시 miss 또는 일부 캐시 없음 - keys: {}", keys);
-
         // Fallback(캐싱 실패 시) 처리 : DB에서 전체 데이터를 조회
         EmotionRecordPageResponseDTO<EmotionRecordResponseMainDTO> dbResult = fetchFromDB(userId, emotionList, spotifyId, page, size);
 

@@ -76,8 +76,14 @@ public class AlertService {
         // SseEmitter 생성
         SseEmitter sseEmitter = alertRepository.save(emitterId, new SseEmitter(DEFAULT_TIMEOUT));
 
-        sseEmitter.onCompletion(() -> alertRepository.delete(id, emitterId));  // 연결 종료 시 처리
-        sseEmitter.onTimeout(() -> alertRepository.delete(id, emitterId));     // 타임아웃 시 처리
+        sseEmitter.onCompletion(() -> {
+            log.error("[연결종료 로그] {}", emitterId);
+            alertRepository.delete(id, emitterId);
+        });  // 연결 종료 시 처리
+        sseEmitter.onTimeout(() -> {
+            log.error("[타임아웃 로그] {}", emitterId);
+            alertRepository.delete(id, emitterId);
+        });  // 타임아웃 시 처리
 
         try {
             log.info("아아 알림 테스트 {}", emitterId);

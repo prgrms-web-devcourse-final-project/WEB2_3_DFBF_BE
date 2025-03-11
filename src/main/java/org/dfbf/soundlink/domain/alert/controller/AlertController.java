@@ -21,7 +21,6 @@ public class AlertController {
     public SseEmitter subscribe(
             @AuthenticationPrincipal Long id,
             @RequestHeader(value = "Last-Event-ID", required = false, defaultValue = "") String lastEventId) {
-        System.out.println("id = " + id);
         return alertService.connectAlarm(id, lastEventId);
     }
 

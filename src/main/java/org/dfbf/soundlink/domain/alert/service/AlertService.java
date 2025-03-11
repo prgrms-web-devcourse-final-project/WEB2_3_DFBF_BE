@@ -57,14 +57,20 @@ public class AlertService {
             log.error("Error sending ping", e);
         }
 
+        // 하트비트 전송을 위한 스케줄러 설정
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(() -> {
             try {
-                this.send(id, "ping", "connection keep-alive");
-            } catch (Exception e) {
+                // 연결 유지를 위한 빈 메시지 전송
+                sseEmitter.send(SseEmitter.event()
+                        .id(this.createEmitterId(id)) // 이벤트 아이디 설정
+                        .name("ping") // 이름을 'ping'으로 설정
+                        .data("connection keep-alive") // 데이터는 "connection keep-alive"
+                );
+            } catch (IOException e) {
                 log.error("Error sending ping", e);
             }
-        }, 0, 41, TimeUnit.SECONDS); // 45초마다 빈 메시지 전송
+        }, 0, 41, TimeUnit.SECONDS); // 41초마다 빈 메시지 전송 (기존 45초에서 변경)
 
         return sseEmitter;
     }

@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
@@ -54,14 +57,14 @@ public class AlertService {
             log.error("Error sending ping", e);
         }
 
-//        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-//        scheduler.scheduleAtFixedRate(() -> {
-//            try {
-//                this.send(id, "ping", "connection keep-alive");
-//            } catch (Exception e) {
-//                log.error("Error sending ping", e);
-//            }
-//        }, 0, 45, TimeUnit.SECONDS); // 45초마다 빈 메시지 전송
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleAtFixedRate(() -> {
+            try {
+                this.send(id, "ping", "connection keep-alive");
+            } catch (Exception e) {
+                log.error("Error sending ping", e);
+            }
+        }, 0, 41, TimeUnit.SECONDS); // 45초마다 빈 메시지 전송
 
         return sseEmitter;
     }

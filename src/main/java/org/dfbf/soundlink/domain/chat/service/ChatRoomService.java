@@ -102,11 +102,14 @@ public class ChatRoomService {
             User requestUser = userRepository.findByUserIdWithCache(requestUserId)
                     .orElseThrow(UserNotFoundException::new);
             AlertChatRequest alertChatRequest = new AlertChatRequest(emotionRecordId, requestUser.getNickname());
-            Alert alert = alertService.createAlert(responseUserId, "alarm", alertChatRequest);
-            kafkaProducer.send(TOPIC, alert);
-            // alertService.send(responseUserId, "alarm", alertChatRequest);
+//            Alert alert = alertService.createAlert(responseUserId, "alarm", alertChatRequest);
+//            kafkaProducer.send(TOPIC, alert);
+             alertService.send(responseUserId, "alarm", alertChatRequest);
 
             return new ResponseResult(ErrorCode.SUCCESS);
+        } catch (IllegalArgumentException e) {
+            log.info(e.getMessage());
+            return new ResponseResult(ErrorCode.SUCCESS, "요청은 갔지만, 상대방의 SSE가 없어 알림이 전송되지 않았습니다.");
         } catch (EmotionRecordNotFoundException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
         } catch (UserNotFoundException e) {

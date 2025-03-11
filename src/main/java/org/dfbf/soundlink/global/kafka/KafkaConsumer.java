@@ -33,9 +33,9 @@ public class KafkaConsumer {
 
         try {
             Alert alert = mapper.readValue(kafkaMessage, Alert.class);
-            log.info("Converted Alert Object: {}", alert);
 
             if (alertRepository.getEmitterId(alert.getUserId()).isPresent()) {
+                log.info("알림 전송: {}", alert.getUserId());
                 alertService.send(alert.getUserId(), alert.getType(), alert.getData());
             } else {
                 //redisTemplate.opsForValue().set("alert:" + alert.getEventId(), alert, 10, TimeUnit.MINUTES);

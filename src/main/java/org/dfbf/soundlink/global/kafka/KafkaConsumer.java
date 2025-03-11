@@ -33,14 +33,14 @@ public class KafkaConsumer {
 
         try {
             Alert alert = mapper.readValue(kafkaMessage, Alert.class);
-
-            if (alertRepository.getEmitterId(alert.getUserId()).isPresent()) {
-                log.info("알림 전송: {}", alert.getUserId());
-                alertService.send(alert.getUserId(), alert.getType(), alert.getData());
-            } else {
-                //redisTemplate.opsForValue().set("alert:" + alert.getEventId(), alert, 10, TimeUnit.MINUTES);
-                log.info("No SSE connection for user {}.", alert.getUserId());
-            }
+//
+//            if (alertRepository.getEmitterId(alert.getUserId()).isPresent()) {
+//                log.info("알림 전송: {}", alert.getUserId());
+//                alertService.send(alert.getUserId(), alert.getType(), alert.getData());
+//            } else {
+//                //redisTemplate.opsForValue().set("alert:" + alert.getEventId(), alert, 10, TimeUnit.MINUTES);
+//                log.info("No SSE connection for user {}.", alert.getUserId());
+//            }
         } catch (JsonProcessingException e) {
             log.error("JSON parsing error: {}", e.getMessage());
         }

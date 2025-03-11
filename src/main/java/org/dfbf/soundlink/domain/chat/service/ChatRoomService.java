@@ -295,7 +295,7 @@ public class ChatRoomService {
     //채팅방 목록 불러오기
     public ResponseResult getChatRoomList(@AuthenticationPrincipal Long userId) {
         try {
-            List<ChatRoom> chatRooms = chatRoomRepository.findByRequestUserIdOrderByCreatedAtDesc(userId);
+            List<ChatRoom> chatRooms = chatRoomRepository.findByRequestUserIdOrRecordId_User_UserIdOrderByCreatedAtDesc(userId);
 
             List<ChatRoomListDto> chatRoomList = chatRooms.stream()
                     .map(chatRoom -> new ChatRoomListDto(

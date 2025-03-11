@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.dfbf.soundlink.domain.chat.entity.ChatRoom;
 import org.dfbf.soundlink.domain.chat.entity.QChatRoom;
 import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
+import org.dfbf.soundlink.domain.emotionRecord.entity.QEmotionRecord;
 import org.dfbf.soundlink.domain.user.entity.QProfileMusic;
 import org.dfbf.soundlink.domain.user.entity.QUser;
 import org.dfbf.soundlink.domain.user.entity.User;
@@ -40,4 +41,19 @@ public class ChatRoomRepositoryImpl implements  ChatRoomCustomRepository {
                 .orderBy(QChatRoom.chatRoom.createdAt.desc())
                 .fetch();
     }
+
+    @Override
+    public List<ChatRoom> findByRequestUserIdOrRecordId_User_UserIdOrderByCreatedAtDesc(Long userId) {
+        return queryFactory
+                .selectFrom(QChatRoom.chatRoom)
+                .leftJoin(QChatRoom.chatRoom.recordId, QEmotionRecord.emotionRecord)  // ChatRoom과 EmotionRecord를 left join
+                .leftJoin(QEmotionRecord.emotionRecord.user, QUser.user)  // EmotionRecord와 User를 left join
+                .where(
+                        QChatRoom.chatRoom.requestUserId.userId.eq(userId) // 요청자 userId 기준
+                                .or(QUser.user.userId.eq(userId)) // 응답자 userId 기준
+                )
+                .orderBy(QChatRoom.chatRoom.createdAt.desc()) // 생성일 기준 내림차순 정렬
+                .fetch();
+    }
+
 }

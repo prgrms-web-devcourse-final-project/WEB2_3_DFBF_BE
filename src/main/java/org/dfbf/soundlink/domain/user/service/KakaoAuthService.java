@@ -128,7 +128,7 @@ public class KakaoAuthService {
 
         // 닉네임이 중복되지 않을 때까지 반복
         while (userRepository.existsByNickname(newNickname)) {
-            newNickname = baseNickname + "_" + suffix;
+            newNickname = "k" + suffix;
             suffix++;
         }
         return newNickname;

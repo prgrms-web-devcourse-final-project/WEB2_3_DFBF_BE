@@ -295,6 +295,7 @@ class ChatRoomServiceTest {
                 .comment("Feeling great!")
                 .spotifyMusic(mockMusic)
                 .build();
+        ReflectionTestUtils.setField(mockRecord, "recordId", 1L);
 
         ChatRoom mockChatRoom = ChatRoom.builder()
                 .requestUserId(requestUser)

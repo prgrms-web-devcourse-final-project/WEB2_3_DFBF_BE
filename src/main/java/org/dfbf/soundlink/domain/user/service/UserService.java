@@ -2,6 +2,7 @@ package org.dfbf.soundlink.domain.user.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.mail.MessagingException;
+import jakarta.persistence.OptimisticLockException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dfbf.soundlink.domain.alert.service.AlertService;
 import org.dfbf.soundlink.domain.blocklist.repository.BlockListRepository;
+import org.dfbf.soundlink.domain.emotionRecord.dto.request.EmotionRecordUpdateRequestDTO;
 import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.emotionRecord.repository.EmotionRecordRepository;
 import org.dfbf.soundlink.domain.emotionRecord.repository.SpotifyMusicRepository;
@@ -29,11 +31,15 @@ import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseCookie;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.naming.AuthenticationException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -95,6 +101,11 @@ public class UserService {
 
     // 회원정보 수정
     @Transactional
+    @Retryable(
+            retryFor = OptimisticLockException.class, // 낙관적 락 충돌 시 재시도
+            maxAttempts = 3, // 최대 3번 재시도
+            backoff = @Backoff(delay = 100) // 100ms(0.1초) 대기 후 재시도
+    )
     public ResponseResult updateUser(Long userId, UserUpdateDto userUpdateDto) {
         /**
          * orElse -> 일단 함수는 실행, 그러나 값이 null이면 orElse의 값으로 대체 (함수O, 람다x)
@@ -107,14 +118,17 @@ public class UserService {
             String spotifyId = userUpdateDto.spotifyId().orElse(null);
 
             if (spotifyId != null && !spotifyId.equals("-1")) {
-                // SpotifyMusic 객체 찾기 (없으면 새로 생성 & 저장)
-                SpotifyMusic spotifyMusic = spotifyMusicRepository.findBySpotifyId(spotifyId)
-                        .orElseGet(() -> {
-                            SpotifyMusic sm = new SpotifyMusic(userUpdateDto);
-                            spotifyMusicRepository.save(sm);
-                            return sm;
-                        });
-                user.update(userUpdateDto, passwordEncoder, spotifyMusic);
+                // SpotifyMusic 객체 찾기
+                List<SpotifyMusic> spotifyMusicList = spotifyMusicRepository.findListBySpotifyId(spotifyId);
+
+                // (없으면 새로 생성 & 저장)
+                if (spotifyMusicList.isEmpty()) {
+                    SpotifyMusic sm = new SpotifyMusic(userUpdateDto);
+                    spotifyMusicRepository.save(sm);
+                    user.update(userUpdateDto, passwordEncoder, sm);
+                }
+
+                user.update(userUpdateDto, passwordEncoder, spotifyMusicList.get(0));
             } else {
                 if("-1".equals(spotifyId)) { user.getProfileMusic().deleteSpotifyId(); }
                 user.update(userUpdateDto, passwordEncoder);
@@ -129,6 +143,15 @@ public class UserService {
         } catch (Exception e) {
             return new ResponseResult(ErrorCode.BAD_REQUEST, e.getMessage());
         }
+    }
+
+    // 낙관적 락 재시도 실패 시 실행되는 메서드
+    // Recover 어노테이션에 의해 실패 시, 자동 호출됨
+    @Recover
+    public ResponseResult recoverFromOptimisticLock(OptimisticLockException e, Long userId, UserUpdateDto userUpdateDto) {
+        log.error("감정 기록 업데이트 중 동시성 충돌 발생. spotifyId: {}, error: {}", userUpdateDto.spotifyId(), e.getMessage());
+
+        return new ResponseResult(ErrorCode.CONCURRENCY_ERROR, e.getMessage());
     }
 
     // 회원정보 삭제

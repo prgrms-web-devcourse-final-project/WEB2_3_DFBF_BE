@@ -9,6 +9,7 @@ import org.dfbf.soundlink.domain.blocklist.entity.QBlocklist;
 import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
 import org.dfbf.soundlink.domain.emotionRecord.entity.QEmotionRecord;
 import org.dfbf.soundlink.domain.emotionRecord.entity.QSpotifyMusic;
+import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.user.dto.response.EmotionRecordDto;
 import org.dfbf.soundlink.domain.user.entity.QUser;
 import org.dfbf.soundlink.domain.user.entity.User;

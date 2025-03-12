@@ -1,6 +1,7 @@
 package org.dfbf.soundlink.domain.emotionRecord.repository.dsl;
 
 import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
+import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.user.dto.response.EmotionRecordDto;
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.global.comm.enums.Emotions;

@@ -96,7 +96,7 @@ public class ChatRoomService {
             ChatRequest chatRequest = new ChatRequest(requestUserId, responseUserId, emotionRecordId);
 
             // Redis 저장
-            redisTemplate.opsForValue().set(key, chatRequest, Duration.ofSeconds(61));
+            redisTemplate.opsForValue().set(key, chatRequest, Duration.ofSeconds(181));
 
             // 알림 전송
             User requestUser = userRepository.findByUserIdWithCache(requestUserId)

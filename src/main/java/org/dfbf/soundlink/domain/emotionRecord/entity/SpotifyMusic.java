@@ -20,6 +20,9 @@ public class SpotifyMusic {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    private Integer version;
+
     @Column(name = "spotify_id")
     private String spotifyId;
 

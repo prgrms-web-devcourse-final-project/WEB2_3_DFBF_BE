@@ -72,8 +72,9 @@ public enum ErrorCode {
     CHAT_UNAUTHORIZED(HttpStatus.FORBIDDEN,"권한이 없습니다"),
     CHATROOM_NOT_FOUND(HttpStatus.NOT_FOUND,"채팅방을 찾을 수 없습니다."),
     CHAT_FAILED(HttpStatus.CONFLICT,"서버 내부 에러. 중복된 레코드가 존재합니다."),
-    CHAT_REQUEST_FAILED(HttpStatus.CONFLICT, "채팅 요청 실패");
+    CHAT_REQUEST_FAILED(HttpStatus.CONFLICT, "채팅 요청 실패"),
 
+    CONCURRENCY_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "재시도 실패. 동시성 충돌로 인해 업데이트 할 수 없습니다." );
 
     private final HttpStatus status;
     private final String message;

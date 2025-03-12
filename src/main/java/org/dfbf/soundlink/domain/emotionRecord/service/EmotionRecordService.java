@@ -1,5 +1,6 @@
 package org.dfbf.soundlink.domain.emotionRecord.service;
 
+import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dfbf.soundlink.domain.chat.entity.ChatRoom;
@@ -24,6 +25,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -181,6 +185,11 @@ public class EmotionRecordService {
     }
 
     @Transactional
+    @Retryable(
+            retryFor = OptimisticLockException.class, // 낙관적 락 충돌 시 재시도
+            maxAttempts = 3, // 최대 3번 재시도
+            backoff = @Backoff(delay = 100) // 100ms(0.1초) 대기 후 재시도
+    )
     public ResponseResult updateEmotionRecord(Long recordId, EmotionRecordUpdateRequestDTO updateDTO) {
         try {
             // 기존 감정 기록 조회
@@ -221,6 +230,16 @@ public class EmotionRecordService {
         } catch (Exception e) {
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
+    }
+
+    // 낙관적 락 재시도 실패 시 실행되는 메서드
+    // Recover 어노테이션에 의해 실패 시, 자동 호출됨
+    @Recover
+    public ResponseResult recoverFromOptimisticLock(OptimisticLockException e, Long recordId, EmotionRecordUpdateRequestDTO updateDTO) {
+        log.error("감정 기록 업데이트 중 동시성 충돌 발생. recordId: {}, spotifyId: {}, error: {}",
+                recordId, updateDTO.spotifyId(), e.getMessage());
+
+        return new ResponseResult(ErrorCode.CONCURRENCY_ERROR, e.getMessage());
     }
 
     @Transactional

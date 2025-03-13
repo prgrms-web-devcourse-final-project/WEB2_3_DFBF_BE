@@ -1,5 +1,6 @@
 package org.dfbf.soundlink.domain.chatRoom;
 
+import org.dfbf.soundlink.domain.alert.dto.AlertChatRequest;
 import org.dfbf.soundlink.domain.alert.entity.Alert;
 import org.dfbf.soundlink.domain.alert.service.AlertService;
 import org.dfbf.soundlink.domain.blocklist.repository.BlockListRepository;
@@ -17,6 +18,7 @@ import org.dfbf.soundlink.domain.user.service.UserStatusService;
 import org.dfbf.soundlink.global.comm.enums.SocialType;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
+import org.dfbf.soundlink.global.kafka.KafkaProducer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,7 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -67,10 +70,14 @@ class ChatRoomServiceTest {
     @Mock
     private UserStatusService userStatusService;
 
+    @Mock
+    private KafkaProducer kafkaProducer;
+
     private User requestUser;
     private User responseUser;
     private EmotionRecord emotionRecord;
     private ChatRejectDto chatRejectDto;
+    private Alert alert;
 
     private static final String CHAT_REQUEST_KEY = "chatRequest";
     private Long responseUserId = 2L;
@@ -115,37 +122,38 @@ class ChatRoomServiceTest {
 
         chatRejectDto = new ChatRejectDto(emotionRecordId, requestNickname);
     }
-    
+
 
     @Test
     @DisplayName("채팅 요청: Redis에 저장 성공")
     void testSaveRequestToRedis_SUCCESS() {
-        // given
         when(emotionRecordRepository.findById(emotionRecordId)).thenReturn(Optional.of(emotionRecord));  // 감정 기록 조회
         when(userRepository.findByUserIdWithCache(requestUserId)).thenReturn(Optional.of(requestUser));  // 요청자 정보 조회
         when(redisTemplate.keys(anyString())).thenReturn(Set.of());  // 이미 요청이 존재하지 않도록 mock
         when(blockListRepository.existsByUser_UserIdAndBlockedUser_UserId(responseUserId, requestUserId)).thenReturn(false); // 차단된 사용자 없음
 
         // 알림 서비스 mock
-//        when(alertService.send(eq(responseUserId), eq("alarm"), any(Alert.class)))
-//                .thenReturn(new ResponseResult(ErrorCode.SUCCESS));  // 알림 전송 mock
+        Alert mockAlert = mock(Alert.class);  // Alert 객체 mock
+        when(alertService.createAlert(eq(responseUserId), eq("alarm"), any(AlertChatRequest.class)))
+                .thenReturn(mockAlert);  // 알림 서비스 mock
 
         // Redis 관련 mock 설정
         ValueOperations<String, Object> valueOps = mock(ValueOperations.class);  // ValueOperations 객체 생성
         when(redisTemplate.opsForValue()).thenReturn(valueOps);  // redisTemplate에서 valueOps 반환하도록 설정
 
         // Redis에 값이 설정되는 동작 모킹
-        doNothing().when(valueOps).set(anyString(), any(), any());  // set() 메서드가 아무 동작도 하지 않도록 mock
+        doNothing().when(valueOps).set(anyString(), any(), eq(Duration.ofSeconds(11)));  // set() 메서드가 아무 동작도 하지 않도록 mock, TTL 11초 설정
 
-        // when
+        // KafkaProducer의 send 메소드 mock
+        when(kafkaProducer.send(anyString(), any(Alert.class))).thenReturn(null);  // KafkaProducer send 모킹
+
         ResponseResult result = chatRoomService.saveRequestToRedis(requestUserId, emotionRecordId);
 
-        // then
         assertEquals(200, result.getCode());  // 성공 코드 확인
-
-        // Redis에 값이 저장되었는지 확인
         verify(redisTemplate).opsForValue();  // Redis에 값 저장 메서드 호출 확인
-        verify(alertService).send(eq(responseUserId), eq("alarm"), any(Alert.class));  // 알림 전송 메서드 호출 확인
+        verify(valueOps).set(anyString(), any(), eq(Duration.ofSeconds(11)));
+        verify(alertService).createAlert(eq(responseUserId), eq("alarm"), any(AlertChatRequest.class));  // createAlert 호출 확인
+        verify(kafkaProducer).send(anyString(), any(Alert.class));  // KafkaProducer의 send 메서드 호출 확인
     }
 
     @Test
@@ -156,6 +164,12 @@ class ChatRoomServiceTest {
 
         // Key가 존재한다고 가정
         when(redisTemplate.hasKey(CHAT_REQUEST_KEY + requestUserId + "to" + emotionRecordId)).thenReturn(true);
+
+        Alert mockAlert = mock(Alert.class);  // Alert 객체 mock
+        when(alertService.createAlert(responseUserId, "cancel", "Chat request has been canceled."))
+                .thenReturn(mockAlert);  // 알림 서비스 mock
+
+        when(kafkaProducer.send(anyString(), any(Alert.class))).thenReturn(null);
 
         // when
         ResponseResult result = chatRoomService.deleteRequestFromRedis(requestUserId, emotionRecordId);
@@ -168,7 +182,8 @@ class ChatRoomServiceTest {
         verify(redisTemplate).delete(CHAT_REQUEST_KEY + requestUserId + "to" + emotionRecordId);
 
         // 알림 서비스 호출 여부 확인
-        verify(alertService).send(responseUserId, "cancel", "Chat request has been canceled.");
+        verify(alertService).createAlert(responseUserId, "cancel", "Chat request has been canceled.");
+        verify(kafkaProducer).send(anyString(), any(Alert.class));
     }
 
     @Test
@@ -181,6 +196,14 @@ class ChatRoomServiceTest {
         // Key가 존재한다고 가정
         when(redisTemplate.hasKey(CHAT_REQUEST_KEY + requestUserId + "to" + emotionRecordId)).thenReturn(true);
 
+        Alert mockAlert = mock(Alert.class);  // Alert 객체 mock
+        when(alertService.createAlert(requestUserId, "fail", "채팅 요청을 거부했습니다"))
+                .thenReturn(mockAlert);
+
+        doReturn(true).when(redisTemplate).delete(anyString());// Redis 키 삭제 시 true 반환
+
+        when(kafkaProducer.send(anyString(), any(Alert.class))).thenReturn(null);
+
         // when
         ResponseResult result = chatRoomService.requestRejected(responseUserId, chatRejectDto);
 
@@ -192,7 +215,8 @@ class ChatRoomServiceTest {
         verify(redisTemplate).delete(CHAT_REQUEST_KEY + requestUserId + "to" + emotionRecordId);
 
         // 알림 서비스 호출 여부 확인
-        verify(alertService).send(requestUserId, "fail", "채팅 요청을 거부했습니다");
+        verify(alertService).createAlert(requestUserId, "fail", "채팅 요청을 거부했습니다");
+        verify(kafkaProducer).send(anyString(), any(Alert.class));//send 확인
     }
 
 
@@ -203,31 +227,48 @@ class ChatRoomServiceTest {
     void testCreateChatRoom_Success() {
         Long userId = 2L;  // 응답자
         Long recordId = 123L;  // 감정기록 ID
+        String key = CHAT_REQUEST_KEY + requestUserId + "to" + recordId;
 
-        // Mock 설정
+        // Mock 설정 - 감정 기록 조회
         when(emotionRecordRepository.findUserIdByRecordId(recordId)).thenReturn(Optional.of(userId));
-        when(userRepository.findUserIdByNickname(requestNickname)).thenReturn(Optional.of(1L));
-        when(userRepository.findByUserIdWithCache(1L)).thenReturn(Optional.of(requestUser));
-        when(redisTemplate.hasKey(anyString())).thenReturn(true);  // Redis 키가 존재한다고 가정
-        when(redisTemplate.delete(anyString())).thenReturn(true);  // Redis 키 삭제 성공
+
+        // 요청 보낸 사용자 정보 조회
+        when(userRepository.findUserIdByNickname(requestNickname)).thenReturn(Optional.of(requestUserId));
+        when(userRepository.findByUserIdWithCache(requestUserId)).thenReturn(Optional.of(requestUser));
+
+        // Redis에 키가 존재한다고 가정
+        when(redisTemplate.hasKey(key)).thenReturn(true);
+        when(redisTemplate.delete(key)).thenReturn(true);
+
+        // 감정 기록 조회
         when(emotionRecordRepository.findById(recordId)).thenReturn(Optional.of(emotionRecord));
-        when(chatRoomRepository.findChatRoomIdByRequestUserIdAndRecordId(anyLong(), anyLong())).thenReturn(Optional.empty());
 
-        // Redis 관련 메서드에 대한 모킹 추가
-        ValueOperations<String, Object> valueOps = mock(ValueOperations.class);  // ValueOperations (키-값 데이터 저장)
-        when(redisTemplate.opsForValue()).thenReturn(valueOps);  // 가짜 객체 반환
+        // 채팅방 존재 여부 확인 (이미 존재하는 방이 없다고 가정)
+        when(chatRoomRepository.findChatRoomIdByRequestUserIdAndRecordId(requestUserId, recordId))
+                .thenReturn(Optional.empty());
 
-        // 채팅방 생성
-        ChatRoom chatRoom = ChatRoom.builder()
-                .requestUserId(requestUser)
-                .recordId(emotionRecord)
-                .status(CONNECTED)
-                .startTime(new Timestamp(System.currentTimeMillis()))
-                .endTime(null)
-                .build();
+        // Redis ValueOperations 모킹
+        ValueOperations<String, Object> valueOps = mock(ValueOperations.class);
+        when(redisTemplate.opsForValue()).thenReturn(valueOps);
+        doNothing().when(valueOps).set(anyString(), anyString()); // Redis 저장 모킹
 
-        when(chatRoomRepository.save(Mockito.any(ChatRoom.class))).thenReturn(chatRoom);
-        // 타입을 명시적으로 지정
+        // 채팅방 생성 시 ID 값이 null이 되지 않도록 설정
+        when(chatRoomRepository.save(any(ChatRoom.class))).thenAnswer(invocation -> {
+            ChatRoom chatRoom = invocation.getArgument(0);
+            ReflectionTestUtils.setField(chatRoom, "chatRoomId", 999L); // 임의의 채팅방 ID
+            return chatRoom;
+        });
+
+        // AlertService 및 KafkaProducer 모킹
+        Alert mockAlert = mock(Alert.class);  // Mock 객체 생성
+        when(alertService.createAlert(anyLong(), anyString(), anyMap())).thenReturn(mockAlert);
+        doAnswer(invocation -> {
+            // 실제 메소드 호출 시 아무 일도 하지 않음
+            return null;
+        }).when(kafkaProducer).send(anyString(), any(Alert.class));
+
+        // 채팅 상태 업데이트 모킹
+        doNothing().when(userStatusService).setChatting(anyLong(), anyBoolean());
 
         // 서비스 호출
         ResponseResult result = chatRoomService.createChatRoom(userId, recordId, requestNickname);
@@ -236,10 +277,13 @@ class ChatRoomServiceTest {
         assertEquals(200, result.getCode());
         assertNotNull(result.getData());
         assertTrue(result.getData() instanceof Map);
+        assertEquals(999L, ((Map<?, ?>) result.getData()).get("chatRoomId"));
 
-        // 레디스에 값이 저장되는지 확인
+        // Redis 연관 검증
         verify(redisTemplate).opsForValue();
+        verify(valueOps).set(anyString(), anyString()); // Redis 저장이 호출되었는지 확인
     }
+
 
     @Test
     @DisplayName("채팅방 닫기: 레디스에서 삭제, 상태 변경")

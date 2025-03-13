@@ -80,7 +80,7 @@ public class UserService {
             userRepository.save(userSignUpDto.toEntity(passwordEncoder));
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (Exception e) {
-            return new ResponseResult(ErrorCode.DB_ERROR);
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         }
     }
 
@@ -95,7 +95,7 @@ public class UserService {
 
             return new ResponseResult(ErrorCode.SUCCESS, result);
         } catch (NoUserDataException e) {
-            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
         }
     }
 
@@ -111,6 +111,7 @@ public class UserService {
          * orElse -> 일단 함수는 실행, 그러나 값이 null이면 orElse의 값으로 대체 (함수O, 람다x)
          * orElseGet -> null일때만 실행 (함수O, 람다O)
          */
+        //log.info("userUpdateDto: " + userUpdateDto.toString());
 
         try {
             User user = userRepository.findByUserIdWithCache(userId)
@@ -129,12 +130,13 @@ public class UserService {
                 }
 
                 user.update(userUpdateDto, passwordEncoder, spotifyMusicList.get(0));
+                profileMusicRepository.save(user.getProfileMusic());
             } else {
                 if("-1".equals(spotifyId)) { user.getProfileMusic().deleteSpotifyId(); }
                 user.update(userUpdateDto, passwordEncoder);
+                log.info(user.toString());
             }
 
-            profileMusicRepository.save(user.getProfileMusic());
             userRepository.saveWithCache(user);
 
             return new ResponseResult(ErrorCode.SUCCESS);
@@ -167,9 +169,9 @@ public class UserService {
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (NoUserDataException e) {
-            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
         } catch (Exception e) {
-            return new ResponseResult(ErrorCode.DB_ERROR);
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         }
     }
 
@@ -185,9 +187,9 @@ public class UserService {
                 return new ResponseResult(ErrorCode.NOT_EQUALS_PASSWORD);
             }
         } catch (NoUserDataException e) {
-            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
         } catch (Exception e) {
-            return new ResponseResult(ErrorCode.DB_ERROR);
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         }
     }
 
@@ -202,9 +204,9 @@ public class UserService {
 
             return new ResponseResult(ErrorCode.SUCCESS, result);
         } catch (NoUserDataException e) {
-            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
         } catch (Exception e) {
-            return new ResponseResult(ErrorCode.DB_ERROR);
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         }
     }
   
@@ -216,7 +218,7 @@ public class UserService {
             redisService.setCode(email, authCode);
             return new ResponseResult(ErrorCode.SUCCESS, email);
         } catch (MessagingException e) {
-            return new ResponseResult(ErrorCode.EMAIL_SEND_ERROR, "이메일 전송에 실패했습니다.");
+            return new ResponseResult(ErrorCode.EMAIL_SEND_ERROR, e.getMessage());
         }
     }
 
@@ -231,7 +233,7 @@ public class UserService {
                 return new ResponseResult(ErrorCode.BAD_REQUEST, "이메일 전송 실패: 잘못된 요청입니다.");
             }
         } catch (AuthenticationException e) {
-            return new ResponseResult(ErrorCode.EMAIL_SEND_ERROR);
+            return new ResponseResult(ErrorCode.EMAIL_SEND_ERROR, e.getMessage());
         }
     }
 
@@ -361,7 +363,7 @@ public class UserService {
                 return new ResponseResult(ErrorCode.NOT_DUPLICATE_LOGINID);
             }
         } catch (Exception e) {
-            return new ResponseResult(ErrorCode.DB_ERROR);
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         }
     }
 
@@ -376,7 +378,7 @@ public class UserService {
           
             return new ResponseResult(ErrorCode.SUCCESS, result);
         } catch (NoUserDataException e) {
-            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
+            return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
         } catch (Exception e) {
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         }

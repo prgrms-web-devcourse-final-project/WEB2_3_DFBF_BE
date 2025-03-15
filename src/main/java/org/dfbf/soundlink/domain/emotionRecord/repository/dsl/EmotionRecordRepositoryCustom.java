@@ -1,7 +1,6 @@
 package org.dfbf.soundlink.domain.emotionRecord.repository.dsl;
 
 import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
-import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.user.dto.response.EmotionRecordDto;
 import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.global.comm.enums.Emotions;
@@ -14,6 +13,8 @@ import java.util.Optional;
 public interface EmotionRecordRepositoryCustom {
 
     List<EmotionRecordDto> findByUser(User user);
+
+    Page<EmotionRecord> findByUserId(Long userId, Pageable pageable);
 
     Page<EmotionRecord> findByLoginId(String loginId, Pageable pageable);
 

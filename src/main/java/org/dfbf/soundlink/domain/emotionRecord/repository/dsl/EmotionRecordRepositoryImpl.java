@@ -9,7 +9,6 @@ import org.dfbf.soundlink.domain.blocklist.entity.QBlocklist;
 import org.dfbf.soundlink.domain.emotionRecord.entity.EmotionRecord;
 import org.dfbf.soundlink.domain.emotionRecord.entity.QEmotionRecord;
 import org.dfbf.soundlink.domain.emotionRecord.entity.QSpotifyMusic;
-import org.dfbf.soundlink.domain.emotionRecord.entity.SpotifyMusic;
 import org.dfbf.soundlink.domain.user.dto.response.EmotionRecordDto;
 import org.dfbf.soundlink.domain.user.entity.QUser;
 import org.dfbf.soundlink.domain.user.entity.User;
@@ -45,6 +44,32 @@ public class EmotionRecordRepositoryImpl implements EmotionRecordRepositoryCusto
                 .where(QEmotionRecord.emotionRecord.user.eq(user))
                 .fetch();
 
+    }
+
+    // userId를 기준으로 JOIN FETCH (spotifyMusic) 후 페이징 처리
+    @Override
+    public Page<EmotionRecord> findByUserId(Long userId, Pageable pageable) {
+        List<EmotionRecord> emotionRecords = jpaQueryFactory
+                .selectFrom(QEmotionRecord.emotionRecord)
+                .join(QEmotionRecord.emotionRecord.spotifyMusic, QSpotifyMusic.spotifyMusic).fetchJoin()
+                .where(QUser.user.userId.eq(userId))
+                .orderBy(QEmotionRecord.emotionRecord.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        // Spring Data JPA에서 페이징 처리를 위한 메서드 사용 시,
+        // 내부적으로 데이터(페이징된 결과)를 가져오는 쿼리와 전체 데이터 수를 계산하는 쿼리가 둘 다 실행됨
+        // QueryDSL을 사용할 경우에 위와 달리 데이터 수 계산 쿼리를 별도로 실행해 줘야함 (Querydsl 5 이상 권장 방식)
+        return PageableExecutionUtils.getPage(emotionRecords, pageable, () ->
+                Optional.ofNullable(
+                        jpaQueryFactory
+                                .select(QEmotionRecord.emotionRecord.count())
+                                .from(QEmotionRecord.emotionRecord)
+                                .where(QUser.user.userId.eq(userId))
+                                .fetchOne()
+                ).orElse(0L)
+        );
     }
 
     // loginId를 기준으로 JOIN FETCH (user, spotifyMusic) 후 페이징 처리

@@ -91,6 +91,32 @@ public class EmotionRecordService {
     }
 
     @Transactional(readOnly = true)
+    public ResponseResult getEmotionRecordsByUserId(Long userId, int page, int size) {
+        ResponseResult pageValidationResult = validateAndCreatePageable(page, size);
+        if (pageValidationResult.getCode() != 200 /*SUCCESS*/) {
+            return pageValidationResult;
+        }
+
+        Pageable pageable = (Pageable) pageValidationResult.getData();
+
+        try {
+            Page<EmotionRecord> recordsPage = emotionRecordRepository.findByUserId(userId, pageable);
+
+            List<EmotionRecordResponseWithoutNicknameDTO> dtoList = recordsPage.getContent()
+                    .stream()
+                    .map(EmotionRecordResponseWithoutNicknameDTO::fromEntity)
+                    .toList();
+
+            return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordPageResponseDTO.fromPage(recordsPage, dtoList));
+        } catch (DataAccessException e) {
+            return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
+        } catch (Exception e) {
+            return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+
+    @Transactional(readOnly = true)
     public ResponseResult getEmotionRecordsByLoginId(String userTag, int page, int size) {
         ResponseResult pageValidationResult = validateAndCreatePageable(page, size);
         if (pageValidationResult.getCode() != 200 /*SUCCESS*/) {

@@ -49,12 +49,24 @@ public class EmotionRecordController {
         return emotionRecordService.getEmotionRecordsExcludingUserIdByFilters(userId, emotions, spotifyId, page, size);
     }
 
+    @GetMapping("/my-emotion-record")
+    @Operation(
+            summary = "현재 로그인 된 사용자 감정 기록 전체 조회 API",
+            description = "현재 로그인 된 사용자가 작성한 감정 기록 전체를 조회합니다."
+    )
+    public ResponseResult getMyEmotionRecords(
+            @AuthenticationPrincipal Long userId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return emotionRecordService.getEmotionRecordsByUserId(userId, page, size);
+    }
+
     @GetMapping("/user")
     @Operation(
             summary = "유저별 감정 기록 전체 조회 API",
             description = "유저들이 작성한 감정 기록 전체를 조회합니다.(닉네임은 조회되지 않습니다.)"
     )
-    public ResponseResult getAllEmotionRecords(
+    public ResponseResult getUserEmotionRecords(
             @RequestParam("tag") String loginId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {

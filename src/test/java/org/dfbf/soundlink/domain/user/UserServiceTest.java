@@ -9,8 +9,6 @@ import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.repository.ProfileMusicRepository;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
 import org.dfbf.soundlink.domain.user.service.UserService;
-import org.dfbf.soundlink.global.comm.enums.SocialType;
-import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.dfbf.soundlink.global.comm.enums.SocialType.KAKAO;
@@ -69,13 +68,14 @@ class UserServiceTest {
         SpotifyMusic spotifyMusic = new SpotifyMusic(updateDto);
 
         // Mocking
+        // Mock 설정
         when(userRepository.findByUserIdWithCache(userId)).thenReturn(Optional.of(user));
-        when(spotifyMusicRepository.findBySpotifyId("spotify123")).thenReturn(Optional.of(spotifyMusic));
+        when(spotifyMusicRepository.findListBySpotifyId("spotify123"))
+                .thenReturn(Collections.singletonList(spotifyMusic));
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
 
         // When
         ResponseResult result = userService.updateUser(userId, updateDto);
-
         // Then
         assertEquals(200, result.getCode());
         verify(userRepository).saveWithCache(any(User.class)); //수정 저장 확인(유저,캐시)

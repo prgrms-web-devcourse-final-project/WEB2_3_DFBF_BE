@@ -23,6 +23,7 @@ public class UserStatusService {
         try {
             String json = objectMapper.writeValueAsString(status);
             redisTemplate.opsForValue().set(key, json);
+            log.info("User status updated: {}", status);
 
         } catch (JsonProcessingException e) {
             log.error("유저 상태 저장 중 JsonProcessingException 오류: {}", e.getMessage());
@@ -56,7 +57,6 @@ public class UserStatusService {
     public void setOffline(Long userId) {
         UserStatusDto current = getUserStatus(userId);
         current.setOnline(false);
-        current.setChatting(false);  // 로그아웃하면 당연히 채팅도 종료
         current.setLastActive(System.currentTimeMillis());
         saveUserStatus(current);
     }

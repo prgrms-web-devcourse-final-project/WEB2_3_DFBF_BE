@@ -3,7 +3,6 @@ package org.dfbf.soundlink.domain.chat.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dfbf.soundlink.domain.alert.dto.AlertChatRequest;
-import org.dfbf.soundlink.domain.alert.entity.Alert;
 import org.dfbf.soundlink.domain.alert.service.AlertService;
 import org.dfbf.soundlink.domain.blocklist.repository.BlockListRepository;
 import org.dfbf.soundlink.domain.chat.dto.ChatRejectDto;
@@ -31,7 +30,6 @@ import org.dfbf.soundlink.global.kafka.KafkaProducer;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.Duration;
@@ -218,11 +216,11 @@ public class ChatRoomService {
                 if (chatRoomId.isPresent()) {
                     Map<String, Object> map = new HashMap<>();
                     map.put("chatRoomId", chatRoomId.get());
-                  
+
 //                    Alert alert = alertService.createAlert(requestUserId, "accept", map);
 //                    kafkaProducer.send(TOPIC, alert);
                     alertService.send(requestUserId, "accept", map);
-                  
+
                     return new ResponseResult(map);
                 }
 
@@ -241,6 +239,10 @@ public class ChatRoomService {
 
                 ChatReqDto chatReqDto = new ChatReqDto(userId, responseUserId);
 
+                // 채팅 오픈 상태 보내기
+                log.info("Setting chatting status to true for userId: {}", userId);
+                userStatusService.setChatting(userId, true);
+
                 // 레디스에 저장
                 redisTemplate.opsForValue().set("Room::" + chatRoom.getChatRoomId(), String.valueOf(chatReqDto));
 
@@ -252,9 +254,6 @@ public class ChatRoomService {
 //                Alert alert = alertService.createAlert(requestUserId, "accept", map);
 //                kafkaProducer.send(TOPIC, alert);
                 alertService.send(requestUserId, "accept", map);
-
-                // 채팅 오픈 상태 보내기
-                userStatusService.setChatting(userId, true);
 
                 return new ResponseResult(ErrorCode.SUCCESS, map);
 
@@ -282,12 +281,12 @@ public class ChatRoomService {
                 throw new UnauthorizedAccessException(); // 권한이 없을 경우 예외 발생
             }
 
-            // 채팅 완료 상태 보내기
-            userStatusService.setChatting(userId, false);
-
             chatRoom.updateChatRoomStatus(RoomStatus.CLOSED); // 삳태 '닫기'로 변경
             chatRoomRepository.save(chatRoom); // DB에 저장
 
+            // 채팅 종료 상태 보내기
+            log.info("Setting chatting status to false for userId: {}", userId);
+            userStatusService.setChatting(userId, false);
 
             redisTemplate.delete("Room::"+chatRoomId); // 레디스에서 삭제
 

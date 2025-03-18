@@ -41,6 +41,6 @@ out/
 *.properties
 
 ### 폴더 추가
-src/main/generated/
+default/src/main/generated
 
 .DS_Store

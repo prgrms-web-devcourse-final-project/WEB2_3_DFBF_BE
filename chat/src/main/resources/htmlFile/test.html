@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>SoundLink 채팅</title>
+  <!-- SockJS, Stomp 라이브러리 (CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #f7f7f7;
+    }
+
+    header {
+      background: #4a154b;
+      color: #ffffff;
+      padding: 16px;
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: bold;
+    }
+
+    main {
+      width: 100%;
+      max-width: 600px;
+      margin: 24px auto;
+      padding: 16px;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-title {
+      margin-bottom: 8px;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    button {
+      background: #4a154b;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #7a1b7b;
+    }
+
+    button:disabled {
+      background: #b0a0b0;
+      cursor: not-allowed;
+    }
+
+    .chat-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .chat-controls input {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    .chat-area {
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 8px;
+      width: 100%;
+      height: 300px;
+      overflow-y: auto;
+      background: #fafafa;
+    }
+
+    .chat-message {
+      margin: 4px 0;
+      padding: 6px 10px;
+      border-radius: 4px;
+      background: #f0f0f0;
+    }
+
+    .chat-message.sent {
+      background: #dfe8ff; /* 내가 보낸 메시지 - 파란 톤 */
+      align-self: flex-end;
+    }
+
+    .chat-message.received {
+      background: #f3f3f3; /* 상대 메시지 - 회색 톤 */
+      align-self: flex-start;
+    }
+  </style>
+
+</head>
+<body>
+
+<header>
+  SoundLink 채팅 데모
+</header>
+
+<main>
+  <div class="section-title">웹소켓 연결 관리</div>
+  <div class="button-group">
+    <button id="connectBtn" onclick="connect()">연결하기</button>
+    <button id="disconnectBtn" onclick="disconnect()" disabled>연결 해제</button>
+  </div>
+
+  <hr/>
+
+  <div class="section-title">채팅 입력</div>
+  <div class="chat-controls">
+    <input type="text" id="messageInput" placeholder="메시지를 입력하세요" />
+    <button onclick="sendMessage()">전송</button>
+  </div>
+
+  <div class="section-title">채팅 로그</div>
+  <div class="chat-area" id="chatArea">
+    <!-- 채팅 메시지가 여기 표시됩니다. -->
+  </div>
+</main>
+
+<script>
+  let accessToken = "YOUR_JWT_TOKEN_HERE";
+  let chatRoomId = "room-123";
+  let myUserId = 1; // 본인 사용자 ID
+
+  let stompClient = null;
+
+  // 웹소켓 연결
+  function connect() {
+    const socket = new SockJS('http://localhost:8080/ws-chat');
+    stompClient = Stomp.over(socket);
+
+    // Stomp 연결 시도
+    stompClient.connect(
+            // (요청 헤더)
+            { /* "Authorization": "Bearer " + accessToken */ },
+            // 연결 성공 시 실행될 콜백
+            function(frame) {
+              console.log('[연결됨] ' + frame);
+              showStatusMessage('채팅 시, 서로에게 상처되지 않는 말을 사용해 주세요.');
+
+              // 1) 과거 채팅 메시지 먼저 불러오기 (REST 호출)
+              fetch(`http://localhost:8080/api/chat/history/${chatRoomId}`)
+                      .then(response => {
+                        if (response.status === 204) {
+                          console.warn('No chat history found (204 No Content)');
+                          return [];
+                        }
+                        return response.json();
+                      })
+                      .then(messages => {
+                        if (!Array.isArray(messages)) {
+                          console.warn('No valid chat history received.');
+                          return;
+                        }
+
+                        messages.forEach(msg => {
+                          const formattedDate = msg.createdAt
+                                  ? new Date(msg.createdAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })
+                                  : '시간 없음';
+                          // 본인이 보낸 메시지인지 판별
+                          const isMine = (msg.fromUserId === myUserId);
+                          const msgStyle = isMine ? 'sent' : 'received';
+
+                          console.debug(`[CHAT] ${formattedDate} - ${msg.message}`);
+                          // chatRoomId, fromUserId, etc. 있으면 필요에 맞게 사용
+                          showChatMessage(`${formattedDate} - ${msg.message || '메시지 없음'}`, msgStyle);
+                        });
+                      })
+                      .catch(error => console.error('Error fetching chat history:', error));
+
+              // 2) 채팅 메시지 구독 (연결된 이후에만 가능)
+              stompClient.subscribe(`/queue/chat-${chatRoomId}`, function (message) {
+                const chat = JSON.parse(message.body);
+                const isMine = (chat.fromUserId === myUserId);
+                // 보낸 사람과 내 ID가 같으면 'sent', 아니면 'received'
+                const msgStyle = isMine ? 'sent' : 'received';
+                showChatMessage(chat.message, msgStyle);
+              });
+
+              // 3) 나쁜 말 필터링 채널 구독
+              stompClient.subscribe('/topic/badword', function(message) {
+                showChatMessage('[나쁜 말 감지] ' + message.body, 'received');
+              });
+
+              // 연결 버튼/해제 버튼 상태 변경
+              document.getElementById('connectBtn').disabled = true;
+              document.getElementById('disconnectBtn').disabled = false;
+            }
+    );
+  }
+
+  // 웹소켓 연결 해제
+  function disconnect() {
+    if (stompClient) {
+      stompClient.disconnect(() => {
+        console.log('[연결 해제]');
+        showStatusMessage('WebSocket 연결이 해제되었습니다.');
+        document.getElementById('connectBtn').disabled = false;
+        document.getElementById('disconnectBtn').disabled = true;
+
+        // 연결 해제 시 채팅 영역 초기화 (선택)
+        const chatArea = document.getElementById('chatArea');
+        chatArea.innerHTML = '';
+      });
+    }
+  }
+
+  // 메시지 전송
+  function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const msg = messageInput.value.trim();
+
+    if (msg && stompClient && stompClient.connected) {
+      // 서버의 /app/sendMessage 로 메시지를 보냄
+      stompClient.send("/app/sendMessage", {}, JSON.stringify({
+        chatRoomId: chatRoomId,
+        fromUserId: myUserId,
+        message: msg
+      }));
+      messageInput.value = '';
+    }
+  }
+
+  // 채팅 영역에 메시지 표시
+  function showChatMessage(message, messageType) {
+    const chatArea = document.getElementById('chatArea');
+    const div = document.createElement('div');
+    // 'sent' or 'received' 등을 사용해 스타일 지정
+    div.className = 'chat-message ' + (messageType || '');
+    div.textContent = message;
+    chatArea.appendChild(div);
+    chatArea.scrollTop = chatArea.scrollHeight;
+  }
+
+  // 연결 상태나 시스템 메시지 표시
+  function showStatusMessage(msg) {
+    showChatMessage(msg, 'received');
+  }
+</script>
+
+</body>
+</html>

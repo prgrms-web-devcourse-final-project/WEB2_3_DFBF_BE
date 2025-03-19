@@ -11,6 +11,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code (코드 체크아웃)
+        uses: actions/checkout@v2
+
       - name: Set up JDK 17 (JDK 17 설정)
         uses: actions/setup-java@v2
         with:
@@ -29,12 +32,8 @@ jobs:
 
       - name: Grant execute permission to Gradle (Gradle 실행 권한 부여)
         run: |
-          cd default
-          ls -al
-          chmod +x gradlew
-          cd ../chat
-          chmod +x gradlew
-          cd ..
+          chmod +x ./default/gradlew
+          chmod +x ./chat/gradlew
 
 #      - name: Detect Changes (변경된 파일 감지)
 #        id: changed-files
@@ -54,11 +53,8 @@ jobs:
 
       - name: Build JAR (JAR 빌드)
         run: |
-          cd default
-          ./gradlew bootJar
-          cd ../chat
+          ./default/gradlew bootJar
           ./chat/gradlew bootJar
-          cd ..
 
       # CR_PAT: Container Registry - Personal Access Token
       - name: GitHub Container Registry login (GitHub Container Registry 로그인)

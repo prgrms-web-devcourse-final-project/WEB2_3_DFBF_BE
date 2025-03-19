@@ -53,8 +53,11 @@ jobs:
 
       - name: Build JAR (JAR 빌드)
         run: |
-          ./default/gradlew bootJar
+          cd default
+          ./gradlew bootJar
+          cd ../chat
           ./chat/gradlew bootJar
+          cd ..
 
       # CR_PAT: Container Registry - Personal Access Token
       - name: GitHub Container Registry login (GitHub Container Registry 로그인)

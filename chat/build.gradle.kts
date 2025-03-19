@@ -56,6 +56,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
 }
 
+tasks.bootJar {
+    archiveFileName = "soundlink_chat.jar"
+}
 // Git 커밋 정보를 git.properties로 생성
 gitProperties {
     keys = listOf("git.commit.id.abbrev") // 짧은 커밋 ID 사용

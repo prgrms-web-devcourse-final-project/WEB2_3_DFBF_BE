@@ -102,6 +102,10 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+tasks.bootJar {
+    archiveFileName = "soundlink_default.jar"
+}
+
 // Querydsl 빌드 옵션 설정
 val generatedDir = "src/main/generated"
 

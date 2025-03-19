@@ -37,8 +37,10 @@ out/
 .vscode/
 
 ### yml & properties ###
-*.yml
-*.properties
+chat/**/*.yml
+default/**/*.yml
+chat/src/main/resources/application.properties
+default/src/main/resources/application.properties
 
 ### 폴더 추가
 default/src/main/generated

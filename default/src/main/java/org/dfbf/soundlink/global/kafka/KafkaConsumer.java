@@ -20,29 +20,29 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class KafkaConsumer {
 
-    private final AlertService alertService;
-    private final AlertRepository alertRepository;
-    private final RedisTemplate<String, Object> redisTemplate;
-
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    // KafkaListener annotation을 통해 메시지를 수신함
-    @KafkaListener(topics = "alert-topic", groupId = "alert-service")
-    public void updateQty(String kafkaMessage) {
-        log.info("Kafka Message: -> {}", kafkaMessage);
-
-        try {
-            Alert alert = mapper.readValue(kafkaMessage, Alert.class);
+//    private final AlertService alertService;
+//    private final AlertRepository alertRepository;
+//    private final RedisTemplate<String, Object> redisTemplate;
 //
-//            if (alertRepository.getEmitterId(alert.getUserId()).isPresent()) {
-//                log.info("알림 전송: {}", alert.getUserId());
-//                alertService.send(alert.getUserId(), alert.getType(), alert.getData());
-//            } else {
-//                //redisTemplate.opsForValue().set("alert:" + alert.getEventId(), alert, 10, TimeUnit.MINUTES);
-//                log.info("No SSE connection for user {}.", alert.getUserId());
-//            }
-        } catch (JsonProcessingException e) {
-            log.error("JSON parsing error: {}", e.getMessage());
-        }
-    }
+//    private final ObjectMapper mapper = new ObjectMapper();
+//
+//    // KafkaListener annotation을 통해 메시지를 수신함
+//    @KafkaListener(topics = "alert-topic", groupId = "alert-service")
+//    public void updateQty(String kafkaMessage) {
+//        log.info("Kafka Message: -> {}", kafkaMessage);
+//
+//        try {
+//            Alert alert = mapper.readValue(kafkaMessage, Alert.class);
+////
+////            if (alertRepository.getEmitterId(alert.getUserId()).isPresent()) {
+////                log.info("알림 전송: {}", alert.getUserId());
+////                alertService.send(alert.getUserId(), alert.getType(), alert.getData());
+////            } else {
+////                //redisTemplate.opsForValue().set("alert:" + alert.getEventId(), alert, 10, TimeUnit.MINUTES);
+////                log.info("No SSE connection for user {}.", alert.getUserId());
+////            }
+//        } catch (JsonProcessingException e) {
+//            log.error("JSON parsing error: {}", e.getMessage());
+//        }
+//    }
 }

@@ -27,13 +27,13 @@ jobs:
           APPLICATION_DEFAULT: ${{ secrets.APPLICATION_DEFAULT }}
           APPLICATION_CHAT: ${{ secrets.APPLICATION_CHAT }}
 
-      - name: Grant execute permission to Gradle (Gradle 실행 권한 부여)
-        run: |
-          cd default
-          chmod +x gradlew
-          cd ../chat
-          chmod +x gradlew
-          cd ..
+#      - name: Grant execute permission to Gradle (Gradle 실행 권한 부여)
+#        run: |
+#          cd default
+#          chmod +x gradlew
+#          cd ../chat
+#          chmod +x gradlew
+#          cd ..
 
 #      - name: Detect Changes (변경된 파일 감지)
 #        id: changed-files

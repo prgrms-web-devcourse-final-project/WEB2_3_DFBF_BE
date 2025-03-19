@@ -23,11 +23,6 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Initialize Gradle (Gradle 초기화)
-        run: |
-          ./default/gradle init
-          ./chat/gradle init
-
       - name: Create application.properties from git secret (application.properties 파일 생성)
         run: |
           mkdir -p default/src/main/resources
@@ -42,6 +37,11 @@ jobs:
         run: |
           chmod +x ./default/gradlew
           chmod +x ./chat/gradlew
+
+      - name: Install Gradle Wrapper (Gradle Wrapper 설치)
+        run: |
+            ./default/gradle wrapper
+            ./chat/gradle wrapper
 
       - name: Run tests (테스트 실행)
         run: |

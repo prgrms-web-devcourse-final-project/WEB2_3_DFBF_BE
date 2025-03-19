@@ -40,8 +40,11 @@ jobs:
 
       - name: Install Gradle Wrapper (Gradle Wrapper 설치)
         run: |
-            ./default/gradle wrapper
-            ./chat/gradle wrapper
+            cd default
+            gradle wrapper
+            cd ../chat
+            gradle wrapper
+            cd ..
 
       - name: Run tests (테스트 실행)
         run: |

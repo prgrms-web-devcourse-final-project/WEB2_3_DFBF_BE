@@ -66,7 +66,10 @@ jobs:
           echo $CR_PAT | docker login ghcr.io -u ${{ secrets.GIT_ID }} --password-stdin
 
       - name: Docker build & push (Default)
+        working-directory: /home/runner/work/WEB2_3_DFBF_BE/WEB2_3_DFBF_BE
         run: |
+          echo "Current directory: $(pwd)"
+          ls -R
           TAG=$(git rev-parse --short HEAD)
           DOCKER_IMAGE_DEFAULT=ghcr.io/${{ secrets.GIT_ID }}/soundlink_default:$TAG
           docker build -t soundlink_default -f ./docker/default.Dockerfile .
@@ -74,7 +77,10 @@ jobs:
           docker push $DOCKER_IMAGE_DEFAULT
 
       - name: Docker build & push (Chat)
+        working-directory: /home/runner/work/WEB2_3_DFBF_BE/WEB2_3_DFBF_BE
         run: |
+          echo "Current directory: $(pwd)"
+          ls -R
           TAG=$(git rev-parse --short HEAD)
           DOCKER_IMAGE_CHAT=ghcr.io/${{ secrets.GIT_ID }}/soundlink_chat:$TAG
           docker build -t soundlink_chat -f ./docker/chat.Dockerfile .

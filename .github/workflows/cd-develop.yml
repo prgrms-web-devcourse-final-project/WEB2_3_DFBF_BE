@@ -56,7 +56,7 @@ jobs:
           cd default
           ./gradlew bootJar
           cd ../chat
-          ./chat/gradlew bootJar
+          ./gradlew bootJar
           cd ..
 
       # CR_PAT: Container Registry - Personal Access Token

@@ -2,7 +2,7 @@
 FROM openjdk:17-jdk-slim
 
 # The application's jar file
-ARG JAR_FILE=../chat/build/libs/SoundLink_Java-0.0.1-SNAPSHOT
+ARG JAR_FILE=./chat/build/libs/SoundLink_Java-0.0.1-SNAPSHOT
 
 # Add the application's jar to the container
 COPY ${JAR_FILE} app.jar

@@ -87,18 +87,18 @@ jobs:
           docker tag soundlink_chat $DOCKER_IMAGE_CHAT
           docker push $DOCKER_IMAGE_CHAT
           
-      - name: Deploy to Linux Server (리눅스 서버 배포)
-        uses: appleboy/ssh-action@v0.1.1
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.PRIVATE_KEY }}
-          port: ${{ secrets.PORT }}
-          script: |
-            cd /home/ubuntu/docker
-            sudo docker-compose down spring
-            sudo docker-compose pull spring
-            sudo docker-compose up -d spring
-            sudo docker-compose down spring_chat
-            sudo docker-compose pull spring_chat
-            sudo docker-compose up -d spring_chat
+#      - name: Deploy to Linux Server (리눅스 서버 배포)
+#        uses: appleboy/ssh-action@v0.1.1
+#        with:
+#          host: ${{ secrets.HOST }}
+#          username: ${{ secrets.USERNAME }}
+#          key: ${{ secrets.PRIVATE_KEY }}
+#          port: ${{ secrets.PORT }}
+#          script: |
+#            cd /home/ubuntu/docker
+#            sudo docker-compose down spring
+#            sudo docker-compose pull spring
+#            sudo docker-compose up -d spring
+#            sudo docker-compose down spring_chat
+#            sudo docker-compose pull spring_chat
+#            sudo docker-compose up -d spring_chat

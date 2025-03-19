@@ -1,0 +1,92 @@
+name: Java CI with Gradle
+
+on:
+  push:
+    branches: [ "develop" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up JDK 17 (JDK 17 설정)
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Create application.properties from git secret (application.properties 파일 생성)
+        run: |
+          mkdir -p default/src/main/resources
+          mkdir -p chat/src/main/resources
+          echo "$APPLICATION_DEFAULT" > default/src/main/resources/application.properties
+          echo "$APPLICATION_CHAT" > chat/src/main/resources/application.properties
+        env:
+          APPLICATION_DEFAULT: ${{ secrets.APPLICATION_DEFAULT }}
+          APPLICATION_CHAT: ${{ secrets.APPLICATION_CHAT }}
+
+      - name: Grant execute permission to Gradle (Gradle 실행 권한 부여)
+        run: |
+          chmod +x ./default/gradlew
+          chmod +x ./chat/gradlew
+
+#      - name: Detect Changes (변경된 파일 감지)
+#        id: changed-files
+#        run: |
+#          git fetch origin develop --depth=1
+#          CHANGED_FILES=$(git diff --name-only origin/develop HEAD)
+#
+#          echo "Changed files: $CHANGED_FILES"
+#
+#          if echo "$CHANGED_FILES" | grep -q '^default/'; then
+#            echo "DEFAULT_CHANGED=true" >> $GITHUB_ENV
+#          fi
+#
+#          if echo "$CHANGED_FILES" | grep -q '^chat/'; then
+#            echo "CHAT_CHANGED=true" >> $GITHUB_ENV
+#          fi
+
+      - name: Build JAR (JAR 빌드)
+        run: |
+          ./default/gradlew bootJar
+          ./chat/gradlew bootJar
+
+      # CR_PAT: Container Registry - Personal Access Token
+      - name: GitHub Container Registry login (GitHub Container Registry 로그인)
+        run: |
+          export CR_PAT=${{ secrets.SOUNDLINK_TOKEN }}
+          echo $CR_PAT | docker login ghcr.io -u ${{ secrets.GIT_ID }} --password-stdin
+
+      - name: Docker build & push (Default)
+        run: |
+          TAG=$(git rev-parse --short HEAD)
+          DOCKER_IMAGE_DEFAULT=ghcr.io/${{ secrets.GIT_ID }}/soundlink_default:$TAG
+          docker build -t soundlink_default -f docker/default.Dockerfile .
+          docker tag soundlink_default $DOCKER_IMAGE_DEFAULT
+          docker push $DOCKER_IMAGE_DEFAULT
+
+      - name: Docker build & push (Chat)
+        run: |
+          TAG=$(git rev-parse --short HEAD)
+          DOCKER_IMAGE_CHAT=ghcr.io/${{ secrets.GIT_ID }}/soundlink_chat:$TAG
+          docker build -t soundlink_chat -f docker/chat.Dockerfile .
+          docker tag soundlink_chat $DOCKER_IMAGE_CHAT
+          docker push $DOCKER_IMAGE_CHAT
+          
+      - name: Deploy to Linux Server (리눅스 서버 배포)
+        uses: appleboy/ssh-action@v0.1.1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.PRIVATE_KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd /home/ubuntu/docker
+            sudo docker-compose down spring
+            sudo docker-compose pull spring
+            sudo docker-compose up -d spring
+            sudo docker-compose down spring_chat
+            sudo docker-compose pull spring_chat
+            sudo docker-compose up -d spring_chat

@@ -38,15 +38,13 @@ jobs:
           chmod +x ./default/gradlew
           chmod +x ./chat/gradlew
 
-      - name: Install Gradle Wrapper (Gradle Wrapper 설치)
+      - name: Run tests - default server (디폴트 서버 테스트 실행)
         run: |
-            cd default
-            gradle wrapper
-            cd ../chat
-            gradle wrapper
-            cd ..
+          cd default
+          ./gradlew test
+          cd ..
 
-      - name: Run tests (테스트 실행)
+      - name: Run tests - chat server (채팅 서버 테스트 실행)
         run: |
-          ./default/gradlew test
-          ./chat/gradlew test
+          cd chat
+          ./gradlew test

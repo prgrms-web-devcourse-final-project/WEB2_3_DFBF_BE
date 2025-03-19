@@ -63,7 +63,7 @@ jobs:
         run: |
           TAG=$(git rev-parse --short HEAD)
           DOCKER_IMAGE_DEFAULT=ghcr.io/${{ secrets.GIT_ID }}/soundlink_default:$TAG
-          docker build -t soundlink_default -f docker/default.Dockerfile .
+          docker build -t soundlink_default -f ./docker/default.Dockerfile .
           docker tag soundlink_default $DOCKER_IMAGE_DEFAULT
           docker push $DOCKER_IMAGE_DEFAULT
 
@@ -71,7 +71,7 @@ jobs:
         run: |
           TAG=$(git rev-parse --short HEAD)
           DOCKER_IMAGE_CHAT=ghcr.io/${{ secrets.GIT_ID }}/soundlink_chat:$TAG
-          docker build -t soundlink_chat -f docker/chat.Dockerfile .
+          docker build -t soundlink_chat -f ./docker//chat.Dockerfile .
           docker tag soundlink_chat $DOCKER_IMAGE_CHAT
           docker push $DOCKER_IMAGE_CHAT
           

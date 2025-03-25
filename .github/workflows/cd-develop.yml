@@ -98,9 +98,9 @@ jobs:
 #          port: ${{ secrets.PORT }}
 #          script: |
 #            cd /home/ubuntu/docker
-#            sudo docker-compose down spring
+#            sudo docker-compose stop spring
 #            sudo docker-compose pull spring
 #            sudo docker-compose up -d spring
-#            sudo docker-compose down spring_chat
+#            sudo docker-compose stop spring_chat
 #            sudo docker-compose pull spring_chat
 #            sudo docker-compose up -d spring_chat

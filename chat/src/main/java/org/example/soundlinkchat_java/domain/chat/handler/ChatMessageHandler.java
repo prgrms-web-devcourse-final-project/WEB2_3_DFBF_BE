@@ -1,6 +1,8 @@
 package org.example.soundlinkchat_java.domain.chat.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
@@ -12,6 +14,8 @@ import org.springframework.stereotype.Component;
 
 @Aspect
 @Component
+@RequiredArgsConstructor
+@Slf4j
 public class ChatMessageHandler {
 
     @Autowired
@@ -27,7 +31,7 @@ public class ChatMessageHandler {
                 kafkaTemplate.send("chat-topic", msgJson);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.info(e.getMessage(), e);
         }
     }
 }

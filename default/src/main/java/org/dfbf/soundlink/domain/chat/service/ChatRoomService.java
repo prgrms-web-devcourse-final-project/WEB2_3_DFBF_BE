@@ -107,7 +107,7 @@ public class ChatRoomService {
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (IllegalArgumentException e) {
             log.info(e.getMessage());
-            return new ResponseResult(ErrorCode.SUCCESS, "요청은 갔지만, 상대방의 SSE가 없어 알림이 전송되지 않았습니다.");
+            return new ResponseResult(ErrorCode.CHAT_REQUEST_SSE_FAILED);
         } catch (EmotionRecordNotFoundException e) {
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
         } catch (UserNotFoundException e) {

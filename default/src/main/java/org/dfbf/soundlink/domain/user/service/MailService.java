@@ -8,7 +8,7 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-import java.util.Random;
+import java.security.SecureRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +20,7 @@ public class MailService {
 
     //인증코드 생성
     public String createCode() {
-        Random random = new Random();
+        SecureRandom random = new SecureRandom();
         StringBuilder key = new StringBuilder();
 
         for (int i = 0; i < 6; i++) {

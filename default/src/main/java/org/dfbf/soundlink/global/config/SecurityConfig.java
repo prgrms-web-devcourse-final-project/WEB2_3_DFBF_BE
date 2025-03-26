@@ -1,5 +1,6 @@
 package org.dfbf.soundlink.global.config;
 
+import jakarta.servlet.ServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.dfbf.soundlink.global.auth.JwtAuthenticationFilter;
 import org.dfbf.soundlink.global.auth.JwtProvider;
@@ -27,6 +28,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
         http
+                .csrf(csrf -> csrf
+                        .requireCsrfProtectionMatcher(ServletRequest::isSecure) // HTTPS만 CSRF 보호 적용
+                )
                 .authorizeHttpRequests(auth -> auth
 //                        .requestMatchers("/api/**").permitAll()
 //                        .requestMatchers("/swagger-ui/**").permitAll()

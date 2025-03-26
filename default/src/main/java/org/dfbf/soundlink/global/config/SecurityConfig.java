@@ -1,5 +1,6 @@
 package org.dfbf.soundlink.global.config;
 
+import jakarta.servlet.ServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.dfbf.soundlink.global.auth.JwtAuthenticationFilter;
 import org.dfbf.soundlink.global.auth.JwtProvider;
@@ -16,6 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@SuppressWarnings("squid:S4502")
 public class SecurityConfig {
     private final JwtProvider jwtProvider;
 
@@ -27,6 +29,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
         http
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
 //                        .requestMatchers("/api/**").permitAll()
 //                        .requestMatchers("/swagger-ui/**").permitAll()

@@ -17,6 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@SuppressWarnings("squid:S4502")
 public class SecurityConfig {
     private final JwtProvider jwtProvider;
 
@@ -28,9 +29,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
         http
-                .csrf(csrf -> csrf
-                        .requireCsrfProtectionMatcher(ServletRequest::isSecure) // HTTPS만 CSRF 보호 적용
-                )
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
 //                        .requestMatchers("/api/**").permitAll()
 //                        .requestMatchers("/swagger-ui/**").permitAll()

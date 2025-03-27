@@ -12,19 +12,6 @@ public class WebConfig implements WebMvcConfigurer {
      * 대신 allowOriginPatterns를 사용해야 한다.
      */
 
-    private static final String DEVELOP_FRONT_ADDRESS = "http://localhost:3000";
-
-    // Main에 적용
-//    @Override
-//    public void addCorsMappings(CorsRegistry registry) {
-//        registry.addMapping("/**")
-//                .allowedOrigins(DEVELOP_FRONT_ADDRESS)
-//                .allowedMethods("GET", "POST", "PUT", "DELETE")
-//                .exposedHeaders("location")
-//                .allowedHeaders("*")
-//                .allowCredentials(true);
-//    }
-
     // Develop에 적용
     @Override
     public void addCorsMappings(CorsRegistry registry) {

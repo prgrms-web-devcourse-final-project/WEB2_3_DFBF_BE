@@ -1,4 +1,4 @@
-package org.example.soundlinkchat_java.global.config;
+package org.dfbf.soundlink.global.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -11,19 +11,6 @@ public class WebConfig implements WebMvcConfigurer {
      * allowCredentials가 true일 때, allowedOrigins에 특수 값인 "*" 추가할 수 없게 되었다.
      * 대신 allowOriginPatterns를 사용해야 한다.
      */
-
-    private static final String DEVELOP_FRONT_ADDRESS = "http://localhost:3000";
-
-    // Main에 적용
-//    @Override
-//    public void addCorsMappings(CorsRegistry registry) {
-//        registry.addMapping("/**")
-//                .allowedOrigins(DEVELOP_FRONT_ADDRESS)
-//                .allowedMethods("GET", "POST", "PUT", "DELETE")
-//                .exposedHeaders("location")
-//                .allowedHeaders("*")
-//                .allowCredentials(true);
-//    }
 
     // Develop에 적용
     @Override

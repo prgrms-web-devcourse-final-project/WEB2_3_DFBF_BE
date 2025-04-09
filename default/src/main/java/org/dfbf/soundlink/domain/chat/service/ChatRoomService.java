@@ -64,6 +64,11 @@ public class ChatRoomService {
                     .getUser()
                     .getUserId();
 
+            // 사용자가 오프라인이면 202 보내고 종료
+            if (!alertService.isOnline(responseUserId)) {
+                return new ResponseResult(ErrorCode.CHAT_REQUEST_SSE_FAILED, "Request is not sent.");
+            }
+
             // 요청자와 응답자가 같은 경우
             if (requestUserId.equals(responseUserId)) {
                 return new ResponseResult(400, "You can't chat with yourself.");

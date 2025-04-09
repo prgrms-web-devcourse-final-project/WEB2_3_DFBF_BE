@@ -114,4 +114,9 @@ public class AlertService {
         alertRepository.delete(userId, emitterId);
         sseEmitter.complete();
     }
+
+    // 사용자가 온라인인지 오프라인인지 확인 (Use UserId)
+    public boolean isOnline(Long userId) {
+        return alertRepository.getEmitterId(userId).isPresent();
+    }
 }

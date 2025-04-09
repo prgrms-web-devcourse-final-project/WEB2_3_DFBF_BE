@@ -120,6 +120,7 @@ class ChatRoomServiceTest {
     @Test
     @DisplayName("채팅 요청: Redis에 저장 성공")
     void testSaveRequestToRedis_SUCCESS() {
+
         // given
         when(emotionRecordRepository.findById(emotionRecordId)).thenReturn(Optional.of(emotionRecord));  // 감정 기록 조회
         when(userRepository.findByUserIdWithCache(requestUserId)).thenReturn(Optional.of(requestUser));  // 요청자 정보 조회
@@ -129,6 +130,9 @@ class ChatRoomServiceTest {
         // 알림 서비스 mock
 //        when(alertService.send(eq(responseUserId), eq("alarm"), any(Alert.class)))
 //                .thenReturn(new ResponseResult(ErrorCode.SUCCESS));  // 알림 전송 mock
+
+        // 상대방이 온라인이라고 가정..
+        when(alertService.isOnline(responseUserId)).thenReturn(true);
 
         // Redis 관련 mock 설정
         ValueOperations<String, Object> valueOps = mock(ValueOperations.class);  // ValueOperations 객체 생성
@@ -169,6 +173,20 @@ class ChatRoomServiceTest {
 
         // 알림 서비스 호출 여부 확인
         verify(alertService).send(responseUserId, "cancel", "Chat request has been canceled.");
+    }
+
+    @Test
+    @DisplayName("상대방이 오프라인일 경우")
+    void testSaveRequestToRedis_Offline() {
+        // given
+        when(emotionRecordRepository.findById(emotionRecordId)).thenReturn(Optional.of(emotionRecord));
+        when(alertService.isOnline(responseUserId)).thenReturn(false); // 핵심만 남김
+
+        // when
+        ResponseResult result = chatRoomService.saveRequestToRedis(requestUserId, emotionRecordId);
+
+        // then
+        assertEquals(202, result.getCode());
     }
 
     @Test

@@ -14,6 +14,7 @@ import org.dfbf.soundlink.domain.user.entity.User;
 import org.dfbf.soundlink.domain.user.repository.UserRepository;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
+import org.dfbf.soundlink.global.slack.service.SlackService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class BlockListService {
     private final BlockListQueryRepository blockListQueryRepository;
     private final UserRepository userRepository;
     private final BlockListRepository blockListRepository;
+    private final SlackService slackService;
 
     @Transactional
     public ResponseResult blockUser(Long userId, BlockReq req) {
@@ -54,16 +56,19 @@ public class BlockListService {
                     ErrorCode.SUCCESS
             );
         } catch (BlockedUserNotFound e) {
+            slackService.sendMsg(req, e.getMessage());
             return new ResponseResult(
                     ErrorCode.BLOCKED_USER_NOT_FOUND,
                     e.getMessage()
             );
         } catch (BlockingUserNotFound e) {
+            slackService.sendMsg(req, e.getMessage());
             return new ResponseResult(
                     ErrorCode.BLOCKING_USER_NOT_FOUND,
                     e.getMessage()
             );
         } catch (AlreadyBlockedUser e) {
+            slackService.sendMsg(req, e.getMessage());
             return new ResponseResult(
                     ErrorCode.ALREADY_BLOCKED_USER,
                     e.getMessage()
@@ -84,6 +89,7 @@ public class BlockListService {
                     ErrorCode.SUCCESS
             );
         } catch (BlockingUserNotFound e) {
+            slackService.sendMsg(blocklistId, e.getMessage());
             return new ResponseResult(
                     ErrorCode.BLOCKING_USER_NOT_FOUND,
                     e.getMessage()

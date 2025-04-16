@@ -88,6 +88,9 @@ dependencies {
     implementation ("org.apache.kafka:kafka-streams") // Kafka의 스트림 API를 사용할 때 필요
     implementation ("org.apache.kafka:kafka-clients") // Kafka 브로커와 직접 통신하는 기본 클라이언트 라이브러리
 
+    // Slack
+    implementation("com.slack.api:slack-api-client:1.45.3")
+
     //QueryDSL 추가
     implementation ("com.querydsl:querydsl-apt:5.0.0")
     implementation ("com.querydsl:querydsl-jpa:5.0.0:jakarta")

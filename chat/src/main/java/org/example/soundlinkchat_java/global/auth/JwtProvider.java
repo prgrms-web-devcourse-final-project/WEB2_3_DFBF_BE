@@ -1,21 +1,21 @@
 package org.example.soundlinkchat_java.global.auth;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import io.jsonwebtoken.*;
 
 import javax.crypto.SecretKey;
-import java.util.Date;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtProvider {
@@ -31,18 +31,25 @@ public class JwtProvider {
     private long REFRESH_EXPIRATION_TIME;
 
     // 시크릿 키
-    private final SecretKey SECRET_KEY = Keys.hmacShaKeyFor("ee7d4dcf88086125155386d999b3a2258d5c55671a390e608f49a2db31efc6e0".getBytes());
+    @Value("${jwt.secret}")
+    private String SECRET_KEY_STRING;
+    private SecretKey SECRET_KEY;
+
+    @PostConstruct
+    public void init() {
+        this.SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_STRING.getBytes());
+    }
 
     // Access 토큰
     public String createAccessToken(long userId) {
         Claims claims = Jwts.claims().setSubject(String.valueOf(userId));
         Date now = new Date();
-
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime()+ACCESS_EXPIRATION_TIME))
-                .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
+                .setExpiration(new Date(now.getTime() + ACCESS_EXPIRATION_TIME))
+                .setHeaderParam("typ", "JWT")
+                .signWith(SECRET_KEY,SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -54,6 +61,7 @@ public class JwtProvider {
                 .setClaims(claims)
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime()+REFRESH_EXPIRATION_TIME))
+                .setHeaderParam("typ", "JWT")
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
         try {
@@ -66,30 +74,23 @@ public class JwtProvider {
     }
 
     //토큰 검증(변조, 만료, 올바른 형식)
-    public boolean validateToken(String token){
+    public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
-                    .setSigningKey(SECRET_KEY)  //서명 검증
+                    .setSigningKey(SECRET_KEY)  // 서명 검증
                     .build()
-                    .parseClaimsJws(token);     //토큰 유효한지 확인.
-            return true;
-        } catch (Exception e) {
-            System.out.println("[ERROR] Token validation failed: ");
-            return false;
-        }
-    }
+                    .parseClaimsJws(token);     // 토큰 유효한지 확인 (여기서 만료 시간도 체크)
 
-    public boolean isTokenExpired(String token) {
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(SECRET_KEY)
-                    .build()
-                    .parseClaimsJws(token); // 만료된 토큰을 처리하려면 ExpiredJwtException이 발생함
-            return false; // 만료되지 않으면 false
-        } catch (ExpiredJwtException ex) {
-            return true; // 만료된 경우 true
-        } catch (Exception ex) {
-            return false; // 다른 예외는 false
+            // 토큰이 유효한 경우
+            return true;
+        }catch (ExpiredJwtException e) {
+            log.warn("[ERROR] Token is expired.");
+            throw e;
+        } catch (JwtException e) {
+            log.warn("[ERROR] Token validation failed: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            throw e;
         }
     }
 
@@ -123,5 +124,4 @@ public class JwtProvider {
                 .getBody()
                 .getSubject());
     }
-
 }

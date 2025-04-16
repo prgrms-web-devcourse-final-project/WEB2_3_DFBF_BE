@@ -28,6 +28,7 @@ import org.dfbf.soundlink.global.auth.JwtProvider;
 import org.dfbf.soundlink.global.auth.TokenProperties;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
+import org.dfbf.soundlink.global.slack.service.SlackService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseCookie;
@@ -57,6 +58,7 @@ public class UserService {
     private final MailService mailService;
     private final RedisService redisService;
     private final UserStatusService userStatusService;
+    private final SlackService slackService;
 
     private final JwtProvider jwtProvider;
     private final TokenProperties tokenProperties;
@@ -80,6 +82,7 @@ public class UserService {
             userRepository.save(userSignUpDto.toEntity(passwordEncoder));
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (Exception e) {
+            slackService.sendMsg(userSignUpDto, e.getMessage());
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         }
     }
@@ -95,6 +98,7 @@ public class UserService {
 
             return new ResponseResult(ErrorCode.SUCCESS, result);
         } catch (NoUserDataException e) {
+            slackService.sendMsg(null, e.getMessage());
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
         }
     }
@@ -141,8 +145,10 @@ public class UserService {
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (NoUserDataException e) {
+            slackService.sendMsg(userUpdateDto, e.getMessage());
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
         } catch (Exception e) {
+            slackService.sendMsg(userUpdateDto, e.getMessage());
             return new ResponseResult(ErrorCode.BAD_REQUEST, e.getMessage());
         }
     }
@@ -169,8 +175,10 @@ public class UserService {
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (NoUserDataException e) {
+            slackService.sendMsg(null, e.getMessage());
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
         } catch (Exception e) {
+            slackService.sendMsg(null, e.getMessage());
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         }
     }
@@ -204,8 +212,10 @@ public class UserService {
 
             return new ResponseResult(ErrorCode.SUCCESS, result);
         } catch (NoUserDataException e) {
+            slackService.sendMsg(null, e.getMessage());
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
         } catch (Exception e) {
+            slackService.sendMsg(null, e.getMessage());
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         }
     }
@@ -218,6 +228,7 @@ public class UserService {
             redisService.setCode(email, authCode);
             return new ResponseResult(ErrorCode.SUCCESS, email);
         } catch (MessagingException e) {
+            slackService.sendMsg(null, e.getMessage());
             return new ResponseResult(ErrorCode.EMAIL_SEND_ERROR, e.getMessage());
         }
     }
@@ -233,6 +244,7 @@ public class UserService {
                 return new ResponseResult(ErrorCode.BAD_REQUEST, "이메일 전송 실패: 잘못된 요청입니다.");
             }
         } catch (AuthenticationException e) {
+            slackService.sendMsg(null, e.getMessage());
             return new ResponseResult(ErrorCode.EMAIL_SEND_ERROR, e.getMessage());
         }
     }
@@ -318,6 +330,7 @@ public class UserService {
             return new ResponseResult(responseBody);
         } catch (Exception e) {
             log.info("[ERROR] " + e.getMessage());
+            slackService.sendMsg(loginReqDto, e.getMessage());
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
@@ -350,6 +363,7 @@ public class UserService {
 
         } catch (Exception e) {
             log.info("[ERROR] " + e.getMessage());
+            slackService.sendMsg(null, e.getMessage());
             return new ResponseResult(ErrorCode. INTERNAL_SERVER_ERROR,"로그아웃 중 오류가 발생했습니다.");
         }
     }
@@ -363,6 +377,7 @@ public class UserService {
                 return new ResponseResult(ErrorCode.NOT_DUPLICATE_LOGINID);
             }
         } catch (Exception e) {
+            slackService.sendMsg(null, e.getMessage());
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         }
     }
@@ -378,8 +393,10 @@ public class UserService {
           
             return new ResponseResult(ErrorCode.SUCCESS, result);
         } catch (NoUserDataException e) {
+            slackService.sendMsg(null, e.getMessage());
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
         } catch (Exception e) {
+            slackService.sendMsg(null, e.getMessage());
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         }
     }

@@ -20,6 +20,7 @@ import org.dfbf.soundlink.domain.user.repository.UserRepository;
 import org.dfbf.soundlink.global.comm.enums.Emotions;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
+import org.dfbf.soundlink.global.slack.service.SlackService;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -41,6 +42,7 @@ public class EmotionRecordService {
     private final SpotifyMusicRepository spotifyMusicRepository;
     private final EmotionRecordRepository emotionRecordRepository;
     private final UserRepository userRepository;
+    private final SlackService slackService;
 
     // private final EmotionRecordCacheService emotionRecordCacheService;
     private final ChatRoomRepository chatRoomRepository;
@@ -81,10 +83,13 @@ public class EmotionRecordService {
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (UserNotFoundException e) {
+            slackService.sendMsg(request, e.getMessage());
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
         } catch (DataAccessException e) {
+            slackService.sendMsg(request, e.getMessage());
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         } catch (Exception e) {
+            slackService.sendMsg(request, e.getMessage());
             log.error("감정기록 저장 서버 에러 {}", e.getMessage());
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
@@ -109,8 +114,10 @@ public class EmotionRecordService {
 
             return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordPageResponseDTO.fromPage(recordsPage, dtoList));
         } catch (DataAccessException e) {
+            slackService.sendMsg(userId, e.getMessage());
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         } catch (Exception e) {
+            slackService.sendMsg(userId, e.getMessage());
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
@@ -135,8 +142,10 @@ public class EmotionRecordService {
 
             return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordPageResponseDTO.fromPage(recordsPage, dtoList));
         } catch (DataAccessException e) {
+            slackService.sendMsg(userTag, e.getMessage());
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         } catch (Exception e) {
+            slackService.sendMsg(userTag, e.getMessage());
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
@@ -156,6 +165,7 @@ public class EmotionRecordService {
                         .map(e -> Emotions.valueOf(e.toUpperCase()))
                         .toList();
             } catch (IllegalArgumentException e) {
+                slackService.sendMsg(null, e.getMessage());
                 return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION, "잘못된 감정 값이 포함되어 있습니다.");
             }
         }
@@ -169,8 +179,10 @@ public class EmotionRecordService {
 
             return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordPageResponseDTO.fromPage(recordsPage, dtoList));
         } catch (DataAccessException e) {
+            slackService.sendMsg(userId, e.getMessage());
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         } catch (Exception e) {
+            slackService.sendMsg(userId, e.getMessage());
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
@@ -184,10 +196,13 @@ public class EmotionRecordService {
 
             return new ResponseResult(ErrorCode.SUCCESS, EmotionRecordResponseWithOwnerDTO.fromEntity(records, userId));
         } catch (EmotionRecordNotFoundException e) {
+            slackService.sendMsg(userId, e.getMessage());
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
         } catch (DataAccessException e) {
+            slackService.sendMsg(userId, e.getMessage());
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         } catch (Exception e) {
+            slackService.sendMsg(userId, e.getMessage());
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
@@ -202,10 +217,13 @@ public class EmotionRecordService {
             String videoId = music.getVideoId();
             return new ResponseResult(ErrorCode.SUCCESS, videoId);
         } catch (SpotifyMusicNotFoundException e) {
+            slackService.sendMsg(spotifyId, e.getMessage());
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_SPOTIFY_MUSIC, e.getMessage());
         } catch (DataAccessException e) {
+            slackService.sendMsg(spotifyId, e.getMessage());
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         } catch (Exception e) {
+            slackService.sendMsg(spotifyId, e.getMessage());
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
@@ -250,10 +268,13 @@ public class EmotionRecordService {
             );*/
             return new ResponseResult(ErrorCode.SUCCESS, responseDTO);
         } catch (EmotionRecordNotFoundException e) {
+            slackService.sendMsg(recordId, e.getMessage());
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
         } catch (DataAccessException e) {
+            slackService.sendMsg(recordId, e.getMessage());
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         } catch (Exception e) {
+            slackService.sendMsg(recordId, e.getMessage());
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
@@ -299,10 +320,13 @@ public class EmotionRecordService {
             }
             return new ResponseResult(ErrorCode.SUCCESS, "감정 기록이 성공적으로 삭제되었습니다.");
         } catch (EmotionRecordNotFoundException e) {
+            slackService.sendMsg(recordId, e.getMessage());
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
         } catch (DataAccessException e) {
+            slackService.sendMsg(recordId, e.getMessage());
             return new ResponseResult(ErrorCode.DB_ERROR, e.getMessage());
         } catch (Exception e) {
+            slackService.sendMsg(recordId, e.getMessage());
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
@@ -316,6 +340,7 @@ public class EmotionRecordService {
             Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
             return new ResponseResult(ErrorCode.SUCCESS, pageable);
         } catch (IllegalArgumentException e) {
+            slackService.sendMsg(page, e.getMessage());
             return new ResponseResult(ErrorCode.INVALID_PAGE_REQUEST, "페이지 요청 값이 잘못되었습니다.");
         }
     }

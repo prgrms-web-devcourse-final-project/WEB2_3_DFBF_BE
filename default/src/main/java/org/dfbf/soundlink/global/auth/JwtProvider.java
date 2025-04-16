@@ -1,44 +1,53 @@
 package org.dfbf.soundlink.global.auth;
 
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.dfbf.soundlink.domain.user.exception.CustomJwtException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.*;
 
 import javax.crypto.SecretKey;
-import java.util.Date;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class JwtProvider {
 
-    // 토큰(Access,Refresh) 만료시간(ms)
+    private final RedisTemplate<String, String> redisTemplate;
+
+    // 토큰(Access) 만료시간(ms)
     @Value("${ACCESS_TOKEN_EXPIRATION_TIME}")
     private long ACCESS_EXPIRATION_TIME;
 
+    // 토큰(Refresh) 만료시간(ms)
     @Value("${REFRESH_TOKEN_EXPIRATION_TIME}")
     private long REFRESH_EXPIRATION_TIME;
 
-    //시크릿 키
-    SecretKey SECRET_KEY = Keys.hmacShaKeyFor("ee7d4dcf88086125155386d999b3a2258d5c55671a390e608f49a2db31efc6e0".getBytes());
+    // 시크릿 키
+    @Value("${jwt.secret}")
+    private String SECRET_KEY_STRING;
+    private SecretKey SECRET_KEY;
 
-    @Autowired
-    private RedisTemplate<String, String> redisTemplate;
-    //Access 토큰
+    @PostConstruct
+    public void init() {
+        this.SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_STRING.getBytes());
+    }
+
+    // Access 토큰
     public String createAccessToken(long userId) {
         Claims claims = Jwts.claims().setSubject(String.valueOf(userId));
         Date now = new Date();
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime()+ACCESS_EXPIRATION_TIME))
+                .setExpiration(new Date(now.getTime() + ACCESS_EXPIRATION_TIME))
                 .setHeaderParam("typ", "JWT")
                 .signWith(SECRET_KEY,SignatureAlgorithm.HS256)
                 .compact();

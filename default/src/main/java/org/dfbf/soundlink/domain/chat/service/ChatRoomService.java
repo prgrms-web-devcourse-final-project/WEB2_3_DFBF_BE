@@ -27,6 +27,7 @@ import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
 import org.dfbf.soundlink.global.feign.chat.DevChatClient;
 import org.dfbf.soundlink.global.kafka.KafkaProducer;
+import org.dfbf.soundlink.global.slack.service.SlackService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
@@ -51,6 +52,7 @@ public class ChatRoomService {
     private final DevChatClient devChatClient;
     private final KafkaProducer kafkaProducer;
     private final UserStatusService userStatusService;
+    private final SlackService slackService;
 
     private static final String CHAT_REQUEST_KEY = "chatRequest";
     private static final String TOPIC = "alert-topic";
@@ -111,13 +113,17 @@ public class ChatRoomService {
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (IllegalArgumentException e) {
+            slackService.sendMsg(requestUserId, e.getMessage());
             log.info(e.getMessage());
             return new ResponseResult(ErrorCode.CHAT_REQUEST_SSE_FAILED);
         } catch (EmotionRecordNotFoundException e) {
+            slackService.sendMsg(requestUserId, e.getMessage());
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
         } catch (UserNotFoundException e) {
+            slackService.sendMsg(requestUserId, e.getMessage());
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
         } catch (Exception e) {
+            slackService.sendMsg(requestUserId, e.getMessage());
             return new ResponseResult(ErrorCode.CHAT_REQUEST_FAILED, e.getMessage());
         }
     }
@@ -144,11 +150,14 @@ public class ChatRoomService {
             }
 
         } catch (EmotionRecordNotFoundException e) {
+            slackService.sendMsg(userId, e.getMessage());
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD);
         } catch (UserNotFoundException e) {
+            slackService.sendMsg(userId, e.getMessage());
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
         } catch (Exception e) {
             log.error(e.getMessage());
+            slackService.sendMsg(userId, e.getMessage());
             return new ResponseResult(400, "Failed to delete the chat request.");
         }
     }
@@ -180,10 +189,13 @@ public class ChatRoomService {
             }
 
         } catch (EmotionRecordNotFoundException e) {
+            slackService.sendMsg(chatRejectDto, e.getMessage());
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD);
         } catch (UserNotFoundException e) {
+            slackService.sendMsg(chatRejectDto, e.getMessage());
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER);
         } catch (Exception e) {
+            slackService.sendMsg(chatRejectDto, e.getMessage());
             log.error(e.getMessage());
             return new ResponseResult(400, "Failed to reject the chat request.");
         }
@@ -266,10 +278,13 @@ public class ChatRoomService {
                 return new ResponseResult(400, "ChatRequest not found or expired.");
             }
         } catch (EmotionRecordNotFoundException e) {
+            slackService.sendMsg(userId, e.getMessage());
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_EMOTION_RECORD, e.getMessage());
         } catch (NoUserDataException e) {
+            slackService.sendMsg(userId, e.getMessage());
             return new ResponseResult(ErrorCode.FAIL_TO_FIND_USER, e.getMessage());
         } catch (Exception e) {
+            slackService.sendMsg(userId, e.getMessage());
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
@@ -298,6 +313,7 @@ public class ChatRoomService {
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (Exception e) {
+            slackService.sendMsg(userId, e.getMessage());
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
@@ -324,6 +340,7 @@ public class ChatRoomService {
                     .toList();
             return new ResponseResult(ErrorCode.SUCCESS, chatRoomList);
         } catch (Exception e) {
+            slackService.sendMsg(userId, e.getMessage());
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
@@ -351,10 +368,13 @@ public class ChatRoomService {
             );
             return new ResponseResult(ErrorCode.SUCCESS, infoDto);
         } catch (ChatRoomNotFoundException e) {
+            slackService.sendMsg(userId, e.getMessage());
             return new ResponseResult(ErrorCode.CHATROOM_NOT_FOUND, "채팅방을 찾을 수 없습니다.");
         }catch (UnauthorizedAccessException e) {
+            slackService.sendMsg(userId, e.getMessage());
             return new ResponseResult(ErrorCode.CHAT_UNAUTHORIZED,"권한이 없습니다.");
         }catch (Exception e) {
+            slackService.sendMsg(userId, e.getMessage());
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, "채팅방 세부 정보를 가져오는 데 실패했습니다.");
         }
     }

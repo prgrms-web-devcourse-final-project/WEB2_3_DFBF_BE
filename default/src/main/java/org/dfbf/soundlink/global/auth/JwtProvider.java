@@ -1,6 +1,7 @@
 package org.dfbf.soundlink.global.auth;
 
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -31,13 +32,16 @@ public class JwtProvider {
 
     // 시크릿 키
     @Value("${jwt.secret}")
-    private String KEY;
+    private String SECRET_KEY_STRING;
+    private SecretKey SECRET_KEY;
+
+    @PostConstruct
+    public void init() {
+        this.SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_STRING.getBytes());
+    }
 
     // Access 토큰
     public String createAccessToken(long userId) {
-        // 시크릿 키 (HMAC SHA256)
-        SecretKey SECRET_KEY = Keys.hmacShaKeyFor(KEY.getBytes());
-
         Claims claims = Jwts.claims().setSubject(String.valueOf(userId));
         Date now = new Date();
         return Jwts.builder()
@@ -52,9 +56,6 @@ public class JwtProvider {
     public String createRefreshToken(long userId) {
         Claims claims = Jwts.claims().setSubject(String.valueOf(userId));
         Date now = new Date();
-
-        // 시크릿 키 (HMAC SHA256)
-        SecretKey SECRET_KEY = Keys.hmacShaKeyFor(KEY.getBytes());
 
         String refreshToken = Jwts.builder()
                 .setClaims(claims)
@@ -74,9 +75,6 @@ public class JwtProvider {
 
     //토큰 검증(변조, 만료, 올바른 형식)
     public boolean validateToken(String token) {
-        // 시크릿 키 (HMAC SHA256)
-        SecretKey SECRET_KEY = Keys.hmacShaKeyFor(KEY.getBytes());
-
         try {
             Jwts.parserBuilder()
                     .setSigningKey(SECRET_KEY)  // 서명 검증
@@ -119,9 +117,6 @@ public class JwtProvider {
 
     // 토큰에서 id 반환
     public Long getUserId(String token){
-        // 시크릿 키 (HMAC SHA256)
-        SecretKey SECRET_KEY = Keys.hmacShaKeyFor(KEY.getBytes());
-
         return Long.parseLong(Jwts.parserBuilder()
                 .setSigningKey(SECRET_KEY)
                 .build()

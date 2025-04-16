@@ -1,6 +1,7 @@
 package org.dfbf.soundlink.global.slack.service;
 
 import com.slack.api.Slack;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.slack.api.webhook.WebhookResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +19,17 @@ public class SlackService {
     private String webhookUrl;
 
     public void sendMsg(Object object, String errorMessage){
+        ObjectMapper objectMapper = new ObjectMapper();
+        String objectJson = "";
+        try {
+            objectJson = objectMapper
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(object)
+                    .replace("\"", "");
+        } catch (Exception ex) {
+            log.error("[SLACK ERROR] Failed to convert object to JSON", ex);
+        }
+
         String message = """
             {
                 "blocks": [
@@ -32,7 +44,7 @@ public class SlackService {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
-                            "text": "ResponseData\n```%s```"
+                            "text": "Response Data\n```%s```"
                         }
                     },
                     {
@@ -54,7 +66,7 @@ public class SlackService {
                     }
                 ]
             }
-        """.formatted(object, errorMessage, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        """.formatted(objectJson, errorMessage, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
         try {
             WebhookResponse response = Slack.getInstance().send(webhookUrl, message);

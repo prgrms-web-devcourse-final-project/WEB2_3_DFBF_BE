@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dfbf.soundlink.domain.alert.repository.AlertRepository;
 import org.dfbf.soundlink.global.exception.ErrorCode;
 import org.dfbf.soundlink.global.exception.ResponseResult;
+import org.dfbf.soundlink.global.slack.service.SlackService;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -21,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 public class AlertService {
 
     private final AlertRepository alertRepository;
+    private final SlackService slackService;
 
     // 60 * 1000 * 60 = 3,600,000{ms} = 1시간
     private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
@@ -54,6 +56,7 @@ public class AlertService {
                     .data("connect completed!!")
             );
         } catch (IOException e) {
+            slackService.sendMsg(id, e.getMessage());
             log.error("Error sending ping", e);
         }
 
@@ -98,6 +101,7 @@ public class AlertService {
 
             return new ResponseResult(ErrorCode.SUCCESS);
         } catch (IOException e) {
+            slackService.sendMsg(data, e.getMessage());
             alertRepository.delete(userId, emitterId);
             return new ResponseResult(ErrorCode.BAD_REQUEST_STATUS, e.getMessage());
         }

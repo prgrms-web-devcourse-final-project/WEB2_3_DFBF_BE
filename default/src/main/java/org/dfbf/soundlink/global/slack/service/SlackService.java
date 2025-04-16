@@ -1,27 +1,69 @@
 package org.dfbf.soundlink.global.slack.service;
 
+import com.slack.api.Slack;
+import com.slack.api.webhook.WebhookResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-@Service
-@Slf4j
-public class SlackService {
-    @Value("${SLACK.WEBHOOK.URL}")
-    private String webhookUrl = "SLACK_URL";
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
-    public boolean sendMsg(){
+@Slf4j
+@Service
+public class SlackService {
+
+    @Value("${SLACK.WEBHOOK.URL}")
+    private String webhookUrl;
+
+    public void sendMsg(Object object, String errorMessage){
+        String message = """
+            {
+                "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "*❗서버 오류*"
+                        }
+                    },
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "ResponseData\n```%s```"
+                        }
+                    },
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "Exeception\n`%s`"
+                        }
+                    },
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "발생시간\n`%s`"
+                        }
+                    },
+                    {
+                       "type": "divider"
+                    }
+                ]
+            }
+        """.formatted(object, errorMessage, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+
         Slack slack = Slack.getInstance();
-        String payload = "{\"text\":\"슬랙 메시지 테스트입니다.\"}";
+
         try {
-            WebhookResponse response = slack.send(webhookUrl, payload);
+            WebhookResponse response = slack.send(webhookUrl, message);
             System.out.println(response);
         } catch (IOException e) {
-            log.error("slack 메시지 발송 중 문제가 발생했습니다.", e.toString());
+            log.error("[SLACK ERROR] ", e.toString());
             throw new RuntimeException(e);
         }
-
-        return true;
     }
-    출처: https://developer-youn.tistory.com/149 [흔한 컴공 출신 개발자:티스토리]
 }

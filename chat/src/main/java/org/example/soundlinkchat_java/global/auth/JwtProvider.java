@@ -1,21 +1,20 @@
 package org.example.soundlinkchat_java.global.auth;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import io.jsonwebtoken.*;
 
 import javax.crypto.SecretKey;
-import java.util.Date;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtProvider {
@@ -30,22 +29,23 @@ public class JwtProvider {
     @Value("${REFRESH_TOKEN_EXPIRATION_TIME}")
     private long REFRESH_EXPIRATION_TIME;
 
-    @Value("{jwt.secret}")
+    // 시크릿 키
+    @Value("${jwt.secret}")
     private String SECRET_KEY_STRING;
-
-    //시크릿 키
-    SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_STRING.getBytes());
 
     // Access 토큰
     public String createAccessToken(long userId) {
+        // 시크릿 키 (HMAC SHA256)
+        SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_STRING.getBytes());
+
         Claims claims = Jwts.claims().setSubject(String.valueOf(userId));
         Date now = new Date();
-
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)
-                .setExpiration(new Date(now.getTime()+ACCESS_EXPIRATION_TIME))
-                .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
+                .setExpiration(new Date(now.getTime() + ACCESS_EXPIRATION_TIME))
+                .setHeaderParam("typ", "JWT")
+                .signWith(SECRET_KEY,SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -53,10 +53,14 @@ public class JwtProvider {
         Claims claims = Jwts.claims().setSubject(String.valueOf(userId));
         Date now = new Date();
 
+        // 시크릿 키 (HMAC SHA256)
+        SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_STRING.getBytes());
+
         String refreshToken = Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime()+REFRESH_EXPIRATION_TIME))
+                .setHeaderParam("typ", "JWT")
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
         try {
@@ -69,30 +73,26 @@ public class JwtProvider {
     }
 
     //토큰 검증(변조, 만료, 올바른 형식)
-    public boolean validateToken(String token){
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(SECRET_KEY)  //서명 검증
-                    .build()
-                    .parseClaimsJws(token);     //토큰 유효한지 확인.
-            return true;
-        } catch (Exception e) {
-            System.out.println("[ERROR] Token validation failed: ");
-            return false;
-        }
-    }
+    public boolean validateToken(String token) {
+        // 시크릿 키 (HMAC SHA256)
+        SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_STRING.getBytes());
 
-    public boolean isTokenExpired(String token) {
         try {
             Jwts.parserBuilder()
-                    .setSigningKey(SECRET_KEY)
+                    .setSigningKey(SECRET_KEY)  // 서명 검증
                     .build()
-                    .parseClaimsJws(token); // 만료된 토큰을 처리하려면 ExpiredJwtException이 발생함
-            return false; // 만료되지 않으면 false
-        } catch (ExpiredJwtException ex) {
-            return true; // 만료된 경우 true
-        } catch (Exception ex) {
-            return false; // 다른 예외는 false
+                    .parseClaimsJws(token);     // 토큰 유효한지 확인 (여기서 만료 시간도 체크)
+
+            // 토큰이 유효한 경우
+            return true;
+        }catch (ExpiredJwtException e) {
+            log.warn("[ERROR] Token is expired.");
+            throw e;
+        } catch (JwtException e) {
+            log.warn("[ERROR] Token validation failed: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            throw e;
         }
     }
 
@@ -119,6 +119,9 @@ public class JwtProvider {
 
     // 토큰에서 id 반환
     public Long getUserId(String token){
+        // 시크릿 키 (HMAC SHA256)
+        SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_STRING.getBytes());
+
         return Long.parseLong(Jwts.parserBuilder()
                 .setSigningKey(SECRET_KEY)
                 .build()
@@ -126,5 +129,4 @@ public class JwtProvider {
                 .getBody()
                 .getSubject());
     }
-
 }

@@ -26,8 +26,11 @@ public class JwtProvider {
     @Value("${REFRESH_TOKEN_EXPIRATION_TIME}")
     private long REFRESH_EXPIRATION_TIME;
 
+    @Value("{jwt.secret}")
+    private String SECRET_KEY_STRING;
+
     //시크릿 키
-    SecretKey SECRET_KEY = Keys.hmacShaKeyFor("ee7d4dcf88086125155386d999b3a2258d5c55671a390e608f49a2db31efc6e0".getBytes());
+    SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_STRING.getBytes());
 
     @Autowired
     private RedisTemplate<String, String> redisTemplate;

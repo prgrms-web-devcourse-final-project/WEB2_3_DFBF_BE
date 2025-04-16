@@ -24,7 +24,7 @@ public class TestDataInitializer implements CommandLineRunner {
                         "data": {}
                     }
                 """;
-        slackService.sendMsg("{}", "흥칫뿡");
+        slackService.sendMsg(testJson, "흥칫뿡");
         System.out.println("Server ON");
     }
 }

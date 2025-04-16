@@ -56,13 +56,14 @@ public class SlackService {
             }
         """.formatted(object, errorMessage, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
-        Slack slack = Slack.getInstance();
-
         try {
-            WebhookResponse response = slack.send(webhookUrl, message);
-            System.out.println(response);
+            WebhookResponse response = Slack.getInstance().send(webhookUrl, message);
+
+            if (!response.getCode().equals(200)) {
+                log.error("[SLACK RESPONSE ERROR] {}", response.getBody());
+            }
         } catch (IOException e) {
-            log.error("[SLACK ERROR] ", e.toString());
+            log.error("[SLACK ERROR] {}", e.toString());
             throw new RuntimeException(e);
         }
     }

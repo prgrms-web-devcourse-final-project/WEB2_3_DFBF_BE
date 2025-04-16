@@ -17,7 +17,7 @@ public class TestDataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        slackService.sendMsg(new ResponseResult(200, "OK"), "흥칫뿡");
+        // slackService.sendMsg(new ResponseResult(200, "OK"), "흥칫뿡");
         System.out.println("Server ON");
     }
 }

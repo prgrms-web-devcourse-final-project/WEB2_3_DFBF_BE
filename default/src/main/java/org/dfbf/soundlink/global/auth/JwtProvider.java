@@ -31,12 +31,12 @@ public class JwtProvider {
 
     // 시크릿 키
     @Value("${jwt.secret}")
-    private String SECRET_KEY_STRING;
+    private String KEY;
 
     // Access 토큰
     public String createAccessToken(long userId) {
         // 시크릿 키 (HMAC SHA256)
-        SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_STRING.getBytes());
+        SecretKey SECRET_KEY = Keys.hmacShaKeyFor(KEY.getBytes());
 
         Claims claims = Jwts.claims().setSubject(String.valueOf(userId));
         Date now = new Date();
@@ -54,7 +54,7 @@ public class JwtProvider {
         Date now = new Date();
 
         // 시크릿 키 (HMAC SHA256)
-        SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_STRING.getBytes());
+        SecretKey SECRET_KEY = Keys.hmacShaKeyFor(KEY.getBytes());
 
         String refreshToken = Jwts.builder()
                 .setClaims(claims)
@@ -75,7 +75,7 @@ public class JwtProvider {
     //토큰 검증(변조, 만료, 올바른 형식)
     public boolean validateToken(String token) {
         // 시크릿 키 (HMAC SHA256)
-        SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_STRING.getBytes());
+        SecretKey SECRET_KEY = Keys.hmacShaKeyFor(KEY.getBytes());
 
         try {
             Jwts.parserBuilder()
@@ -120,7 +120,7 @@ public class JwtProvider {
     // 토큰에서 id 반환
     public Long getUserId(String token){
         // 시크릿 키 (HMAC SHA256)
-        SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_STRING.getBytes());
+        SecretKey SECRET_KEY = Keys.hmacShaKeyFor(KEY.getBytes());
 
         return Long.parseLong(Jwts.parserBuilder()
                 .setSigningKey(SECRET_KEY)

@@ -36,4 +36,3 @@ feat/laundry/1
 feat/review/1
 
 feat/emotion
-

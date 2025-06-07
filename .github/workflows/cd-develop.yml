@@ -2,7 +2,9 @@ name: Java CI with Gradle
 
 on:
   push:
-    branches: [ "develop" ]
+    branches:
+      - develop
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -20,6 +22,21 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      # CR_PAT: Container Registry - Personal Access Token
+      - name: GitHub Container Registry login (GitHub Container Registry 로그인)
+        run: |
+          export CR_PAT=${{ secrets.SOUNDLINK_TOKEN }}
+          echo $CR_PAT | docker login ghcr.io -u ${{ secrets.GIT_ID }} --password-stdin
+
+      - name: Cache Gradle - Default (Gradle 캐시 - 디폴트)
+        uses: actions/cache@v3
+        with:
+          path: |
+            default/.gradle/caches
+            default/.gradle/wrapper
+          key: gradle-default-${{ runner.os }}-${{ hashFiles('default/**/gradle-wrapper.properties') }}
+          restore-keys: gradle-default-${{ runner.os }}-
+
       - name: Create application.properties from git secret (application.properties 파일 생성)
         run: |
           mkdir -p default/src/main/resources
@@ -29,11 +46,6 @@ jobs:
         env:
           APPLICATION_DEFAULT: ${{ secrets.APPLICATION_DEFAULT }}
           APPLICATION_CHAT: ${{ secrets.APPLICATION_CHAT }}
-
-      - name: Grant execute permission to Gradle (Gradle 실행 권한 부여)
-        run: |
-          chmod +x ./default/gradlew
-          chmod +x ./chat/gradlew
 
 #      - name: Detect Changes (변경된 파일 감지)
 #        id: changed-files
@@ -51,19 +63,20 @@ jobs:
 #            echo "CHAT_CHANGED=true" >> $GITHUB_ENV
 #          fi
 
-      - name: Build JAR (JAR 빌드)
+      - name: Cache Gradle - Chat (Gradle 캐시 - 채팅)
+        uses: actions/cache@v3
+        with:
+          path: |
+            chat/.gradle/caches
+            chat/.gradle/wrapper
+          key: gradle-chat-${{ runner.os }}-${{ hashFiles('chat/**/gradle-wrapper.properties') }}
+          restore-keys: gradle-chat-${{ runner.os }}-
+
+      - name: Build JAR - Default (JAR 빌드 - 디폴트)
         run: |
           cd default
+          chmod +x ./gradlew
           ./gradlew bootJar
-          cd ../chat
-          ./gradlew bootJar
-          cd ..
-
-      # CR_PAT: Container Registry - Personal Access Token
-      - name: GitHub Container Registry login (GitHub Container Registry 로그인)
-        run: |
-          export CR_PAT=${{ secrets.SOUNDLINK_TOKEN }}
-          echo $CR_PAT | docker login ghcr.io -u ${{ secrets.GIT_ID }} --password-stdin
 
       - name: Docker build & push (Default)
         run: |
@@ -76,6 +89,12 @@ jobs:
           docker tag soundlink_default $DOCKER_IMAGE_DEFAULT_LATEST
           docker push $DOCKER_IMAGE_DEFAULT
           docker push $DOCKER_IMAGE_DEFAULT_LATEST
+
+      - name: Build JAR - Chat (JAR 빌드 - 채팅)
+        run: |
+          cd chat
+          chmod +x ./gradlew
+          ./gradlew bootJar
 
       - name: Docker build & push (Chat)
         run: |

@@ -63,15 +63,6 @@ jobs:
 #            echo "CHAT_CHANGED=true" >> $GITHUB_ENV
 #          fi
 
-      - name: Cache Gradle - Chat (Gradle 캐시 - 채팅)
-        uses: actions/cache@v3
-        with:
-          path: |
-            chat/.gradle/caches
-            chat/.gradle/wrapper
-          key: gradle-chat-${{ runner.os }}-${{ hashFiles('chat/**/gradle-wrapper.properties') }}
-          restore-keys: gradle-chat-${{ runner.os }}-
-
       - name: Build JAR - Default (JAR 빌드 - 디폴트)
         run: |
           cd default
@@ -89,6 +80,15 @@ jobs:
           docker tag soundlink_default $DOCKER_IMAGE_DEFAULT_LATEST
           docker push $DOCKER_IMAGE_DEFAULT
           docker push $DOCKER_IMAGE_DEFAULT_LATEST
+
+      - name: Cache Gradle - Chat (Gradle 캐시 - 채팅)
+        uses: actions/cache@v3
+        with:
+          path: |
+            chat/.gradle/caches
+            chat/.gradle/wrapper
+          key: gradle-chat-${{ runner.os }}-${{ hashFiles('chat/**/gradle-wrapper.properties') }}
+          restore-keys: gradle-chat-${{ runner.os }}-
 
       - name: Build JAR - Chat (JAR 빌드 - 채팅)
         run: |

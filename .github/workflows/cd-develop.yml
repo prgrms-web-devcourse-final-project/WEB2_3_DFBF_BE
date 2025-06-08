@@ -37,8 +37,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            default/.gradle/caches
-            default/.gradle/wrapper
+            ./default/.gradle/caches
+            ./default/.gradle/wrapper
           key: gradle-default-${{ runner.os }}-${{ hashFiles('default/**/gradle-wrapper.properties') }}
           restore-keys: gradle-default-${{ runner.os }}-
 

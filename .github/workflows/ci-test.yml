@@ -38,11 +38,29 @@ jobs:
           chmod +x ./default/gradlew
           chmod +x ./chat/gradlew
 
+      - name: Cache Gradle - Default (Gradle 캐시 - 디폴트)
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/default/caches
+            ~/.gradle/default/wrapper
+          key: gradle-default-${{ runner.os }}-${{ hashFiles('default/**/gradle-wrapper.properties') }}
+          restore-keys: gradle-default-${{ runner.os }}-
+
       - name: Run tests - default server (디폴트 서버 테스트 실행)
         run: |
           cd default
           ./gradlew test
           cd ..
+
+      - name: Cache Gradle - Chat (Gradle 캐시 - 채팅)
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/chat/caches
+            ~/.gradle/chat/wrapper
+          key: gradle-chat-${{ runner.os }}-${{ hashFiles('chat/**/gradle-wrapper.properties') }}
+          restore-keys: gradle-chat-${{ runner.os }}-
 
       - name: Run tests - chat server (채팅 서버 테스트 실행)
         run: |

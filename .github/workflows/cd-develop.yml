@@ -28,6 +28,11 @@ jobs:
           export CR_PAT=${{ secrets.SOUNDLINK_TOKEN }}
           echo $CR_PAT | docker login ghcr.io -u ${{ secrets.GIT_ID }} --password-stdin
 
+      - name: Grant execute permission to Gradle (Gradle 실행 권한 부여)
+        run: |
+          chmod +x ./default/gradlew
+          chmod +x ./chat/gradlew
+
       - name: Cache Gradle - Default (Gradle 캐시 - 디폴트)
         uses: actions/cache@v3
         with:
@@ -66,7 +71,6 @@ jobs:
       - name: Build JAR - Default (JAR 빌드 - 디폴트)
         run: |
           cd default
-          chmod +x ./gradlew
           ./gradlew bootJar
 
       - name: Docker build & push (Default)
@@ -93,7 +97,6 @@ jobs:
       - name: Build JAR - Chat (JAR 빌드 - 채팅)
         run: |
           cd chat
-          chmod +x ./gradlew
           ./gradlew bootJar
 
       - name: Docker build & push (Chat)

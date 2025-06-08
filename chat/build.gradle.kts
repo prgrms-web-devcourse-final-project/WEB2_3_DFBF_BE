@@ -1,17 +1,16 @@
-gradle.settingsEvaluated {
-    buildCache {
-        local {
-            isEnabled = true
-            directory = File(rootDir, ".gradle/build-cache")
-        }
-    }
-}
-
 plugins {
     java
     id("org.springframework.boot") version "3.4.2"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.gorylenko.gradle-git-properties") version "2.4.1" // Git 플러그인 추가
+    id("org.sonarqube") version "4.4.1.3373"
+}
+
+sonarqube {
+    properties {
+        property("sonar.exclusions", "**/JwtProvider.java,**/JwtAuthenticationFilter.java,...")
+        property("sonar.duplication.exclusions", "**/JwtProvider.java,**/JwtAuthenticationFilter.java,...")
+    }
 }
 
 group = "org.example"

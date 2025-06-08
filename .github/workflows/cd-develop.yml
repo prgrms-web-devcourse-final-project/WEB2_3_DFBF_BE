@@ -21,7 +21,6 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: gradle
 
       # CR_PAT: Container Registry - Personal Access Token
       - name: GitHub Container Registry login (GitHub Container Registry 로그인)
@@ -38,8 +37,8 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ~/default/.gradle/caches
-            ~/default/.gradle/wrapper
+            ~/.gradle/default/caches
+            ~/.gradle/default/wrapper
           key: gradle-default-${{ runner.os }}-${{ hashFiles('default/**/gradle-wrapper.properties') }}
           restore-keys: gradle-default-${{ runner.os }}-
 
@@ -72,7 +71,7 @@ jobs:
       - name: Build JAR - Default (JAR 빌드 - 디폴트)
         run: |
           cd default
-          ./gradlew bootJar
+          GRADLE_USER_HOME=$HOME/.gradle/default ./gradlew bootJar
 
       - name: Docker build & push (Default)
         run: |
@@ -90,15 +89,15 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            chat/.gradle/caches
-            chat/.gradle/wrapper
+            ~/.gradle/chat/caches
+            ~/.gradle/chat/wrapper
           key: gradle-chat-${{ runner.os }}-${{ hashFiles('chat/**/gradle-wrapper.properties') }}
           restore-keys: gradle-chat-${{ runner.os }}-
 
       - name: Build JAR - Chat (JAR 빌드 - 채팅)
         run: |
           cd chat
-          ./gradlew bootJar
+          GRADLE_USER_HOME=$HOME/.gradle/chat ./gradlew bootJar
 
       - name: Docker build & push (Chat)
         run: |

@@ -1,3 +1,12 @@
+gradle.settingsEvaluated {
+    buildCache {
+        local {
+            isEnabled = true
+            directory = File(rootDir, ".gradle/build-cache")
+        }
+    }
+}
+
 plugins {
     java
     id("org.springframework.boot") version "3.4.2"

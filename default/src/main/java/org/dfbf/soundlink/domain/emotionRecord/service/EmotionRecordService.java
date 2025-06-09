@@ -105,13 +105,15 @@ public class EmotionRecordService {
     // 중복 요청 방지 기능 추가 (멱등성 보장)
     @Transactional
     public ResponseResult saveEmotionRecordWithMusicAndIdempotent(String idempotencyKey, Long userId, EmotionRecordRequestDTO request) {
-        if (!redisTemplate.keys("EmotionRecord:" + idempotencyKey).isEmpty()) {
+        if (idempotencyKey != null && !redisTemplate.keys("EmotionRecord:" + idempotencyKey).isEmpty()) {
             ObjectMapper mapper = new ObjectMapper();
             return mapper.convertValue(redisTemplate.opsForValue().get("EmotionRecord:" + idempotencyKey), ResponseResult.class);
         }
 
         ResponseResult responseResult = saveEmotionRecordWithMusic(userId, request);
-        redisTemplate.opsForValue().set("EmotionRecord:" + idempotencyKey, responseResult, 10, TimeUnit.SECONDS);
+        if (idempotencyKey != null) {
+            redisTemplate.opsForValue().set("EmotionRecord:" + idempotencyKey, responseResult, 10, TimeUnit.SECONDS);
+        }
 
         return responseResult;
     }

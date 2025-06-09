@@ -25,12 +25,13 @@ public class EmotionRecordController {
     @PostMapping
     @Operation(
             summary = "감정 기록 작성/저장 API",
-            description = "작성한 감정 기록을 저장합니다."
+            description = "작성한 감정 기록을 저장 & Idempotency Key를 사용하여 중복 요청을 방지"
     )
-    public ResponseResult saveEmotionWithMusic(
+    public ResponseResult saveEmotionWithMusicAndIdempotency(
+            @RequestHeader(name = "Idempotency-Key") String idempotencyKey,
             @AuthenticationPrincipal Long userId,
             @Valid @RequestBody EmotionRecordRequestDTO request) {
-        return emotionRecordService.saveEmotionRecordWithMusic(userId, request);
+        return emotionRecordService.saveEmotionRecordWithMusicAndIdempotent(idempotencyKey, userId, request);
     }
 
     @GetMapping

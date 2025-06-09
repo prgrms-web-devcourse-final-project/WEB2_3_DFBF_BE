@@ -1,5 +1,7 @@
 package org.dfbf.soundlink.domain.emotionRecord.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import feign.Response;
 import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -33,6 +36,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +50,8 @@ public class EmotionRecordService {
 
     // private final EmotionRecordCacheService emotionRecordCacheService;
     private final ChatRoomRepository chatRoomRepository;
+
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Transactional
     public ResponseResult saveEmotionRecordWithMusic(Long userId, EmotionRecordRequestDTO request) {
@@ -74,8 +80,8 @@ public class EmotionRecordService {
                     .build();
             emotionRecordRepository.save(emotionRecord);
 
-/*            // 게시글 생성 시, 해당 조건에 맞는 캐시 키 삭제
-            emotionRecordCacheService.evictEmotionRecordCache(
+            // 게시글 생성 시, 해당 조건에 맞는 캐시 키 삭제
+            /*emotionRecordCacheService.evictEmotionRecordCache(
                     userId,
                     request.spotifyId(),
                     request.emotion().name()
@@ -93,6 +99,23 @@ public class EmotionRecordService {
             log.error("감정기록 저장 서버 에러 {}", e.getMessage());
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
+    }
+
+    // 감정일기 추가
+    // 중복 요청 방지 기능 추가 (멱등성 보장)
+    @Transactional
+    public ResponseResult saveEmotionRecordWithMusicAndIdempotent(String idempotencyKey, Long userId, EmotionRecordRequestDTO request) {
+        if (idempotencyKey != null && !redisTemplate.keys("EmotionRecord:" + idempotencyKey).isEmpty()) {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.convertValue(redisTemplate.opsForValue().get("EmotionRecord:" + idempotencyKey), ResponseResult.class);
+        }
+
+        ResponseResult responseResult = saveEmotionRecordWithMusic(userId, request);
+        if (idempotencyKey != null) {
+            redisTemplate.opsForValue().set("EmotionRecord:" + idempotencyKey, responseResult, 10, TimeUnit.SECONDS);
+        }
+
+        return responseResult;
     }
 
     @Transactional(readOnly = true)
@@ -121,7 +144,6 @@ public class EmotionRecordService {
             return new ResponseResult(ErrorCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
-
 
     @Transactional(readOnly = true)
     public ResponseResult getEmotionRecordsByLoginId(String userTag, int page, int size) {

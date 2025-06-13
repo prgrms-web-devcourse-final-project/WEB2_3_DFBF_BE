@@ -28,7 +28,7 @@ public class EmotionRecordController {
             description = "작성한 감정 기록을 저장 & Idempotency Key를 사용하여 중복 요청을 방지"
     )
     public ResponseResult saveEmotionWithMusicAndIdempotency(
-            @RequestHeader(name = "Idempotency-Key") String idempotencyKey,
+            @RequestHeader(name = "Idempotency-Key", required = false) String idempotencyKey,
             @AuthenticationPrincipal Long userId,
             @Valid @RequestBody EmotionRecordRequestDTO request) {
         return emotionRecordService.saveEmotionRecordWithMusicAndIdempotent(idempotencyKey, userId, request);

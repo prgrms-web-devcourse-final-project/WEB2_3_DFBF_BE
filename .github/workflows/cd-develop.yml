@@ -120,9 +120,9 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             cd /home/${{ secrets.USERNAME }}/docker
-            sudo docker-compose stop spring
-            sudo docker-compose pull spring
-            sudo docker-compose up -d spring
-            sudo docker-compose stop spring_chat
-            sudo docker-compose pull spring_chat
-            sudo docker-compose up -d spring_chat
+            docker-compose stop spring
+            docker-compose pull spring
+            docker-compose up -d spring
+            docker-compose stop spring_chat
+            docker-compose pull spring_chat
+            docker-compose up -d spring_chat

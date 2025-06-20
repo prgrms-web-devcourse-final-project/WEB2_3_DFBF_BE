@@ -355,7 +355,12 @@ public class UserService {
             this.evictUserCache(userId);
 
             // SSE 연결 해제
-            alertService.disconnectAlarm(userId);
+            try {
+                alertService.disconnectAlarm(userId);
+            } catch (IllegalArgumentException e) {
+                // 스웨거 테스트 등, SSE 연결이 없을 때 발생할 수 있는 예외 처리
+                log.info("[SSE DisConnect ERROR] {}", e.getMessage());
+            }
 
             userStatusService.setOffline(userId);
 

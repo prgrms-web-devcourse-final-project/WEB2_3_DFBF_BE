@@ -1,5 +1,5 @@
 # Start with a base image containing Java runtime
-FROM openjdk:17-jdk
+FROM eclipse-temurin:17-jdk-jammy
 
 # The application's jar file
 ARG JAR_FILE=chat/build/libs/soundlink_chat.jar

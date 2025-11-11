@@ -1,5 +1,5 @@
 # Start with a base image containing Java runtime
-FROM openjdk:17-jdk-slim
+FROM openjdk:17-jdk
 
 # The application's jar file
 ARG JAR_FILE=default/build/libs/soundlink_default.jar

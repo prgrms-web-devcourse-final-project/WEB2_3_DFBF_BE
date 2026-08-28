@@ -45,3 +45,6 @@ default/src/main/resources/application.properties
 default/src/main/generated
 
 .DS_Store
+
+### Claude Code ###
+CLAUDE.md

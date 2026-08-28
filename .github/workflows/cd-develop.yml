@@ -16,6 +16,10 @@ jobs:
       - name: Checkout code (코드 체크아웃)
         uses: actions/checkout@v2
 
+      - name: Run Gitleaks (시크릿 유출 검사)
+        run: |
+          docker run --rm -v $(pwd):/repo ghcr.io/gitleaks/gitleaks:latest detect --source /repo --no-git --redact -v
+
       - name: Set up JDK 17 (JDK 17 설정)
         uses: actions/setup-java@v2
         with:
